@@ -53,23 +53,23 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
+                        <MenuItem mnemonicParsing="false" text="About Orbit Messenger" />
                     </items>
                 </Menu>
             </menus>
         </MenuBar>
-        <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="375.0" prefWidth="669.0" VBox.vgrow="ALWAYS">
+        <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="375.0" prefWidth="669.0" style="-fx-background-size: cover;" styleClass="mainAnchor" VBox.vgrow="ALWAYS">
             <children>
             <HBox alignment="CENTER" layoutX="14.0" layoutY="10.0" prefHeight="26.0" prefWidth="584.0">
                <children>
                       <Label text="Host IP:" />
-                      <TextField fx:id="txtHostIP" text="localhost" />
+                      <TextField fx:id="txtHostIP" promptText="192.168.X.X" />
                       <Label text="Username:">
                      <padding>
                         <Insets left="10.0" />
                      </padding>
                   </Label>
-                      <TextField fx:id="txtUsername">
+                      <TextField fx:id="txtUsername" promptText="XXXXXX">
                           <font>
                               <Font name="SansSerif Regular" size="12.0" />
                           </font>
@@ -91,7 +91,7 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                             <children>
-                                <ListView fx:id="listUser" layoutX="5.0" prefHeight="255.0" prefWidth="163.0" />
+                                <ListView fx:id="listUser" layoutX="5.0" prefHeight="255.0" prefWidth="163.0" styleClass="messageSendTextArea" />
                             </children>
                         </AnchorPane>
                     </content>
