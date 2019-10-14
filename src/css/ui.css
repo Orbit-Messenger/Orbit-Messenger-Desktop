@@ -6,3 +6,13 @@
 .menu-bar .menu .label {
     -fx-text-fill: #2d3e4c;
 }
+
+.mainAnchor {
+    -fx-background-image: url('../images/digitalbackground.jpg');
+    -fx-background-size: cover;
+}
+
+.messageDisplayTextArea .content,
+.messageSendTextArea .content {
+    -fx-background-color: #eff0f1;
+}
