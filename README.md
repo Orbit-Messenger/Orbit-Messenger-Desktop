@@ -1,4 +1,4 @@
-# ORBIT MESSENGER
+![alt Orbit Messenger logo] (https://github.com/MaxwellM/Orbit-Messenger/src/images/orbit-messenger-logo.png)
 
 ## DATABASE
 * Create a database called orbitmessengerdb
