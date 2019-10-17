@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"orbit-messager/src/go/db"
+	"orbit-messenger/src/go/db"
 )
 
 // TcpData is used to validate the user and to hold an action

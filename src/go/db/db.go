@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx"
 	"io/ioutil"
-	"orbit-messager/src/go/utils"
+	"orbit-messenger/src/go/utils"
 )
 
 // DATABASE_SETTINGS_FILE is the file that will be read to make a postgres url
