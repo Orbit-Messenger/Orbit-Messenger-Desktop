@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaExample.Controller">
     <children>
         <MenuBar VBox.vgrow="NEVER">
             <menus>
@@ -96,8 +96,8 @@
                         </AnchorPane>
                     </content>
                 </TitledPane>
-                <Button fx:id="btnSend" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" prefHeight="44.0" prefWidth="174.0" text="Send" />
-                <TextArea fx:id="txtUserMsg" layoutX="14.0" layoutY="343.0" prefHeight="114.0" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
+                <Button fx:id="btnSend" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
+                <TextArea fx:id="txtUserMsg" layoutX="14.0" layoutY="343.0" prefHeight="114.0" onKeyPressed="#handleEnterPressed" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
             </children>
         </AnchorPane>
     </children>
