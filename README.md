@@ -17,7 +17,7 @@ cd ..
 ./runServer
 ```
 
-## TCP actions
+## HTTP actions
 to get messenges from the server you will need to connect to the server by port 3000
 to test type
 ```
