@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"orbit-messenger/src/go/db"
 	"strings"
@@ -75,7 +76,8 @@ func (rc RouteController) AddMessage(c *gin.Context) {
 	if rc.validateUser(c) {
 		auth, err := rc.getAuth(c)
 		var message db.Message
-		c.BindJSON(message)
+		c.BindJSON(&message)
+		fmt.Println(message)
 		err = rc.dbConn.AddMessage(message, auth.Username)
 		if err != nil {
 			c.String(500, "Couldn't add message to the database")

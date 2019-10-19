@@ -191,6 +191,7 @@ func (dbConn DatabaseConnection) VerifyPasswordByUsername(username, password str
 
 // adds a message to the database under the username provided
 func (dbConn DatabaseConnection) AddMessage(message Message, username string) error {
+	fmt.Printf("The message is: %v", message.Message)
 	userId, err := dbConn.GetUserId(username)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
