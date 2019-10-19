@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net"
 	"orbit-messenger/src/go/db"
+	"orbit-messenger/src/go/routes"
 )
 
 // TcpData is used to validate the user and to hold an action
@@ -26,19 +28,28 @@ type OutputMessage struct {
 
 func main() {
 	fmt.Println("Starting Server")
-	ln, err := net.Listen("tcp", ":3000")
-	if err != nil {
-		panic(err)
-	}
-	for {
-		// accepts tcp connection
-		conn, err := ln.Accept()
-		fmt.Println("Connected with " + conn.RemoteAddr().String())
-		if err != nil {
-			fmt.Println(err)
-		}
-		go handleConnection(conn)
-	}
+	router := gin.Default()
+	routes := routes.CreateRouteController()
+
+	// Routes
+	router.GET("/getAllMessages", routes.GetAllMessages)
+	router.POST("/addMessage", routes.AddMessage)
+
+	router.Run(":3000")
+
+	//ln, err := net.Listen("tcp", ":3000")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//for {
+	//	// accepts tcp connection
+	//	conn, err := ln.Accept()
+	//	fmt.Println("Connected with " + conn.RemoteAddr().String())
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
+	//	go handleConnection(conn)
+	//}
 }
 
 // handles a connection
