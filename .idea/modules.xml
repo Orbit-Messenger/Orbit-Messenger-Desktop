@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/JavaExample.iml" filepath="$PROJECT_DIR$/JavaExample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/java/orbit-messenger.iml" filepath="$PROJECT_DIR$/src/java/orbit-messenger.iml" />
     </modules>
   </component>
 </project>
