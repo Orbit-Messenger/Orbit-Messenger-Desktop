@@ -13,12 +13,15 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/mainView.fxml"));
-        loader.setController(MainController.class);
+        MainController mc = new MainController();
+        loader.setController(mc);
         Parent root = (Parent) loader.load();
         //primaryStage.getIcons().add(new Image("./images/orbit.png"));
         primaryStage.setTitle("Orbit Messenger");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+
+        mc.getAllMessages();
     }
 
 
