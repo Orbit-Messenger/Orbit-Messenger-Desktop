@@ -92,3 +92,11 @@ func (rc RouteController) AddMessage(c *gin.Context) {
 		c.String(403, "Password or user not valid")
 	}
 }
+
+func (rc RouteController) VerifyUser(c *gin.Context) {
+	if rc.validateUser(c) {
+		c.String(200, "User is valid")
+	} else {
+		c.String(403, "User is not valid")
+	}
+}

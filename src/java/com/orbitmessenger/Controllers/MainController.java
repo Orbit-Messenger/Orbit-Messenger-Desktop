@@ -13,16 +13,41 @@ import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
+import kong.unirest.json.JSONObject;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class MainController {
-    // Using this project as an example:
-    // https://github.com/GabrielRivera21/ChatAppFx
 
-    // Java FX Implementation
+    private String username, password, server;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
     @FXML
     private Button btnLogin;
     @FXML
@@ -42,14 +67,15 @@ public class MainController {
 
     // Server Configuration
     private boolean connected;
-    private String server, username;
-    private int port;
 
     // for I/O
     private ObjectInputStream sInput;		// to read from the socket
     private ObjectOutputStream sOutput;		// to write on the socket
     private Socket socket;
 
+    public void initialize(){
+        this.getAllMessages();
+    }
     /**
      * To send a message to the server
      */
@@ -57,8 +83,8 @@ public class MainController {
         System.out.println(txtUserMsg.getText());
         JsonObject json = new JsonObject();
         json.addProperty("message", txtUserMsg.getText());
-        HttpResponse<JsonNode> response = Unirest.post("http://localhost:3000/addMessage")
-                .basicAuth("maxwell", "test")
+        HttpResponse<JsonNode> response = Unirest.post(this.getServer() + "/addMessage")
+                .basicAuth(this.getUsername(), this.getPassword())
                 .header("accept", "application/json")
                 .body(json)
                 .asJson();
@@ -77,10 +103,10 @@ public class MainController {
 //        for (Object x : test){
 //            display(test.toString());
 //        }
-        HttpResponse<String> messages = Unirest.get("http://localhost:3000/getAllMessages")
-                .basicAuth("maxwell", "test")
-                .asString();
-        display(messages.getBody());
+        JSONArray messages = Unirest.get("http://localhost:3000/getAllMessages")
+                .basicAuth(this.getUsername(), this.getPassword())
+                .asJson().getBody().getArray();
+        display(messages);
         //txtAreaServerMsgs.appendText(msg);
         System.out.println(messages);
     }
@@ -99,7 +125,15 @@ public class MainController {
     /*
      * To send a message to the console or the GUI
      */
-    private void display(String msg) {
-        txtAreaServerMsgs.appendText(msg + "\n"); // append to the ServerChatArea
+    private void display(JSONArray messages) {
+        ArrayList<String> messageStrings = new ArrayList<>();
+        for (Object message : messages){
+            JSONObject m = (JSONObject) message;
+            messageStrings.add(
+                    m.get("username").toString() + ":\n" + m.get("message").toString() + "\n\n"
+            );
+        }
+        txtAreaServerMsgs.clear();
+        txtAreaServerMsgs.appendText(messageStrings.toString().replace("[]", "")); // append to the ServerChatArea
     }
 }

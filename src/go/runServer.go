@@ -14,6 +14,7 @@ func main() {
 	// Routes
 	router.GET("/getAllMessages", routes.GetAllMessages)
 	router.POST("/addMessage", routes.AddMessage)
+	router.GET("/verifyUser", routes.VerifyUser)
 
 	router.Run(":3000")
 
