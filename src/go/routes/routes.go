@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"Orbit-Messenger/src/go/db"
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"orbit-messenger/src/go/db"
 	"strings"
 )
 
@@ -29,6 +29,10 @@ func CreateRouteController() RouteController {
 // Used to get the username and password from basic auth
 func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	var output Auth
+	fmt.Printf("input is: %v", input)
+	if input == "" {
+		return output, fmt.Errorf("No username or password in basic auth")
+	}
 	base64String := strings.Split(input, " ")[1]
 	data, err := base64.StdEncoding.DecodeString(base64String)
 	if err != nil {

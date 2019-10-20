@@ -1,9 +1,9 @@
 package main
 
 import (
+	"Orbit-Messenger/src/go/routes"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"orbit-messenger/src/go/routes"
 )
 
 func main() {
