@@ -24,9 +24,17 @@ type DatabaseConnection struct {
 
 // Message holds all the data for a message from the database
 type Message struct {
-	MessageId int64  `json"messageId"`
+	MessageId int64  `json:"messageId"`
 	Username  string `json:"username"`
 	Message   string `json:"message"`
+}
+
+type User struct {
+	Id          int64
+	Username    string
+	Password    string
+	Salt        string
+	AccountType string
 }
 
 // reads the database settings file or it will ask the user for the information to create one
@@ -117,6 +125,17 @@ func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 	return messages, nil
 }
 
+// GetMessageCount returns the message count from the database
+func (dbConn DatabaseConnection) GetMessageCount() (int64, error) {
+	var count int64
+	err := dbConn.conn.QueryRow(context.Background(),
+		"SELECT count(id) FROM messages;").Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 // GetUserId gets the users id from the username
 func (dbConn DatabaseConnection) GetUserId(username string) (int64, error) {
 	var id int64
@@ -172,6 +191,7 @@ func (dbConn DatabaseConnection) VerifyPasswordByUsername(username, password str
 
 // adds a message to the database under the username provided
 func (dbConn DatabaseConnection) AddMessage(message Message, username string) error {
+	fmt.Printf("The message is: %v", message.Message)
 	userId, err := dbConn.GetUserId(username)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)

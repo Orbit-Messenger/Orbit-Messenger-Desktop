@@ -17,19 +17,15 @@ cd ..
 ./runServer
 ```
 
-## TCP actions
+## HTTP actions
 to get messenges from the server you will need to connect to the server by port 3000
 to test type
 ```
-netcat localhost 3000
-{"action": "get_messages", "username": "brody", "password": "test"}
-
+curl -X GET localhost:3000/getAllMessages -u brody:things
 ```
 or to add a message type
 ```
-netcat localhost:3000
-{"action": "add_message", "username": "brody", "password": "test"}
-{"message": "MESSAGE"}
+curl -X POST localhost:3000/addMessage -u brody:test -d '{"message": "Testing"}'
 
 ```
 
