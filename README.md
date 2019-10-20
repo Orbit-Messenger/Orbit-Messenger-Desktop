@@ -21,7 +21,7 @@ cd ..
 to get messenges from the server you will need to connect to the server by port 3000
 to test type
 ```
-curl -X GET localhost:3000/getAllMessages -u brody:things
+curl -X GET localhost:3000/getAllMessages -u brody:test
 ```
 or to add a message type
 ```
