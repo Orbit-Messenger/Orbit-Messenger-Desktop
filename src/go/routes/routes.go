@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"Orbit-Messenger/src/go/db"
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"orbit-messenger/src/go/db"
 	"strings"
 )
 
@@ -29,14 +29,19 @@ func CreateRouteController() RouteController {
 // Used to get the username and password from basic auth
 func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	var output Auth
-	base64String := strings.Split(input, " ")[1]
+	if input == "" {
+		return output, fmt.Errorf("No username or password in basic auth")
+	}
+
+	// basic auth will give a string looking like basic YmFzaWMgYnJvZHk6dGVzdA==
+	// this removes the basic part
+	base64String := strings.Replace(input, "basic ", "", 1)
 	data, err := base64.StdEncoding.DecodeString(base64String)
 	if err != nil {
 		return output, nil
 	}
 	usernameAndPassword := strings.Split(string(data), ":")
-	output.Username = usernameAndPassword[0]
-	output.Password = usernameAndPassword[1]
+	output = Auth{usernameAndPassword[0], usernameAndPassword[1]}
 	return output, nil
 }
 
@@ -77,7 +82,6 @@ func (rc RouteController) AddMessage(c *gin.Context) {
 		auth, err := rc.getAuth(c)
 		var message db.Message
 		c.BindJSON(&message)
-		fmt.Println(message)
 		err = rc.dbConn.AddMessage(message, auth.Username)
 		if err != nil {
 			c.String(500, "Couldn't add message to the database")
@@ -86,5 +90,13 @@ func (rc RouteController) AddMessage(c *gin.Context) {
 		c.Status(200)
 	} else {
 		c.String(403, "Password or user not valid")
+	}
+}
+
+func (rc RouteController) VerifyUser(c *gin.Context) {
+	if rc.validateUser(c) {
+		c.String(200, "User is valid")
+	} else {
+		c.String(403, "User is not valid")
 	}
 }

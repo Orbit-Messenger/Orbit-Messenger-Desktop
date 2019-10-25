@@ -16,3 +16,25 @@
 .messageSendTextArea .content {
     -fx-background-color: #eff0f1;
 }
+
+.uiDefaults{
+    -fx-background-image: url('../images/digitalbackground.jpg');
+    -fx-background-size: cover;
+}
+
+.loginLabels{
+    -fx-font-size: 1.5em;
+}
+
+.defaultButton{
+    -fx-background-color: #279af1;
+    -fx-text-fill: white;
+}
+
+.loginInputBox{
+    -fx-max-width: 300px;
+}
+
+.loginButton{
+    -fx-min-width: 200px;
+}

@@ -1,12 +1,12 @@
 package db
 
 import (
+	"Orbit-Messenger/src/go/utils"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx"
 	"io/ioutil"
-	"orbit-messenger/src/go/utils"
 )
 
 // DATABASE_SETTINGS_FILE is the file that will be read to make a postgres url

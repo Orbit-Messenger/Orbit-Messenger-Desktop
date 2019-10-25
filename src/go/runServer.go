@@ -1,9 +1,9 @@
 package main
 
 import (
+	"Orbit-Messenger/src/go/routes"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"orbit-messenger/src/go/routes"
 )
 
 func main() {
@@ -14,6 +14,7 @@ func main() {
 	// Routes
 	router.GET("/getAllMessages", routes.GetAllMessages)
 	router.POST("/addMessage", routes.AddMessage)
+	router.GET("/verifyUser", routes.VerifyUser)
 
 	router.Run(":3000")
 
