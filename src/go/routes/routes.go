@@ -35,10 +35,11 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 
 	// basic auth will give a string looking like basic YmFzaWMgYnJvZHk6dGVzdA==
 	// this removes the basic part
-	base64String := strings.Replace(input, "basic ", "", 1)
+	base64String := strings.Replace(input, "Basic ", "", 1)
 	data, err := base64.StdEncoding.DecodeString(base64String)
+	fmt.Printf("\ndata: %v\n", string(data))
 	if err != nil {
-		return output, nil
+		return output, err
 	}
 	usernameAndPassword := strings.Split(string(data), ":")
 	output = Auth{usernameAndPassword[0], usernameAndPassword[1]}
