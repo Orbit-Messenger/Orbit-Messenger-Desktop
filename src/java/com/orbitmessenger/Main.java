@@ -1,33 +1,29 @@
-package com.orbitmessenger
+package com.orbitmessenger;
 
-import com.orbitmessenger.Controllers.LoginController
-import javafx.application.Application
-import javafx.fxml.FXMLLoader
-import javafx.scene.Parent
-import javafx.scene.Scene
-import javafx.scene.image.Image
-import javafx.stage.Stage
+import com.orbitmessenger.Controllers.LoginController;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
-class Main : Application() {
+public class Main extends Application {
 
-    @Throws(Exception::class)
-    override fun start(primaryStage: Stage) {
-        val loader = FXMLLoader(javaClass.getResource("./FXML/loginView.fxml"))
-        val loginController = LoginController()
-        loader.setController(loginController)
-        val root = loader.load() as Parent
-        primaryStage.icons.add(Image("com/orbitmessenger/images/orbit.png"))
-        primaryStage.title = "Orbit Messenger"
-        primaryStage.scene = Scene(root)
-        primaryStage.show()
+    @Override
+    public void start(Stage primaryStage) throws Exception{
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/loginView.fxml"));
+        LoginController loginController = new LoginController();
+        loader.setController(loginController);
+        Parent root = (Parent) loader.load();
+        primaryStage.getIcons().add(new Image("com/orbitmessenger/images/orbit.png"));
+        primaryStage.setTitle("Orbit Messenger");
+        primaryStage.setScene(new Scene(root));
+        primaryStage.show();
     }
 
-    companion object {
 
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            Application.launch(*args)
-        }
+    public static void main(String[] args) {
+        launch(args);
     }
 }
