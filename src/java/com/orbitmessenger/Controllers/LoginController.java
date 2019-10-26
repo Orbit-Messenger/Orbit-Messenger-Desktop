@@ -3,6 +3,7 @@ package com.orbitmessenger.Controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
 public class LoginController extends ControllerUtil {
@@ -20,21 +21,23 @@ public class LoginController extends ControllerUtil {
     TextField serverTextField;
 
     @FXML
-    public void login(){
-       String username = this.getTextFieldText(usernameTextField);
-       String password = this.getTextFieldText(passwordTextField);
+    public void login() {
+        String username = this.getTextFieldText(usernameTextField);
+        String password = this.getTextFieldText(passwordTextField);
         String server = this.getTextFieldText(serverTextField);
-       int statusCode = Unirest.get(server + "/verifyUser")
-               .basicAuth(username, password).asString().getStatus();
-       if(statusCode == 200){
+        int statusCode = Unirest.get(server + "/verifyUser")
+                .basicAuth(username, password).asString().getStatus();
+        if (statusCode == 200) {
             MainController mc = new MainController();
             mc.setUsername(username);
             mc.setPassword(password);
             mc.setServer(server);
-           changeSceneTo(this.MAIN_FXML, mc, usernameTextField);
-       } else{
-           // change to a status update
-           System.out.println("Couldn't login");
-       }
+            System.out.println("PATH: " + this.MAIN_FXML);
+            System.out.println("usernameTextField: " + usernameTextField);
+            changeSceneTo(this.MAIN_FXML, mc, new Stage());
+        } else {
+            // change to a status update
+            System.out.println("Couldn't login");
+        }
     }
 }

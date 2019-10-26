@@ -64,6 +64,42 @@ func (rc RouteController) validateUser(c *gin.Context) bool {
 	return rc.dbConn.VerifyPasswordByUsername(auth.Username, auth.Password)
 }
 
+// Checks to see if there are new message. If so gets them!
+func (rc RouteController) CheckForUpdatedMessages(c *gin.Context) {
+	if rc.validateUser(c) {
+		type MessageCount struct {
+			MessageCount int64 `json:"messageCount"`
+		}
+
+		var info MessageCount
+		c.Bind(&info)
+
+		fmt.Println("Message Count: ", info.MessageCount)
+		messages, err := rc.dbConn.CheckForUpdatedMessages(info.MessageCount)
+		if err != nil {
+			c.String(500, "Couldn't get messages from database")
+			return
+		}
+		c.JSON(200, messages)
+	} else {
+		c.String(403, "Password or user not valid")
+	}
+}
+
+// Gets message count
+func (rc RouteController) GetMessageCount(c *gin.Context) {
+	if rc.validateUser(c) {
+		messageCount, err := rc.dbConn.GetMessageCount()
+		if err != nil {
+			c.String(500, "Couldn't get message count from database")
+			return
+		}
+		c.JSON(200, messageCount)
+	} else {
+		c.String(403, "Password or user not valid")
+	}
+}
+
 // Gets all the messages from the database
 func (rc RouteController) GetAllMessages(c *gin.Context) {
 	if rc.validateUser(c) {

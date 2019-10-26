@@ -19,10 +19,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainController {
 
     private String username, password, server;
+    private int localMessageCount = 0;
 
     public String getUsername() {
         return username;
@@ -75,6 +78,17 @@ public class MainController {
 
     public void initialize(){
         this.getAllMessages();
+
+        Timer timer = new Timer();
+        int begin = 0;
+        int timeInterval = 1000;
+        timer.schedule(new TimerTask() {
+            int counter = 0;
+            @Override
+            public void run() {
+                checkForNewMessages();
+            }
+        }, begin, timeInterval);
     }
     /**
      * To send a message to the server
@@ -94,15 +108,27 @@ public class MainController {
     }
 
     /**
+     * Checks to see if there are new messages. If so, update them!
+     */
+    public void checkForNewMessages() {
+        String returnedMessageCount = Unirest.get("http://localhost:3000/getMessageCount")
+                .basicAuth(this.getUsername(), this.getPassword())
+                .asString()
+                .getBody().trim();
+        int returnedMessageCountInt = Integer.parseInt(returnedMessageCount);
+        if (localMessageCount < returnedMessageCountInt) {
+            JSONArray messages = Unirest.get("http://localhost:3000/getAllMessages")
+                    .basicAuth(this.getUsername(), this.getPassword())
+                    .asJson().getBody().getArray();
+            display(messages);
+            localMessageCount = returnedMessageCountInt;
+        }
+    }
+
+    /**
      * Gets all the message from the Server
      */
     public void getAllMessages() {
-//        JsonNode jsonData = Unirest.get("http://localhost:3000/getAllMessages")
-//                .basicAuth("brody", "test").asJson().getBody();
-//        JSONArray test = jsonData.getArray();
-//        for (Object x : test){
-//            display(test.toString());
-//        }
         JSONArray messages = Unirest.get("http://localhost:3000/getAllMessages")
                 .basicAuth(this.getUsername(), this.getPassword())
                 .asJson().getBody().getArray();
@@ -135,5 +161,6 @@ public class MainController {
         }
         txtAreaServerMsgs.clear();
         txtAreaServerMsgs.appendText(messageStrings.toString().replace("[]", "")); // append to the ServerChatArea
+        txtAreaServerMsgs.setScrollTop(txtAreaServerMsgs.getLength());
     }
 }

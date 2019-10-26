@@ -104,6 +104,26 @@ func CreateDatabaseConnection() DatabaseConnection {
 	return dbConn
 }
 
+func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]Message, error) {
+
+	// First lets check if the messages are different than they were the last time we checked. If so, end.
+	returnedMessageCount, messageErr := dbConn.GetMessageCount()
+	if messageErr != nil {
+		return nil, messageErr
+	}
+
+	if messageCount != returnedMessageCount {
+		// Update the messages API
+		messages, err := dbConn.GetAllMessages()
+		if err != nil {
+			return nil, err
+		}
+		return messages, nil
+	} else {
+		return nil, nil
+	}
+}
+
 // GetAllMessages returns an array of Message types containing all the messages from the database
 func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 	var messages []Message
