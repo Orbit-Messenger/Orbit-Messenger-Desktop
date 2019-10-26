@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+<VBox alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1">
     <stylesheets>
         <URL value="@../css/ui.css" />
     </stylesheets>
@@ -22,14 +22,14 @@
          </image>
       </ImageView>
       <Label styleClass="loginLabels" text="Username" />
-      <TextField fx:id="usernameTextField" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
+      <TextField fx:id="usernameTextField" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
       <Label styleClass="loginLabels" text="Password" />
-      <TextField fx:id="passwordTextField" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
+      <TextField fx:id="passwordTextField" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
       <Label layoutX="366.0" layoutY="293.0" styleClass="loginLabels" text="Server" />
-      <TextField fx:id="serverTextField" layoutX="260.0" layoutY="321.0" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
+      <TextField fx:id="serverTextField" layoutX="260.0" layoutY="321.0" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Button mnemonicParsing="false" onMouseClicked="#login" text="Login">
+            <Button fx:id="loginBtn" mnemonicParsing="false" onMouseClicked="#login" text="Login">
                <styleClass>
                   <String fx:value="loginButton" />
                   <String fx:value="defaultButton" />
@@ -38,7 +38,7 @@
                   <Insets right="10.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" text="Create User">
+            <Button fx:id="cUsrBtn" mnemonicParsing="false" text="Create User">
                <styleClass>
                   <String fx:value="loginButton" />
                   <String fx:value="defaultButton" />

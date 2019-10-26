@@ -37,4 +37,10 @@
 
 .loginButton{
     -fx-min-width: 200px;
+    -fx-cursor: hand;
+}
+
+.loginButton:hover {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-color: white;
 }

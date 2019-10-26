@@ -25,17 +25,18 @@ public class LoginController extends ControllerUtil {
 
     @FXML
     public void login() {
-        String username = this.getTextFieldText(usernameTextField);
-        String password = this.getTextFieldText(passwordTextField);
-        String server = httpServerTxtCheck(this.getTextFieldText(serverTextField));
+        String username = this.getTextFieldText(usernameTextField).trim();
+        String password = this.getTextFieldText(passwordTextField).trim();
+        String server = this.getTextFieldText(serverTextField).trim();
+        String serverPrefix = httpServerTxtCheck(server);
         if (!checkInput(username, password, server)) {
-            int statusCode = Unirest.get(server + "/verifyUser")
+            int statusCode = Unirest.get(serverPrefix + "/verifyUser")
                     .basicAuth(username, password).asString().getStatus();
             if (statusCode == 200) {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
-                mc.setServer(server);
+                mc.setServer(serverPrefix);
                 System.out.println("PATH: " + this.MAIN_FXML);
                 System.out.println("usernameTextField: " + usernameTextField);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
@@ -76,7 +77,12 @@ public class LoginController extends ControllerUtil {
      */
     @FXML
     private boolean checkInput(String username, String password, String server) {
-        return (username.isEmpty()) && (password.isEmpty()) && (server.isEmpty());
+        System.out.println("Username: " + username + username.isEmpty());
+        System.out.println("Password: " + password + password.isEmpty());
+        System.out.println("Server: " + server + server.isEmpty());
+        boolean b = username.isEmpty() || (password.isEmpty()) || (server.isEmpty());
+        System.out.println(b);
+        return b;
     }
 
     /**
