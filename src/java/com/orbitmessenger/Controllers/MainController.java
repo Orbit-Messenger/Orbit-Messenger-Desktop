@@ -1,12 +1,10 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import kong.unirest.HttpResponse;
@@ -80,7 +78,13 @@ public class MainController {
 
     public void initialize(){
         this.getAllMessages();
+        this.setIntervalForNewMessages();
+    }
 
+    /**
+     * Sets the interval of checking for new messages
+     */
+    private void setIntervalForNewMessages() {
         Timer timer = new Timer();
         int begin = 0;
         int timeInterval = 1000;
@@ -177,5 +181,26 @@ public class MainController {
      */
     private boolean checkForEmptyMessage(String message) {
         return (message.isEmpty());
+    }
+
+    /**
+     * Closes the program
+     */
+    public void closeProgram() {
+        System.out.println("Calling Platform.exit():");
+        Platform.exit();
+        System.out.println("Calling System.exit(0):");
+        System.exit(0);
+    }
+
+    /**
+     * Popup dialog box displaying About information!
+     */
+    public void popupAboutDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Orbit Messenger");
+        alert.setHeaderText(null);
+        alert.setContentText("Designed and built by Bordy and Maxwell in Utah!");
+        alert.showAndWait();
     }
 }
