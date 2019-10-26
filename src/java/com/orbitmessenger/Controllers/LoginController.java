@@ -28,7 +28,7 @@ public class LoginController extends ControllerUtil {
         String username = this.getTextFieldText(usernameTextField);
         String password = this.getTextFieldText(passwordTextField);
         String server = this.getTextFieldText(serverTextField);
-        if (checkInput(username, password, server)) {
+        if (!checkInput(username, password, server)) {
             int statusCode = Unirest.get(server + "/verifyUser")
                     .basicAuth(username, password).asString().getStatus();
             if (statusCode == 200) {
@@ -64,7 +64,7 @@ public class LoginController extends ControllerUtil {
      */
     @FXML
     private boolean checkInput(String username, String password, String server) {
-        return (!username.equals("")) && (!password.equals("")) && (!server.equals(""));
+        return (username.isEmpty()) && (password.isEmpty()) && (server.isEmpty());
     }
 
     /**

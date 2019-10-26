@@ -107,17 +107,23 @@ public class MainController {
      * To send a message to the server
      */
     public void sendMessage() {
-        System.out.println(txtUserMsg.getText());
-        JsonObject json = new JsonObject();
-        json.addProperty("message", txtUserMsg.getText());
-        HttpResponse<JsonNode> response = Unirest.post(this.getServer() + "/addMessage")
-                .basicAuth(this.getUsername(), this.getPassword())
-                .header("accept", "application/json")
-                .body(json)
-                .asJson();
-        System.out.println(response.getStatus());
-        txtUserMsg.setText("");
-        getAllMessages();
+        String message = txtUserMsg.getText().trim();
+        if (!checkForEmptyMessage(message)) {
+            System.out.println(message);
+            JsonObject json = new JsonObject();
+            json.addProperty("message", message);
+            HttpResponse<JsonNode> response = Unirest.post(this.getServer() + "/addMessage")
+                    .basicAuth(this.getUsername(), this.getPassword())
+                    .header("accept", "application/json")
+                    .body(json)
+                    .asJson();
+            System.out.println(response.getStatus());
+            txtUserMsg.setText("");
+            getAllMessages();
+        } else {
+            System.out.println("Empty message. Not sending!");
+            txtUserMsg.setText("");
+        }
     }
 
     /**
@@ -150,7 +156,7 @@ public class MainController {
         System.out.println(messages);
     }
 
-    /*
+    /**
      * To send a message to the console or the GUI
      */
     private void display(JSONArray messages) {
@@ -164,5 +170,12 @@ public class MainController {
         txtAreaServerMsgs.clear();
         txtAreaServerMsgs.appendText(messageStrings.toString().replace("[]", "")); // append to the ServerChatArea
         txtAreaServerMsgs.setScrollTop(txtAreaServerMsgs.getLength());
+    }
+
+    /**
+     * Checks to make sure that the message we're trying to send isn't empty!
+     */
+    private boolean checkForEmptyMessage(String message) {
+        return (message.isEmpty());
     }
 }
