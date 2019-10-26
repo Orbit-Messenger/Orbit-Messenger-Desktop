@@ -22,11 +22,11 @@
          </image>
       </ImageView>
       <Label styleClass="loginLabels" text="Username" />
-      <TextField fx:id="usernameTextField" styleClass="loginInputBox" />
+      <TextField fx:id="usernameTextField" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
       <Label styleClass="loginLabels" text="Password" />
-      <TextField fx:id="passwordTextField" styleClass="loginInputBox" />
+      <TextField fx:id="passwordTextField" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
       <Label layoutX="366.0" layoutY="293.0" styleClass="loginLabels" text="Server" />
-      <TextField fx:id="serverTextField" layoutX="260.0" layoutY="321.0" styleClass="loginInputBox" />
+      <TextField fx:id="serverTextField" layoutX="260.0" layoutY="321.0" styleClass="loginInputBox" onKeyPressed="#handleEnterPressed"/>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
          <children>
             <Button mnemonicParsing="false" onMouseClicked="#login" text="Login">

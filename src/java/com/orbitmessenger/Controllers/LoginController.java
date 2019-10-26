@@ -1,8 +1,11 @@
 package com.orbitmessenger.Controllers;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
@@ -25,19 +28,54 @@ public class LoginController extends ControllerUtil {
         String username = this.getTextFieldText(usernameTextField);
         String password = this.getTextFieldText(passwordTextField);
         String server = this.getTextFieldText(serverTextField);
-        int statusCode = Unirest.get(server + "/verifyUser")
-                .basicAuth(username, password).asString().getStatus();
-        if (statusCode == 200) {
-            MainController mc = new MainController();
-            mc.setUsername(username);
-            mc.setPassword(password);
-            mc.setServer(server);
-            System.out.println("PATH: " + this.MAIN_FXML);
-            System.out.println("usernameTextField: " + usernameTextField);
-            changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
+        if (checkInput(username, password, server)) {
+            int statusCode = Unirest.get(server + "/verifyUser")
+                    .basicAuth(username, password).asString().getStatus();
+            if (statusCode == 200) {
+                MainController mc = new MainController();
+                mc.setUsername(username);
+                mc.setPassword(password);
+                mc.setServer(server);
+                System.out.println("PATH: " + this.MAIN_FXML);
+                System.out.println("usernameTextField: " + usernameTextField);
+                changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
+            } else {
+                // change to a status update
+                System.out.println("Couldn't login");
+            }
         } else {
-            // change to a status update
-            System.out.println("Couldn't login");
+            System.out.println("Missing field!");
+            popupMissingFieldDialog();
         }
+    }
+
+    /**
+     * Logs in when pressing enter while in any text field!
+     */
+    @FXML
+    public void handleEnterPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            login();
+        }
+    }
+
+    /**
+     * Checks to see if the text fields are not empty!
+     */
+    @FXML
+    private boolean checkInput(String username, String password, String server) {
+        return (!username.equals("")) && (!password.equals("")) && (!server.equals(""));
+    }
+
+    /**
+     * Popup dialog box displaying missing field!
+     */
+    @FXML
+    private void popupMissingFieldDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Error Logging In");
+        alert.setHeaderText(null);
+        alert.setContentText("Missing Field!");
+        alert.showAndWait();
     }
 }

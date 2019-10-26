@@ -100,7 +100,6 @@ public class MainController {
     public void handleEnterPressed(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
             sendMessage();
-            event.consume();
         }
     }
 
