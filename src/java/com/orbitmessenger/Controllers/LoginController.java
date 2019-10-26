@@ -27,7 +27,7 @@ public class LoginController extends ControllerUtil {
     public void login() {
         String username = this.getTextFieldText(usernameTextField);
         String password = this.getTextFieldText(passwordTextField);
-        String server = this.getTextFieldText(serverTextField);
+        String server = httpServerTxtCheck(this.getTextFieldText(serverTextField));
         if (!checkInput(username, password, server)) {
             int statusCode = Unirest.get(server + "/verifyUser")
                     .basicAuth(username, password).asString().getStatus();
@@ -46,6 +46,18 @@ public class LoginController extends ControllerUtil {
         } else {
             System.out.println("Missing field!");
             popupMissingFieldDialog();
+        }
+    }
+
+    /**
+     * Checks if http:// is entered in the server text field, if not affix it!
+     * @return
+     */
+    public String httpServerTxtCheck(String server) {
+        if (server.startsWith("http://")) {
+            return server;
+        } else {
+            return "http://"+server;
         }
     }
 

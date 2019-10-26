@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainController {
+public class MainController extends ControllerUtil {
 
     private String username, password, server;
     private int localMessageCount = 0;
@@ -48,6 +49,8 @@ public class MainController {
     public void setServer(String server) {
         this.server = server;
     }
+
+    private Timer timer = new Timer();
 
     @FXML
     private Button btnLogin;
@@ -85,7 +88,6 @@ public class MainController {
      * Sets the interval of checking for new messages
      */
     private void setIntervalForNewMessages() {
-        Timer timer = new Timer();
         int begin = 0;
         int timeInterval = 1000;
         timer.schedule(new TimerTask() {
@@ -95,6 +97,14 @@ public class MainController {
                 checkForNewMessages();
             }
         }, begin, timeInterval);
+    }
+
+    /**
+     * Stops the timer
+     */
+    private void stopIntervalForNewMessages() {
+        timer.cancel();
+        timer.purge();
     }
 
     /**
@@ -202,5 +212,17 @@ public class MainController {
         alert.setHeaderText(null);
         alert.setContentText("Designed and built by Bordy and Maxwell in Utah!");
         alert.showAndWait();
+    }
+
+    /**
+     * Switch back to the login scene
+     */
+    public void switchToLogin() {
+        // Stop timer
+        stopIntervalForNewMessages();
+        // Switches back to the Login Controller/Window
+        LoginController login = new LoginController();
+        ControllerUtil ctrlUtl = new ControllerUtil();
+        login.changeSceneTo(ctrlUtl.LOGIN_FXML, login, (Stage) txtUserMsg.getScene().getWindow());
     }
 }

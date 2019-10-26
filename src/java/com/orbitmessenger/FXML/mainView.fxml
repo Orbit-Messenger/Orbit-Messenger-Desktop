@@ -22,7 +22,7 @@
                         <MenuItem mnemonicParsing="false" text="Open…" />
                         <Menu mnemonicParsing="false" text="Open Recent" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Close" />
+                        <MenuItem mnemonicParsing="false" onAction="#switchToLogin" text="Close" />
                         <MenuItem mnemonicParsing="false" text="Save" />
                         <MenuItem mnemonicParsing="false" text="Save As…" />
                         <MenuItem mnemonicParsing="false" text="Revert" />
