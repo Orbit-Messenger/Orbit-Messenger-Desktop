@@ -111,13 +111,13 @@ public class MainController {
      * Checks to see if there are new messages. If so, update them!
      */
     public void checkForNewMessages() {
-        String returnedMessageCount = Unirest.get("http://localhost:3000/getMessageCount")
+        String returnedMessageCount = Unirest.get(this.getServer()+"/getMessageCount")
                 .basicAuth(this.getUsername(), this.getPassword())
                 .asString()
                 .getBody().trim();
         int returnedMessageCountInt = Integer.parseInt(returnedMessageCount);
         if (localMessageCount < returnedMessageCountInt) {
-            JSONArray messages = Unirest.get("http://localhost:3000/getAllMessages")
+            JSONArray messages = Unirest.get(this.getServer()+"/getAllMessages")
                     .basicAuth(this.getUsername(), this.getPassword())
                     .asJson().getBody().getArray();
             display(messages);
@@ -129,7 +129,7 @@ public class MainController {
      * Gets all the message from the Server
      */
     public void getAllMessages() {
-        JSONArray messages = Unirest.get("http://localhost:3000/getAllMessages")
+        JSONArray messages = Unirest.get(this.getServer()+"/getAllMessages")
                 .basicAuth(this.getUsername(), this.getPassword())
                 .asJson().getBody().getArray();
         display(messages);
