@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <VBox prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1">
     <children>
@@ -60,44 +55,18 @@
         </MenuBar>
         <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="375.0" prefWidth="669.0" style="-fx-background-size: cover;" styleClass="mainAnchor" VBox.vgrow="ALWAYS">
             <children>
-            <HBox alignment="CENTER" layoutX="14.0" layoutY="10.0" prefHeight="26.0" prefWidth="584.0">
-               <children>
-                      <Label text="Host IP:" />
-                      <TextField fx:id="txtHostIP" promptText="192.168.X.X" />
-                      <Label text="Username:">
-                     <padding>
-                        <Insets left="10.0" />
-                     </padding>
-                  </Label>
-                      <TextField fx:id="txtUsername" promptText="XXXXXX">
-                          <font>
-                              <Font name="SansSerif Regular" size="12.0" />
-                          </font>
-                      </TextField>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER" layoutX="612.0" layoutY="9.0" prefHeight="26.0" prefWidth="174.0">
-               <children>
-                      <Button fx:id="btnLogin" mnemonicParsing="false" prefHeight="25.0" prefWidth="79.0" text="Login" />
-                      <Button fx:id="btnLogout" disable="true" mnemonicParsing="false" prefHeight="25.0" prefWidth="79.0" text="Logout">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </HBox>
-                <TextArea fx:id="txtAreaServerMsgs" editable="false" layoutX="14.0" layoutY="43.0" prefHeight="287.0" prefWidth="584.0" wrapText="true" />
-                <TitledPane animated="false" layoutX="450.0" layoutY="41.0" prefHeight="287.0" prefWidth="174.0" text="Users" AnchorPane.bottomAnchor="139.0" AnchorPane.rightAnchor="15.0">
+                <TextArea fx:id="txtAreaServerMsgs" editable="false" layoutX="14.0" layoutY="11.0" prefHeight="321.0" prefWidth="584.0" wrapText="true" />
+                <TitledPane animated="false" layoutX="450.0" layoutY="41.0" prefHeight="321.0" prefWidth="174.0" text="Users" AnchorPane.bottomAnchor="139.0" AnchorPane.rightAnchor="15.0">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                             <children>
-                                <ListView fx:id="listUser" layoutX="5.0" prefHeight="255.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                                <ListView fx:id="listUser" layoutX="5.0" prefHeight="289.0" prefWidth="163.0" styleClass="messageSendTextArea" />
                             </children>
                         </AnchorPane>
                     </content>
                 </TitledPane>
-                <Button fx:id="btnSend" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
-                <TextArea fx:id="txtUserMsg" layoutX="14.0" layoutY="343.0" prefHeight="114.0"  prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
+                <Button fx:id="btnSend" defaultButton="true" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
+                <TextArea fx:id="txtUserMsg" layoutX="14.0" layoutY="343.0" prefHeight="114.0" prefWidth="584.0" onKeyPressed="#handleEnterPressed" promptText="Type your Message here..." wrapText="true" />
             </children>
         </AnchorPane>
     </children>

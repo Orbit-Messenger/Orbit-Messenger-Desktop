@@ -56,6 +56,8 @@ public class MainController {
     @FXML
     private Button btnLogout;
     @FXML
+    private Button btnSend;
+    @FXML
     private TextArea txtAreaServerMsgs;
     @FXML
     private TextField txtHostIP;
@@ -90,6 +92,18 @@ public class MainController {
             }
         }, begin, timeInterval);
     }
+
+    /**
+     * Sends message to server
+     * Used by TextArea txtUserMsg to handle Enter key event
+     */
+    public void handleEnterPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            sendMessage();
+            event.consume();
+        }
+    }
+
     /**
      * To send a message to the server
      */
@@ -135,17 +149,6 @@ public class MainController {
         display(messages);
         //txtAreaServerMsgs.appendText(msg);
         System.out.println(messages);
-    }
-
-    /**
-     * Sends message to server
-     * Used by TextArea txtUserMsg to handle Enter key event
-     */
-    public void handleEnterPressed(KeyEvent event) {
-        if (event.getCode() == KeyCode.ENTER) {
-            sendMessage();
-            event.consume();
-        }
     }
 
     /*
