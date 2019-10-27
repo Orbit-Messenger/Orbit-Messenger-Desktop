@@ -61,7 +61,7 @@
                   <VBox fx:id="messagesVbox" prefHeight="316.0" prefWidth="563.0" />
                </content>
             </ScrollPane>
-                <TitledPane animated="false" layoutX="450.0" layoutY="41.0" prefHeight="321.0" prefWidth="174.0" style="-fx-border-style: solid;" text="Users" AnchorPane.bottomAnchor="139.0" AnchorPane.rightAnchor="15.0">
+                <TitledPane animated="false" layoutX="450.0" layoutY="41.0" prefHeight="321.0" prefWidth="174.0" text="Users" AnchorPane.bottomAnchor="139.0" AnchorPane.rightAnchor="15.0">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                             <children>
