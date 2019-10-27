@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"strings"
 )
 
@@ -19,12 +20,18 @@ type Auth struct {
 	Password string `json:"password"`
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize: 1024,
+	WriteBufferSize: 1024,
+}
+
 // CreateRouteController will create a database connection and return a RouteController
 func CreateRouteController() RouteController {
 	return RouteController{
 		db.CreateDatabaseConnection(),
 	}
 }
+
 
 // Used to get the username and password from basic auth
 func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
@@ -44,6 +51,15 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	usernameAndPassword := strings.Split(string(data), ":")
 	output = Auth{usernameAndPassword[0], usernameAndPassword[1]}
 	return output, nil
+}
+
+// Websocket
+func (rc RouteController) createWebsocket(c *gin.Context) error {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil{
+		return err
+	}
+	conn.
 }
 
 // Creates an Auth from the given context by it's header
