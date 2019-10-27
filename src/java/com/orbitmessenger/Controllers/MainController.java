@@ -101,6 +101,7 @@ public class MainController extends ControllerUtil {
             int counter = 0;
             @Override
             public void run() {
+                // Needed to update the UI without exploding!
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -201,8 +202,12 @@ public class MainController extends ControllerUtil {
         messagesScrollPane.setVvalue(1.0);
     }
 
+    /**
+     * Creates a message box with proper formatting
+     */
     private VBox createMessageBox(String username, String message){
         VBox vbox = new VBox();
+        // check if username == the current user or moves messages to the right
         if(!username.equals(this.getUsername())){
             vbox.setAlignment(Pos.CENTER_RIGHT);
         }
