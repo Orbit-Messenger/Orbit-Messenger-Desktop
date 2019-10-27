@@ -4,7 +4,6 @@ import (
 	"Orbit-Messenger/src/go/routes"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -16,6 +15,7 @@ func main() {
 	router.GET("/getAllMessages", routes.GetAllMessages)
 	router.POST("/addMessage", routes.AddMessage)
 	router.GET("/verifyUser", routes.VerifyUser)
+	router.GET("/ws", routes.CreateWebsocket)
 
 	router.GET("/getMessageCount", routes.GetMessageCount)
 	router.GET("/checkForNewMessages", routes.CheckForUpdatedMessages)

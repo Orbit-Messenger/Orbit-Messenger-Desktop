@@ -21,7 +21,7 @@ type Auth struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
@@ -31,7 +31,6 @@ func CreateRouteController() RouteController {
 		db.CreateDatabaseConnection(),
 	}
 }
-
 
 // Used to get the username and password from basic auth
 func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
@@ -54,12 +53,21 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 }
 
 // Websocket
-func (rc RouteController) createWebsocket(c *gin.Context) error {
+func (rc RouteController) CreateWebsocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil{
-		return err
+	if err != nil {
+		fmt.Println(err)
 	}
-	conn.
+	for {
+		messages, _ := rc.dbConn.GetAllMessages()
+		conn.WriteJSON(messages)
+		messageCode, data, _ := conn.ReadMessage()
+		fmt.Printf("message code: %v\ndata: %v", messageCode, string(data))
+		if messageCode == -1 {
+			conn.Close()
+			return
+		}
+	}
 }
 
 // Creates an Auth from the given context by it's header
