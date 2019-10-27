@@ -37,15 +37,12 @@ public class LoginController extends ControllerUtil {
                 mc.setUsername(username);
                 mc.setPassword(password);
                 mc.setServer(serverPrefix);
-                System.out.println("PATH: " + this.MAIN_FXML);
-                System.out.println("usernameTextField: " + usernameTextField);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
                 System.out.println("Couldn't login");
             }
         } else {
-            System.out.println("Missing field!");
             popupMissingFieldDialog();
         }
     }

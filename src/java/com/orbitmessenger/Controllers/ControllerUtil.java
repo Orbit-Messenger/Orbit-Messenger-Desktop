@@ -21,7 +21,6 @@ class FxUtil{
      * gets the current stage from a control
      */
     public Stage getStageFromControl(Control control){
-        System.out.println("GetStageFromControl: " + control);
         try{
             return (Stage) control.getScene().getWindow();
         } catch (Exception e){
@@ -51,12 +50,8 @@ class FxUtil{
      * Changes the scenes of the entire program
      */
     public void changeSceneTo(String fxmlFile, Object controller, Control control){
-        System.out.println("FXMLFile: " + fxmlFile);
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
         loader.setController(controller);
-        System.out.println("Brody: " + getClass().getResource(fxmlFile));
-        System.out.println("Loader: " + loader.toString());
-        System.out.println(System.getProperty("user.dir"));
         try {
             Parent parent = loader.load();
             Stage stage = this.getStageFromControl(control);
