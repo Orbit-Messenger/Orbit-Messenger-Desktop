@@ -26,6 +26,13 @@
     -fx-font-size: 1.5em;
 }
 
+.messageBox{
+    -fx-width: 50px;
+    -fx-padding: 10px;
+    -fx-border-color: #279af1;
+    -fx-border-style: solid;
+}
+
 .defaultButton{
     -fx-background-color: #279af1;
     -fx-text-fill: white;

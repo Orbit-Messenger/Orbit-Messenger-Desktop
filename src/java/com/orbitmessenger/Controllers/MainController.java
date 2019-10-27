@@ -4,9 +4,11 @@ import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -26,31 +28,10 @@ public class MainController extends ControllerUtil {
     private String username, password, server;
     private int localMessageCount = 0;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getServer() {
-        return server;
-    }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    private Timer timer = new Timer();
+    @FXML
+    VBox messagesVbox;
+    @FXML
+    ScrollPane messagesScrollPane;
 
     @FXML
     private Button btnLogin;
@@ -84,6 +65,32 @@ public class MainController extends ControllerUtil {
         this.setIntervalForNewMessages();
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    private Timer timer = new Timer();
+
     /**
      * Sets the interval of checking for new messages
      */
@@ -94,7 +101,12 @@ public class MainController extends ControllerUtil {
             int counter = 0;
             @Override
             public void run() {
-                checkForNewMessages();
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        checkForNewMessages();
+                    }
+                });
             }
         }, begin, timeInterval);
     }
@@ -174,16 +186,35 @@ public class MainController extends ControllerUtil {
      * To send a message to the console or the GUI
      */
     private void display(JSONArray messages) {
-        ArrayList<String> messageStrings = new ArrayList<>();
+        System.out.println("HIT");
+        ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : messages){
             JSONObject m = (JSONObject) message;
-            messageStrings.add(
-                    m.get("username").toString() + ":\n" + m.get("message").toString() + "\n\n"
+            messageBoxes.add(
+                    createMessageBox(m.get("username").toString(), m.get("message").toString())
             );
         }
-        txtAreaServerMsgs.clear();
-        txtAreaServerMsgs.appendText(messageStrings.toString().replace("[]", "")); // append to the ServerChatArea
-        txtAreaServerMsgs.setScrollTop(txtAreaServerMsgs.getLength());
+        this.messagesVbox.getChildren().clear();
+        this.messagesVbox.getChildren().addAll(messageBoxes);
+
+        // Scrolls to the bottom
+        messagesScrollPane.setVvalue(1.0);
+    }
+
+    private VBox createMessageBox(String username, String message){
+        VBox vbox = new VBox();
+        if(!username.equals(this.getUsername())){
+            vbox.setAlignment(Pos.CENTER_RIGHT);
+        }
+        vbox.setStyle(".messageBox");
+        vbox.getStyleClass().add("messageBox");
+        Label usernameLabel = new Label();
+        Label messageLabel = new Label();
+        usernameLabel.setText(username);
+        messageLabel.setText(message);
+        vbox.getChildren().add(usernameLabel);
+        vbox.getChildren().add(messageLabel);
+        return vbox;
     }
 
     /**
