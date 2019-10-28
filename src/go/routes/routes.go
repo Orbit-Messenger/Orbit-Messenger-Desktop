@@ -58,6 +58,10 @@ type Action struct {
 	Action string `json:"action"`
 }
 
+type MessageCount struct {
+	MessageCount int64 `json:"messageCount"`
+}
+
 func (rc RouteController) handleAction(conn *websocket.Conn) {
 	for {
 		var action Action
@@ -77,7 +81,7 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 		case "getMessageCount":
 			log.Println("getting message count")
 			messageCount, _ := rc.dbConn.GetMessageCount()
-			conn.WriteJSON(messageCount)
+			conn.WriteJSON(MessageCount{messageCount})
 		case "addMessage":
 			log.Println("Adding message")
 			var message db.Message
@@ -96,7 +100,7 @@ func (rc RouteController) sendUpdates(conn *websocket.Conn) {
 	for {
 		if time.Now().Unix() > deltaTime {
 			messageCount, _ := rc.dbConn.GetMessageCount()
-			conn.WriteJSON(messageCount)
+			conn.WriteJSON(MessageCount{messageCount})
 			deltaTime = time.Now().Add(time.Second * 10).Unix()
 		}
 	}
