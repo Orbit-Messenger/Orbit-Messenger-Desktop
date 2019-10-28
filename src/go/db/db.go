@@ -151,7 +151,7 @@ func (dbConn DatabaseConnection) GetMessageCount() (int64, error) {
 	err := dbConn.conn.QueryRow(context.Background(),
 		"SELECT count(id) FROM messages;").Scan(&count)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	return count, nil
 }
@@ -162,7 +162,7 @@ func (dbConn DatabaseConnection) GetUserId(username string) (int64, error) {
 	err := dbConn.conn.QueryRow(context.Background(),
 		"SELECT id FROM users WHERE username = $1;", username).Scan(&id)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	return id, nil
 }

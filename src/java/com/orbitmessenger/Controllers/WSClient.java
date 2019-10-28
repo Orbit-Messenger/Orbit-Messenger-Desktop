@@ -6,23 +6,27 @@ import java.util.concurrent.CompletionStage;
 
 public class WSClient {
 
-    public String messages = "";
+    private String messages = "";
+
+    public String getMessage() {
+        String mp = messages;
+        messages = "";
+        return mp;
+    }
 
     Listener wsListener = new Listener() {
         @Override
         public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-
-            System.out.println("onText: " + data);
-
-            messages += data;
-
+            messages += data.toString().trim();
             return Listener.super.onText(webSocket, data, last);
         }
 
         @Override
         public void onOpen(WebSocket webSocket) {
-            System.out.println("onOpen");
             Listener.super.onOpen(webSocket);
+            System.out.println("onOpen");
+            webSocket.sendText("{\"action\":\"getAllMessages\"}", true);
+            System.out.println(messages);
         }
 
         @Override

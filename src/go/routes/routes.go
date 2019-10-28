@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"log"
 	"strings"
+	"time"
 )
 
 // RouteController controls the database for each route
@@ -52,22 +54,61 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	return output, nil
 }
 
-// Websocket
-func (rc RouteController) CreateWebsocket(c *gin.Context) {
+type Action struct {
+	Action string `json:"action"`
+}
+
+func (rc RouteController) handleAction(conn *websocket.Conn) {
+	for {
+		var action Action
+		err := conn.ReadJSON(&action)
+		if err != nil {
+			return
+		}
+		switch action.Action {
+		case "getAllMessages":
+			log.Println("getting All Messages")
+			messages, err := rc.dbConn.GetAllMessages()
+			if err != nil {
+				conn.WriteJSON(err)
+			} else {
+				conn.WriteJSON(messages)
+			}
+		case "getMessageCount":
+			log.Println("getting message count")
+			messageCount, _ := rc.dbConn.GetMessageCount()
+			conn.WriteJSON(messageCount)
+		case "addMessage":
+			log.Println("Adding message")
+			var message db.Message
+			conn.ReadJSON(&message)
+			err := rc.dbConn.AddMessage(message, message.Username)
+			conn.WriteJSON(err)
+		default:
+			conn.WriteMessage(websocket.PongMessage, []byte("pong"))
+		}
+	}
+}
+
+func (rc RouteController) sendUpdates(conn *websocket.Conn) {
+	deltaTime := time.Now().Add(time.Second * 10).Unix()
+
+	for {
+		if time.Now().Unix() > deltaTime {
+			messageCount, _ := rc.dbConn.GetMessageCount()
+			conn.WriteJSON(messageCount)
+			deltaTime = time.Now().Add(time.Second * 10).Unix()
+		}
+	}
+}
+
+func (rc RouteController) WebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
-	for {
-		messages, _ := rc.dbConn.GetAllMessages()
-		conn.WriteJSON(messages)
-		messageCode, data, _ := conn.ReadMessage()
-		fmt.Printf("message code: %v\ndata: %v", messageCode, string(data))
-		if messageCode == -1 {
-			conn.Close()
-			return
-		}
-	}
+	go rc.sendUpdates(conn)
+	go rc.handleAction(conn)
 }
 
 // Creates an Auth from the given context by it's header

@@ -1,6 +1,9 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,7 +20,6 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -64,19 +66,38 @@ public class MainController extends ControllerUtil {
     HttpClient client;
 
     public void initialize(){
-        client = HttpClient.newHttpClient();
-        wsClient = new WSClient();
-
-        System.out.println("URI: " + this.getServer()+"/ws");
-
-        webSocket = client.newWebSocketBuilder()
-                .buildAsync(URI.create(this.getServer()+"/ws"), wsClient.wsListener).join();
-        webSocket.sendPing(ByteBuffer.wrap("Ping!".getBytes()));
-
-        //webSocket.sendText("", true);
-
+        while(wsClient == null){
+           createWebsocketConnection();
+        }
         //this.setIntervalForNewMessages();
         this.display();
+    }
+
+    public void createWebsocketConnection(){
+        try {
+            client = HttpClient.newHttpClient();
+            wsClient = new WSClient();
+            //System.out.println("URI: " + this.getServer()+"/ws");
+            webSocket = client.newWebSocketBuilder()
+                    .buildAsync(URI.create(this.getServer() + "/ws"), wsClient.wsListener).join();
+            //webSocket.sendPing(ByteBuffer.wrap("Ping!".getBytes()));
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true){
+                        System.out.println(wsClient.getMessage());
+                        try {
+                            Thread.sleep(10000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }catch (Exception e){
+            System.out.println(e);
+        }
     }
 
     public String getUsername() {
@@ -151,9 +172,12 @@ public class MainController extends ControllerUtil {
         String message = txtUserMsg.getText().trim();
         if (!checkForEmptyMessage(message)) {
             System.out.println(message);
-
-            webSocket.sendText(message, true);
-            webSocket.sendText("Struct", true);
+            String action = "{\"action\": \"addMessage\"}";
+            String formattedMessage = "{\"message\": \"" + message + "\", \"username\":\"brody\"}";
+            System.out.println(action);
+            System.out.println(formattedMessage);
+            webSocket.sendText(action, true);
+            webSocket.sendText(formattedMessage, true);
             txtUserMsg.setText("");
             //getAllMessages();
         } else {
@@ -197,23 +221,24 @@ public class MainController extends ControllerUtil {
      * To send a message to the console or the GUI
      */
     private void display() {
-        wsClient.wsListener.onText(webSocket, "", true);
-
-
-
-        String json = new String(wsClient.messages);
-        JsonElement jelement = new JsonParser().parse(json.trim());
-        JsonArray  jsonArray = jelement.getAsJsonArray();
-
-        wsClient.messages = "";
+        JsonArray jsonArray = new JsonArray();
+        try{
+            wsClient.wsListener.onText(webSocket, "", true);
+            String json = new String(wsClient.getMessage());
+            JsonElement jelement = new JsonParser().parse(json.trim());
+            jsonArray = jelement.getAsJsonArray();
+        }catch (Exception e){
+            System.out.println(e);
+        }
 
         System.out.println("HIT");
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
-            System.out.println("Username: " +m.get("username"));
+            System.out.println("Username: " +m.get("username").toString());
             messageBoxes.add(
-                    createMessageBox(m.get("username").toString().replace("\"", ""), m.get("message").toString().replace("\"", ""))
+                    createMessageBox(m.get("username").toString().replace("\"", ""),
+                    m.get("message").toString().replace("\"", ""))
             );
         }
         this.messagesVbox.getChildren().clear();
