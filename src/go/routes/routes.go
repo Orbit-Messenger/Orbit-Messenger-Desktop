@@ -21,8 +21,8 @@ type Auth struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  4096,
+	WriteBufferSize: 4096,
 }
 
 // CreateRouteController will create a database connection and return a RouteController
