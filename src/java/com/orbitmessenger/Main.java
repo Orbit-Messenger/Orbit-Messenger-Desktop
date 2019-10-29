@@ -18,7 +18,7 @@ public class Main extends Application {
         MainController mainController = new MainController();
         mainController.setUsername("maxwell");
         mainController.setPassword("test");
-        mainController.setServer("ws://localhost:3000");
+        mainController.setServer("http://localhost:3000");
         loader.setController(mainController);
 //        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/loginView.fxml"));
 //        LoginController loginController = new LoginController();

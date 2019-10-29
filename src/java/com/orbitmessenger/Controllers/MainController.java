@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -61,43 +62,10 @@ public class MainController extends ControllerUtil {
     private ObjectOutputStream sOutput;		// to write on the socket
     private Socket socket;
 
-    WebSocket webSocket;
-    WSClient wsClient;
-    HttpClient client;
+    private WSClient wsClient;
 
     public void initialize(){
-        while(wsClient == null){
-           createWebsocketConnection();
-        }
-        //this.setIntervalForNewMessages();
-        this.display();
-    }
-
-    public void createWebsocketConnection(){
-        try {
-            client = HttpClient.newHttpClient();
-            wsClient = new WSClient();
-            //System.out.println("URI: " + this.getServer()+"/ws");
-            webSocket = client.newWebSocketBuilder()
-                    .buildAsync(URI.create(this.getServer() + "/ws"), wsClient.wsListener).join();
-            //webSocket.sendPing(ByteBuffer.wrap("Ping!".getBytes()));
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while(true){
-                        System.out.println(wsClient.getMessage());
-                        try {
-                            Thread.sleep(10000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-            thread.start();
-        }catch (Exception e){
-            System.out.println(e);
-        }
+        wsClient = new WSClient(this.getServer());
     }
 
     public String getUsername() {
@@ -127,35 +95,6 @@ public class MainController extends ControllerUtil {
     private Timer timer = new Timer();
 
     /**
-     * Sets the interval of checking for new messages
-     */
-    private void setIntervalForNewMessages() {
-        int begin = 0;
-        int timeInterval = 1000;
-        timer.schedule(new TimerTask() {
-            int counter = 0;
-            @Override
-            public void run() {
-                // Needed to update the UI without exploding!
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        display();
-                    }
-                });
-            }
-        }, begin, timeInterval);
-    }
-
-    /**
-     * Stops the timer
-     */
-    private void stopIntervalForNewMessages() {
-        timer.cancel();
-        timer.purge();
-    }
-
-    /**
      * Sends message to server
      * Used by TextArea txtUserMsg to handle Enter key event
      */
@@ -171,15 +110,9 @@ public class MainController extends ControllerUtil {
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
         if (!checkForEmptyMessage(message)) {
-            System.out.println(message);
-            String action = "{\"action\": \"addMessage\"}";
-            String formattedMessage = "{\"message\": \"" + message + "\", \"username\":\"brody\"}";
-            System.out.println(action);
-            System.out.println(formattedMessage);
-            webSocket.sendText(action, true);
-            webSocket.sendText(formattedMessage, true);
+            wsClient.sendMessage(message);
             txtUserMsg.setText("");
-            //getAllMessages();
+            //updateMessages();
         } else {
             System.out.println("Empty message. Not sending!");
             txtUserMsg.setText("");
@@ -187,49 +120,10 @@ public class MainController extends ControllerUtil {
     }
 
     /**
-     * Checks to see if there are new messages. If so, update them!
-     */
-//    public void checkForNewMessages() {
-//        String returnedMessageCount = Unirest.get(this.getServer()+"/getMessageCount")
-//                .basicAuth(this.getUsername(), this.getPassword())
-//                .asString()
-//                .getBody().trim();
-//        int returnedMessageCountInt = Integer.parseInt(returnedMessageCount);
-//        if (localMessageCount < returnedMessageCountInt) {
-//            JSONArray messages = Unirest.get(this.getServer()+"/getAllMessages")
-//                    .basicAuth(this.getUsername(), this.getPassword())
-//                    .asJson().getBody().getArray();
-//            display();
-//            localMessageCount = returnedMessageCountInt;
-//        }
-//    }
-
-    /**
-     * Gets all the message from the Server
-     */
-//    public void getAllMessages() {
-//        String json = new String(wsClient.messages);
-//        JsonElement jelement = new JsonParser().parse(json.trim());
-//        JsonArray  jsonArray = jelement.getAsJsonArray();
-//
-//        display();
-//
-//        System.out.println("LOOK HERE: " + wsClient.messages.toString());
-//    }
-
-    /**
      * To send a message to the console or the GUI
      */
-    private void display() {
-        JsonArray jsonArray = new JsonArray();
-        try{
-            wsClient.wsListener.onText(webSocket, "", true);
-            String json = new String(wsClient.getMessage());
-            JsonElement jelement = new JsonParser().parse(json.trim());
-            jsonArray = jelement.getAsJsonArray();
-        }catch (Exception e){
-            System.out.println(e);
-        }
+    private void updateMessages() {
+        JsonArray jsonArray = wsClient.getAllMessages();
 
         System.out.println("HIT");
         ArrayList<VBox> messageBoxes = new ArrayList<>();
@@ -304,7 +198,7 @@ public class MainController extends ControllerUtil {
      */
     public void switchToLogin() {
         // Stop timer
-        //stopIntervalForNewMessages();
+        wsClient.stopIntervalForPing();
         // Switches back to the Login Controller/Window
         LoginController login = new LoginController();
         ControllerUtil ctrlUtl = new ControllerUtil();
