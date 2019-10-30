@@ -14,16 +14,19 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class MainController extends ControllerUtil {
 
@@ -64,8 +67,12 @@ public class MainController extends ControllerUtil {
 
     private WSClient wsClient;
 
-    public void initialize(){
-        wsClient = new WSClient(this.getServer());
+    public void initialize() throws URISyntaxException {
+        System.out.println("Server: " + this.getServer());
+        //wsClient = new WSClient(this.getServer());
+        wsClient = new WSClient( new URI( this.getServer()+"/ws" ));
+        wsClient.connect();
+        //updateMessages();
     }
 
     public String getUsername() {
@@ -98,7 +105,7 @@ public class MainController extends ControllerUtil {
      * Sends message to server
      * Used by TextArea txtUserMsg to handle Enter key event
      */
-    public void handleEnterPressed(KeyEvent event) {
+    public void handleEnterPressed(KeyEvent event) throws ExecutionException, InterruptedException {
         if (event.getCode() == KeyCode.ENTER) {
             sendMessage();
         }
@@ -109,20 +116,31 @@ public class MainController extends ControllerUtil {
      */
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
+        System.out.println("Message: "+ message.trim());
         if (!checkForEmptyMessage(message)) {
-            wsClient.sendMessage(message);
+            //wsClient.sendMessage(message);
+            wsClient.send("{\"action\": \"addMessage\"}");
+            JsonObject jsonMessage = new JsonObject();
+
+            jsonMessage.add("message", new JsonParser().parse(message.trim()));
+            jsonMessage.add("username", new JsonParser().parse(getUsername()));
+            wsClient.send(jsonMessage.toString());
+            //wsClient.send("{"message":  "" +  message + "", "username"}"message);
+            //wsClient.send("{\"action\":\"getAllMessages\"}");
             txtUserMsg.setText("");
-            //updateMessages();
+            txtUserMsg.requestFocus();
+            updateMessages();
         } else {
             System.out.println("Empty message. Not sending!");
             txtUserMsg.setText("");
+            txtUserMsg.requestFocus();
         }
     }
 
     /**
      * To send a message to the console or the GUI
      */
-    private void updateMessages() {
+    public void updateMessages() {
         JsonArray jsonArray = wsClient.getAllMessages();
 
         System.out.println("HIT");
@@ -198,7 +216,7 @@ public class MainController extends ControllerUtil {
      */
     public void switchToLogin() {
         // Stop timer
-        wsClient.stopIntervalForPing();
+        //wsClient.stopIntervalForPing();
         // Switches back to the Login Controller/Window
         LoginController login = new LoginController();
         ControllerUtil ctrlUtl = new ControllerUtil();

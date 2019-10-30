@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"strings"
-	"time"
 )
 
 // RouteController controls the database for each route
@@ -23,8 +22,8 @@ type Auth struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 // CreateRouteController will create a database connection and return a RouteController
@@ -87,7 +86,16 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 			var message db.Message
 			conn.ReadJSON(&message)
 			err := rc.dbConn.AddMessage(message, message.Username)
-			conn.WriteJSON(err)
+			if err != nil {
+				conn.WriteJSON(err)
+			} else {
+				messages, err := rc.dbConn.GetAllMessages()
+				if err != nil {
+					conn.WriteJSON(err)
+				} else {
+					conn.WriteJSON(messages)
+				}
+			}
 		default:
 			conn.WriteMessage(websocket.PongMessage, []byte("pong"))
 		}
@@ -95,15 +103,15 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 }
 
 func (rc RouteController) sendUpdates(conn *websocket.Conn) {
-	deltaTime := time.Now().Add(time.Second * 10).Unix()
-
-	for {
-		if time.Now().Unix() > deltaTime {
-			messageCount, _ := rc.dbConn.GetMessageCount()
-			conn.WriteJSON(MessageCount{messageCount})
-			deltaTime = time.Now().Add(time.Second * 10).Unix()
-		}
-	}
+	//deltaTime := time.Now().Add(time.Second * 10).Unix()
+	//
+	//for {
+	//	if time.Now().Unix() > deltaTime {
+	//		messageCount, _ := rc.dbConn.GetMessageCount()
+	//		conn.WriteJSON(MessageCount{messageCount})
+	//		deltaTime = time.Now().Add(time.Second * 10).Unix()
+	//	}
+	//}
 }
 
 func (rc RouteController) WebSocket(c *gin.Context) {
