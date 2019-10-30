@@ -66,12 +66,16 @@ public class WSClient extends WebSocketClient {
     }
 
     public JsonArray getAllMessages() {
-        System.out.println("All Messages: " + allMessages);
-        JsonParser parser = new JsonParser();
-        JsonElement tradeElement = parser.parse(allMessages);
-        JsonArray trade = tradeElement.getAsJsonArray();
-        System.out.println(trade);
-        return trade;
+        try {
+            System.out.println("All Messages: " + allMessages);
+            JsonParser parser = new JsonParser();
+            JsonElement tradeElement = parser.parse(allMessages);
+            JsonArray trade = tradeElement.getAsJsonArray();
+            System.out.println(trade);
+            return trade;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 //    public static void main(String[] args) throws URISyntaxException {

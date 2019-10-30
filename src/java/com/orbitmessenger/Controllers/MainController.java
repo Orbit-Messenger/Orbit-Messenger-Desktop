@@ -1,9 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -29,6 +26,10 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 public class MainController extends ControllerUtil {
+
+    Gson gson = new GsonBuilder()
+            .setLenient()
+            .create();
 
     private String username, password, server;
     private int localMessageCount = 0;
@@ -72,7 +73,7 @@ public class MainController extends ControllerUtil {
         //wsClient = new WSClient(this.getServer());
         wsClient = new WSClient( new URI( this.getServer()+"/ws" ));
         wsClient.connect();
-        //updateMessages();
+        updateMessages();
     }
 
     public String getUsername() {
@@ -121,9 +122,9 @@ public class MainController extends ControllerUtil {
             //wsClient.sendMessage(message);
             wsClient.send("{\"action\": \"addMessage\"}");
             JsonObject jsonMessage = new JsonObject();
-
-            jsonMessage.add("message", new JsonParser().parse(message.trim()));
+            jsonMessage.add("message", new JsonParser().parse(message));
             jsonMessage.add("username", new JsonParser().parse(getUsername()));
+            System.out.println("JSON: " + jsonMessage);
             wsClient.send(jsonMessage.toString());
             //wsClient.send("{"message":  "" +  message + "", "username"}"message);
             //wsClient.send("{\"action\":\"getAllMessages\"}");
@@ -141,13 +142,24 @@ public class MainController extends ControllerUtil {
      * To send a message to the console or the GUI
      */
     public void updateMessages() {
+        Thread waitForMessages = new Thread(() -> {
+            while (wsClient.getAllMessages() == null) {
+                System.out.println("Waiting for allMessages!");
+            }
+        });
+        waitForMessages.run();
+
+
+
+
+
         JsonArray jsonArray = wsClient.getAllMessages();
 
         System.out.println("HIT");
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
-            System.out.println("Username: " +m.get("username").toString());
+            //System.out.println("Username: " +m.get("username").toString());
             messageBoxes.add(
                     createMessageBox(m.get("username").toString().replace("\"", ""),
                     m.get("message").toString().replace("\"", ""))
