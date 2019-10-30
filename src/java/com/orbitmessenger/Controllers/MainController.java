@@ -1,6 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,20 +10,26 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import kong.unirest.HttpResponse;
-import kong.unirest.JsonNode;
-import kong.unirest.Unirest;
-import kong.unirest.json.JSONArray;
-import kong.unirest.json.JSONObject;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class MainController extends ControllerUtil {
+
+    Gson gson = new GsonBuilder()
+            .setLenient()
+            .create();
 
     private String username, password, server;
     private int localMessageCount = 0;
@@ -60,9 +66,14 @@ public class MainController extends ControllerUtil {
     private ObjectOutputStream sOutput;		// to write on the socket
     private Socket socket;
 
-    public void initialize(){
-        this.getAllMessages();
-        this.setIntervalForNewMessages();
+    private WSClient wsClient;
+
+    public void initialize() throws URISyntaxException {
+        System.out.println("Server: " + this.getServer());
+        //wsClient = new WSClient(this.getServer());
+        wsClient = new WSClient( new URI( this.getServer()+"/ws" ));
+        wsClient.connect();
+        updateMessages();
     }
 
     public String getUsername() {
@@ -92,39 +103,10 @@ public class MainController extends ControllerUtil {
     private Timer timer = new Timer();
 
     /**
-     * Sets the interval of checking for new messages
-     */
-    private void setIntervalForNewMessages() {
-        int begin = 0;
-        int timeInterval = 1000;
-        timer.schedule(new TimerTask() {
-            int counter = 0;
-            @Override
-            public void run() {
-                // Needed to update the UI without exploding!
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkForNewMessages();
-                    }
-                });
-            }
-        }, begin, timeInterval);
-    }
-
-    /**
-     * Stops the timer
-     */
-    private void stopIntervalForNewMessages() {
-        timer.cancel();
-        timer.purge();
-    }
-
-    /**
      * Sends message to server
      * Used by TextArea txtUserMsg to handle Enter key event
      */
-    public void handleEnterPressed(KeyEvent event) {
+    public void handleEnterPressed(KeyEvent event) throws ExecutionException, InterruptedException {
         if (event.getCode() == KeyCode.ENTER) {
             sendMessage();
         }
@@ -135,64 +117,52 @@ public class MainController extends ControllerUtil {
      */
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
+        System.out.println("Message: "+ message.trim());
         if (!checkForEmptyMessage(message)) {
-            System.out.println(message);
-            JsonObject json = new JsonObject();
-            json.addProperty("message", message);
-            HttpResponse<JsonNode> response = Unirest.post(this.getServer() + "/addMessage")
-                    .basicAuth(this.getUsername(), this.getPassword())
-                    .header("accept", "application/json")
-                    .body(json)
-                    .asJson();
-            System.out.println(response.getStatus());
+            //wsClient.sendMessage(message);
+            wsClient.send("{\"action\": \"addMessage\"}");
+            JsonObject jsonMessage = new JsonObject();
+            jsonMessage.add("message", new JsonParser().parse(message));
+            jsonMessage.add("username", new JsonParser().parse(getUsername()));
+            System.out.println("JSON: " + jsonMessage);
+            wsClient.send(jsonMessage.toString());
+            //wsClient.send("{"message":  "" +  message + "", "username"}"message);
+            //wsClient.send("{\"action\":\"getAllMessages\"}");
             txtUserMsg.setText("");
-            getAllMessages();
+            txtUserMsg.requestFocus();
+            updateMessages();
         } else {
             System.out.println("Empty message. Not sending!");
             txtUserMsg.setText("");
+            txtUserMsg.requestFocus();
         }
-    }
-
-    /**
-     * Checks to see if there are new messages. If so, update them!
-     */
-    public void checkForNewMessages() {
-        String returnedMessageCount = Unirest.get(this.getServer()+"/getMessageCount")
-                .basicAuth(this.getUsername(), this.getPassword())
-                .asString()
-                .getBody().trim();
-        int returnedMessageCountInt = Integer.parseInt(returnedMessageCount);
-        if (localMessageCount < returnedMessageCountInt) {
-            JSONArray messages = Unirest.get(this.getServer()+"/getAllMessages")
-                    .basicAuth(this.getUsername(), this.getPassword())
-                    .asJson().getBody().getArray();
-            display(messages);
-            localMessageCount = returnedMessageCountInt;
-        }
-    }
-
-    /**
-     * Gets all the message from the Server
-     */
-    public void getAllMessages() {
-        JSONArray messages = Unirest.get(this.getServer()+"/getAllMessages")
-                .basicAuth(this.getUsername(), this.getPassword())
-                .asJson().getBody().getArray();
-        display(messages);
-        //txtAreaServerMsgs.appendText(msg);
-        System.out.println(messages);
     }
 
     /**
      * To send a message to the console or the GUI
      */
-    private void display(JSONArray messages) {
+    public void updateMessages() {
+        Thread waitForMessages = new Thread(() -> {
+            while (wsClient.getAllMessages() == null) {
+                System.out.println("Waiting for allMessages!");
+            }
+        });
+        waitForMessages.run();
+
+
+
+
+
+        JsonArray jsonArray = wsClient.getAllMessages();
+
         System.out.println("HIT");
         ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (Object message : messages){
-            JSONObject m = (JSONObject) message;
+        for (Object message : jsonArray){
+            JsonObject m = (JsonObject) message;
+            //System.out.println("Username: " +m.get("username").toString());
             messageBoxes.add(
-                    createMessageBox(m.get("username").toString(), m.get("message").toString())
+                    createMessageBox(m.get("username").toString().replace("\"", ""),
+                    m.get("message").toString().replace("\"", ""))
             );
         }
         this.messagesVbox.getChildren().clear();
@@ -246,7 +216,10 @@ public class MainController extends ControllerUtil {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Orbit Messenger");
         alert.setHeaderText(null);
-        alert.setContentText("Designed and built by Bordy and Maxwell in Utah!");
+        alert.setContentText("Designed and built by Brody and Maxwell in Utah!");
+        // create a hyperlink
+        Hyperlink hyperlink = new Hyperlink("hyperlink");
+        alert.setContentText("Github: ");
         alert.showAndWait();
     }
 
@@ -255,7 +228,7 @@ public class MainController extends ControllerUtil {
      */
     public void switchToLogin() {
         // Stop timer
-        stopIntervalForNewMessages();
+        //wsClient.stopIntervalForPing();
         // Switches back to the Login Controller/Window
         LoginController login = new LoginController();
         ControllerUtil ctrlUtl = new ControllerUtil();

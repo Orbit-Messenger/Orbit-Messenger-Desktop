@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"log"
 	"strings"
 )
 
@@ -17,6 +19,11 @@ type RouteController struct {
 type Auth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 // CreateRouteController will create a database connection and return a RouteController
@@ -44,6 +51,76 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	usernameAndPassword := strings.Split(string(data), ":")
 	output = Auth{usernameAndPassword[0], usernameAndPassword[1]}
 	return output, nil
+}
+
+type Action struct {
+	Action string `json:"action"`
+}
+
+type MessageCount struct {
+	MessageCount int64 `json:"messageCount"`
+}
+
+func (rc RouteController) handleAction(conn *websocket.Conn) {
+	for {
+		var action Action
+		err := conn.ReadJSON(&action)
+		if err != nil {
+			return
+		}
+		switch action.Action {
+		case "getAllMessages":
+			log.Println("getting All Messages")
+			messages, err := rc.dbConn.GetAllMessages()
+			if err != nil {
+				conn.WriteJSON(err)
+			} else {
+				conn.WriteJSON(messages)
+			}
+		case "getMessageCount":
+			log.Println("getting message count")
+			messageCount, _ := rc.dbConn.GetMessageCount()
+			conn.WriteJSON(MessageCount{messageCount})
+		case "addMessage":
+			log.Println("Adding message")
+			var message db.Message
+			conn.ReadJSON(&message)
+			err := rc.dbConn.AddMessage(message, message.Username)
+			if err != nil {
+				conn.WriteJSON(err)
+			} else {
+				messages, err := rc.dbConn.GetAllMessages()
+				if err != nil {
+					conn.WriteJSON(err)
+				} else {
+					conn.WriteJSON(messages)
+				}
+			}
+		default:
+			conn.WriteMessage(websocket.PongMessage, []byte("pong"))
+		}
+	}
+}
+
+func (rc RouteController) sendUpdates(conn *websocket.Conn) {
+	//deltaTime := time.Now().Add(time.Second * 10).Unix()
+	//
+	//for {
+	//	if time.Now().Unix() > deltaTime {
+	//		messageCount, _ := rc.dbConn.GetMessageCount()
+	//		conn.WriteJSON(MessageCount{messageCount})
+	//		deltaTime = time.Now().Add(time.Second * 10).Unix()
+	//	}
+	//}
+}
+
+func (rc RouteController) WebSocket(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	go rc.sendUpdates(conn)
+	go rc.handleAction(conn)
 }
 
 // Creates an Auth from the given context by it's header

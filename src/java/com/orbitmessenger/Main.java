@@ -1,6 +1,7 @@
 package com.orbitmessenger;
 
 import com.orbitmessenger.Controllers.LoginController;
+import com.orbitmessenger.Controllers.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,15 +14,15 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         //DEBUG Use this to skip logging in and comment out other FXML code!
-        //FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/mainView.fxml"));
-        //MainController mainController = new MainController();
-        //mainController.setUsername("brody");
-        //mainController.setPassword("test");
-        //mainController.setServer("http://maxintosh.org:3000");
-        //loader.setController(mainController);
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/loginView.fxml"));
-        LoginController loginController = new LoginController();
-        loader.setController(loginController);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/mainView.fxml"));
+        MainController mainController = new MainController();
+        mainController.setUsername("maxwell");
+        mainController.setPassword("test");
+        mainController.setServer("http://localhost:3000");
+        loader.setController(mainController);
+//        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/loginView.fxml"));
+//        LoginController loginController = new LoginController();
+//        loader.setController(loginController);
 
         Parent root = (Parent) loader.load();
         primaryStage.getIcons().add(new Image("com/orbitmessenger/images/orbit.png"));
