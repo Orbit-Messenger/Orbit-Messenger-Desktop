@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users(
   username varchar(50) DEFAULT '',
   password TEXT DEFAULT '',
   salt TEXT DEFAULT '',
-  account_type VARCHAR(10) DEFAULT ''
+  account_type VARCHAR(10) DEFAULT '',
+  active boolean DEFAULT false
 );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test', 'admin');

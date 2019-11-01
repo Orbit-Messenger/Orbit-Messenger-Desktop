@@ -245,3 +245,40 @@ func (dbConn DatabaseConnection) AddMessage(message Message, username string) er
 	fmt.Printf("%v columns affected", columnsAffected)
 	return err
 }
+
+// Changes the users status
+func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) err {
+	userId, err := dbConn.GetUserId(username)
+	if userId == 0 || err != nil {
+		return fmt.Errorf("Couldn't find anyone with the username %v", username)
+	}
+
+	columnsAffected, err := dbConn.conn.Exec(
+		context.Background(),
+		"UPDATE users SET active = $1 WHERE id = $2;",
+		loggedIn,
+		userId)
+	fmt.Printf("%v columns affected", columnsAffected)
+	return err
+
+}
+
+func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, err) {
+	var usernames []string
+	rows, err := dbConn.conn.Query(context.Background(),
+		"SELECT username FROM users WHERE active = $1;", status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var username string
+		err = rows.Scan(&username)
+		if err != nil {
+			return nil, err
+		}
+		usernames = append(usernames, username)
+	}
+	return usernames, nil
+}
