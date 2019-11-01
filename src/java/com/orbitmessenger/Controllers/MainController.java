@@ -63,7 +63,6 @@ public class MainController extends ControllerUtil {
 
     public void initialize() throws URISyntaxException {
         System.out.println("Server: " + this.getServer());
-        //wsClient = new WSClient(this.getServer());
         wsClient = new WSClient( new URI( this.getServer()+"/ws" ));
         wsClient.connect();
         updateMessages();
@@ -114,12 +113,12 @@ public class MainController extends ControllerUtil {
      */
 
     public int retrieveLastMessageID() {
-//        Thread waitForMessages = new Thread(() -> {
-//            while (wsClient.getAllMessages() == null) {
-//                System.out.println("Waiting for allMessages!");
-//            }
-//        });
-//        waitForMessages.run();
+        Thread waitForMessages = new Thread(() -> {
+            while (wsClient.getAllMessages() == null) {
+                //System.out.println("Waiting for allMessages!");
+            }
+        });
+        waitForMessages.run();
         JsonArray jsonArray = wsClient.getAllMessages();
 
         int lastElement = jsonArray.size();
@@ -134,7 +133,6 @@ public class MainController extends ControllerUtil {
      */
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
-        System.out.println("Message: "+ message.trim());
         if (!checkForEmptyMessage(message)) {
 
             String action = "add";
@@ -146,7 +144,7 @@ public class MainController extends ControllerUtil {
                     lastMessageID,
                     getProperties());
 
-            wsClient.send(submitMessage.toString());
+            wsClient.send(submitMessage.toString().trim());
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
             updateMessages();
@@ -163,7 +161,7 @@ public class MainController extends ControllerUtil {
     public void updateMessages() {
         Thread waitForMessages = new Thread(() -> {
             while (wsClient.getAllMessages() == null) {
-                System.out.println("Waiting for allMessages!" + wsClient.getAllMessages() == null);
+                //System.out.println("Waiting for allMessages!" + wsClient.getAllMessages() == null);
             }
         });
         waitForMessages.run();

@@ -28,8 +28,10 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         JsonObject getAllMessages = createSubmitObject("getAllMessages", null, null, null, null);
+        System.out.println("Submit Request: " + getAllMessages.toString());
+        System.out.println("Submit Request Old: " + "{\"action\":\"getAllMessages\"}");
         send(getAllMessages.toString());
-        //send("Hello, it is me. Mario :)");
+        //send("{\"action\":\"getAllMessages\"}");
         System.out.println("new connection opened");
     }
 
@@ -40,6 +42,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
+        System.out.println("OnMessage: " + message);
         allMessages.append(message);
     }
 
@@ -51,12 +54,6 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onError(Exception ex) {
         System.err.println("an error occurred:" + ex);
-    }
-
-    public String formatMessage(String message) {
-        String formattedMessage = "{}";
-
-        return formattedMessage;
     }
 
     public boolean isAllMessagesEmpty() {
@@ -86,7 +83,7 @@ public class WSClient extends WebSocketClient {
         submitObject.addProperty("message", message);
         submitObject.addProperty("username", username);
         submitObject.addProperty("lastMessageId", lastMessageId);
-        submitObject.addProperty("properties", String.valueOf(properties));
+        submitObject.add("properties", properties);
         return submitObject;
     }
 }
