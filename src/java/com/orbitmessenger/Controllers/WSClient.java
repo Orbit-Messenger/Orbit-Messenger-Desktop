@@ -13,7 +13,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 public class WSClient extends WebSocketClient {
 
-    public String allMessages;
+    public StringBuilder allMessages = new StringBuilder();
 
     public WSClient(URI serverUri, Draft draft) {
         super(serverUri, draft);
@@ -39,7 +39,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        allMessages += message;
+        allMessages.append(message);
     }
 
     @Override
@@ -64,9 +64,9 @@ public class WSClient extends WebSocketClient {
 
     public JsonArray getAllMessages() {
         try {
-            System.out.println("All Messages: " + allMessages);
+            //System.out.println("All Messages: " + allMessages.toString());
             JsonParser parser = new JsonParser();
-            JsonElement tradeElement = parser.parse(allMessages);
+            JsonElement tradeElement = parser.parse(allMessages.toString());
             JsonArray trade = tradeElement.getAsJsonArray();
             //System.out.println(trade);
             return trade;

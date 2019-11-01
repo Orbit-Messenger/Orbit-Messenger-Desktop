@@ -114,12 +114,12 @@ public class MainController extends ControllerUtil {
      */
 
     public int retrieveLastMessageID() {
-        Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages() == null) {
-                System.out.println("Waiting for allMessages!");
-            }
-        });
-        waitForMessages.run();
+//        Thread waitForMessages = new Thread(() -> {
+//            while (wsClient.getAllMessages() == null) {
+//                System.out.println("Waiting for allMessages!");
+//            }
+//        });
+//        waitForMessages.run();
         JsonArray jsonArray = wsClient.getAllMessages();
 
         int lastElement = jsonArray.size();
@@ -146,7 +146,6 @@ public class MainController extends ControllerUtil {
                     lastMessageID,
                     getProperties());
 
-            System.out.println("JSON: " + submitMessage);
             wsClient.send(submitMessage.toString());
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
@@ -164,7 +163,7 @@ public class MainController extends ControllerUtil {
     public void updateMessages() {
         Thread waitForMessages = new Thread(() -> {
             while (wsClient.getAllMessages() == null) {
-                System.out.println("Waiting for allMessages!");
+                System.out.println("Waiting for allMessages!" + wsClient.getAllMessages() == null);
             }
         });
         waitForMessages.run();
