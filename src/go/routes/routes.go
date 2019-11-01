@@ -26,6 +26,14 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type ClientData struct {
+	Message       string                 `json:"message"`
+	Username      string                 `json:"username"`
+	Action        string                 `json:"action"`
+	LastMessageId string                 `json:"lastMessageId"`
+	Properties    map[string]interface{} `json:"properties"`
+}
+
 // CreateRouteController will create a database connection and return a RouteController
 func CreateRouteController() RouteController {
 	return RouteController{
@@ -63,12 +71,13 @@ type MessageCount struct {
 
 func (rc RouteController) handleAction(conn *websocket.Conn) {
 	for {
-		var action Action
-		err := conn.ReadJSON(&action)
+		var clientData ClientData
+		err := conn.ReadJSON(&clientData)
 		if err != nil {
 			return
 		}
-		switch action.Action {
+		fmt.Println(clientData.Action)
+		switch clientData.Action {
 		case "getAllMessages":
 			log.Println("getting All Messages")
 			messages, err := rc.dbConn.GetAllMessages()
@@ -77,13 +86,9 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 			} else {
 				conn.WriteJSON(messages)
 			}
-		case "getMessageCount":
-			log.Println("getting message count")
-			messageCount, _ := rc.dbConn.GetMessageCount()
-			conn.WriteJSON(MessageCount{messageCount})
-		case "addMessage":
+		case "add":
 			log.Println("Adding message")
-			var message db.Message
+			message := db.Message{-1, clientData.Username, clientData.Message}
 			conn.ReadJSON(&message)
 			err := rc.dbConn.AddMessage(message, message.Username)
 			if err != nil {
@@ -102,24 +107,11 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 	}
 }
 
-func (rc RouteController) sendUpdates(conn *websocket.Conn) {
-	//deltaTime := time.Now().Add(time.Second * 10).Unix()
-	//
-	//for {
-	//	if time.Now().Unix() > deltaTime {
-	//		messageCount, _ := rc.dbConn.GetMessageCount()
-	//		conn.WriteJSON(MessageCount{messageCount})
-	//		deltaTime = time.Now().Add(time.Second * 10).Unix()
-	//	}
-	//}
-}
-
 func (rc RouteController) WebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
-	go rc.sendUpdates(conn)
 	go rc.handleAction(conn)
 }
 
