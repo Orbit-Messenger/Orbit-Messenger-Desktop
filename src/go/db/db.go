@@ -128,7 +128,7 @@ func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]
 func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 	var messages []Message
 	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id LIMIT 100;")
+		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id;")
 	if err != nil {
 		return nil, err
 	}
