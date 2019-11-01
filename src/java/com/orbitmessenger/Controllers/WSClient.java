@@ -2,18 +2,16 @@ package com.orbitmessenger.Controllers;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 
 public class WSClient extends WebSocketClient {
 
-    public StringBuilder allMessages = new StringBuilder();
+    public JsonArray allMessages = new JsonArray();;
 
     public WSClient(URI serverUri, Draft draft) {
         super(serverUri, draft);
@@ -28,11 +26,10 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         JsonObject getAllMessages = createSubmitObject("getAllMessages", null, null, null, null);
-        System.out.println("Submit Request: " + getAllMessages.toString());
-        System.out.println("Submit Request Old: " + "{\"action\":\"getAllMessages\"}");
         send(getAllMessages.toString());
-        //send("{\"action\":\"getAllMessages\"}");
         System.out.println("new connection opened");
+        //allMessages.append("[{\"messageId\":0,\"username\":\"maxwell\",\"message\":\"\\\"Test\\\"\"}]");
+        //System.out.println("Messages: " + allMessages);
     }
 
     @Override
@@ -43,7 +40,10 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         System.out.println("OnMessage: " + message);
-        allMessages.append(message);
+        JsonParser parser = new JsonParser();
+        JsonArray messageArray = (JsonArray) parser.parse(message);
+        allMessages.addAll(messageArray);
+        System.out.println("All Messages: " + allMessages.toString());
     }
 
     @Override
@@ -62,15 +62,14 @@ public class WSClient extends WebSocketClient {
 
     public JsonArray getAllMessages() {
         try {
-            //System.out.println("All Messages: " + allMessages.toString());
-            JsonParser parser = new JsonParser();
-            JsonElement tradeElement = parser.parse(allMessages.toString());
-            JsonArray trade = tradeElement.getAsJsonArray();
-            //System.out.println(trade);
-            return trade;
+            return allMessages;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public void resetAllMessages() {
+        allMessages = new JsonArray();
     }
 
     public JsonObject createSubmitObject(String action,

@@ -114,8 +114,8 @@ public class MainController extends ControllerUtil {
 
     public int retrieveLastMessageID() {
         Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages() == null) {
-                //System.out.println("Waiting for allMessages!");
+            while (wsClient.getAllMessages().size() == 0) {
+                System.out.println("Waiting for allMessages!");
             }
         });
         waitForMessages.run();
@@ -123,7 +123,7 @@ public class MainController extends ControllerUtil {
 
         int lastElement = jsonArray.size();
 
-        JsonObject lastId = (JsonObject) jsonArray.get(lastElement -1);
+        JsonObject lastId = jsonArray.get(lastElement - 1).getAsJsonObject();
 
         return lastId.get("messageId").getAsInt();
     }
@@ -147,6 +147,7 @@ public class MainController extends ControllerUtil {
             wsClient.send(submitMessage.toString().trim());
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
+            wsClient.resetAllMessages();
             updateMessages();
         } else {
             System.out.println("Empty message. Not sending!");
@@ -160,27 +161,29 @@ public class MainController extends ControllerUtil {
      */
     public void updateMessages() {
         Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages() == null) {
-                //System.out.println("Waiting for allMessages!" + wsClient.getAllMessages() == null);
+            while (wsClient.getAllMessages().size() == 0) {
+                System.out.println("Waiting for allMessages!" + wsClient.getAllMessages().size());
             }
         });
         waitForMessages.run();
 
         JsonArray jsonArray = wsClient.getAllMessages();
+        System.out.println("jsonArray: " + jsonArray);
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
-            //System.out.println("Username: " +m.get("username").toString());
+            //System.out.println("Iteration: " + m);
             messageBoxes.add(
                     createMessageBox(m.get("username").toString().replace("\"", ""),
                     m.get("message").toString().replace("\"", ""))
             );
         }
-        this.messagesVbox.getChildren().clear();
+        System.out.println("Message Boxes: " + messageBoxes);
+        //this.messagesVbox.getChildren().clear();
         this.messagesVbox.getChildren().addAll(messageBoxes);
 
         // Scrolls to the bottom
-        messagesScrollPane.setVvalue(1.0);
+        messagesScrollPane.setVvalue(1D);
     }
 
     /**
