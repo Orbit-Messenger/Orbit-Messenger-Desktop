@@ -27,7 +27,8 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        send("{\"action\":\"getAllMessages\"}");
+        JsonObject getAllMessages = createSubmitObject("getAllMessages", null, null, null, null);
+        send(getAllMessages.toString());
         //send("Hello, it is me. Mario :)");
         System.out.println("new connection opened");
     }
