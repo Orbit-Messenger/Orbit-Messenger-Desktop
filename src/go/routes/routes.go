@@ -30,7 +30,7 @@ type ClientData struct {
 	Message       string                 `json:"message"`
 	Username      string                 `json:"username"`
 	Action        string                 `json:"action"`
-	LastMessageId string                 `json:"lastMessageId"`
+	LastMessageId int64                  `json:"lastMessageId"`
 	Properties    map[string]interface{} `json:"properties"`
 }
 
@@ -76,6 +76,7 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 		if err != nil {
 			return
 		}
+		fmt.Println(clientData)
 		fmt.Println(clientData.Action)
 		switch clientData.Action {
 		case "getAllMessages":
@@ -105,6 +106,7 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 			conn.WriteMessage(websocket.PongMessage, []byte("pong"))
 		}
 	}
+	fmt.Println("Out of handleAction")
 }
 
 func (rc RouteController) WebSocket(c *gin.Context) {
