@@ -61,14 +61,6 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	return output, nil
 }
 
-type Action struct {
-	Action string `json:"action"`
-}
-
-type MessageCount struct {
-	MessageCount int64 `json:"messageCount"`
-}
-
 func (rc RouteController) handleAction(conn *websocket.Conn) {
 	for {
 		var clientData ClientData
@@ -90,12 +82,11 @@ func (rc RouteController) handleAction(conn *websocket.Conn) {
 		case "add":
 			log.Println("Adding message")
 			message := db.Message{-1, clientData.Username, clientData.Message}
-			conn.ReadJSON(&message)
 			err := rc.dbConn.AddMessage(message, message.Username)
 			if err != nil {
 				conn.WriteJSON(err)
 			} else {
-				messages, err := rc.dbConn.GetAllMessages()
+				messages, err := rc.dbConn.GetNewestMessagesFrom(clientData.LastMessageId)
 				if err != nil {
 					conn.WriteJSON(err)
 				} else {
@@ -127,84 +118,10 @@ func (rc RouteController) getAuth(c *gin.Context) (Auth, error) {
 }
 
 // validates the context headers basic auth against the usernames and passwords in the database
-func (rc RouteController) validateUser(c *gin.Context) bool {
+func (rc RouteController) ValidateUser(c *gin.Context) bool {
 	auth, err := rc.getAuth(c)
 	if err != nil {
 		return false
 	}
 	return rc.dbConn.VerifyPasswordByUsername(auth.Username, auth.Password)
-}
-
-// Checks to see if there are new message. If so gets them!
-func (rc RouteController) CheckForUpdatedMessages(c *gin.Context) {
-	if rc.validateUser(c) {
-		type MessageCount struct {
-			MessageCount int64 `json:"messageCount"`
-		}
-
-		var info MessageCount
-		c.Bind(&info)
-
-		fmt.Println("Message Count: ", info.MessageCount)
-		messages, err := rc.dbConn.CheckForUpdatedMessages(info.MessageCount)
-		if err != nil {
-			c.String(500, "Couldn't get messages from database")
-			return
-		}
-		c.JSON(200, messages)
-	} else {
-		c.String(403, "Password or user not valid")
-	}
-}
-
-// Gets message count
-func (rc RouteController) GetMessageCount(c *gin.Context) {
-	if rc.validateUser(c) {
-		messageCount, err := rc.dbConn.GetMessageCount()
-		if err != nil {
-			c.String(500, "Couldn't get message count from database")
-			return
-		}
-		c.JSON(200, messageCount)
-	} else {
-		c.String(403, "Password or user not valid")
-	}
-}
-
-// Gets all the messages from the database
-func (rc RouteController) GetAllMessages(c *gin.Context) {
-	if rc.validateUser(c) {
-		messages, err := rc.dbConn.GetAllMessages()
-		if err != nil {
-			c.String(500, "Couldn't get messages from database")
-			return
-		}
-		c.JSON(200, messages)
-	} else {
-		c.String(403, "Password or user not valid")
-	}
-}
-
-func (rc RouteController) AddMessage(c *gin.Context) {
-	if rc.validateUser(c) {
-		auth, err := rc.getAuth(c)
-		var message db.Message
-		c.BindJSON(&message)
-		err = rc.dbConn.AddMessage(message, auth.Username)
-		if err != nil {
-			c.String(500, "Couldn't add message to the database")
-			return
-		}
-		c.Status(200)
-	} else {
-		c.String(403, "Password or user not valid")
-	}
-}
-
-func (rc RouteController) VerifyUser(c *gin.Context) {
-	if rc.validateUser(c) {
-		c.String(200, "User is valid")
-	} else {
-		c.String(403, "User is not valid")
-	}
 }

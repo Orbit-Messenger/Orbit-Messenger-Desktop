@@ -128,7 +128,27 @@ func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]
 func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 	var messages []Message
 	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id;")
+		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id LIMIT 100;")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var message Message
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Message)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, message)
+	}
+	return messages, nil
+}
+
+func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64) ([]Message, error) {
+	var messages []Message
+	rows, err := dbConn.conn.Query(context.Background(),
+		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id > $1 LIMIT 100;", messageId)
 	if err != nil {
 		return nil, err
 	}
