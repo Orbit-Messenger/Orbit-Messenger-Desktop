@@ -1,5 +1,6 @@
 package com.orbitmessenger.Controllers;
 
+import com.google.gson.JsonObject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;

@@ -17,21 +17,14 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.WebSocket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 public class MainController extends ControllerUtil {
 
-    Gson gson = new GsonBuilder()
-            .setLenient()
-            .create();
-
     private String username, password, server;
+    private JsonObject properties;
     private int localMessageCount = 0;
 
     @FXML
@@ -100,6 +93,10 @@ public class MainController extends ControllerUtil {
         this.server = server;
     }
 
+    public JsonObject getProperties() { return properties; }
+
+    public void setProperties(JsonObject properties) {this.properties = properties; }
+
     private Timer timer = new Timer();
 
     /**
@@ -113,21 +110,44 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Returns the last messageId of all of our messages!
+     */
+
+    public int retrieveLastMessageID() {
+        Thread waitForMessages = new Thread(() -> {
+            while (wsClient.getAllMessages() == null) {
+                System.out.println("Waiting for allMessages!");
+            }
+        });
+        waitForMessages.run();
+        JsonArray jsonArray = wsClient.getAllMessages();
+
+        int lastElement = jsonArray.size();
+
+        JsonObject lastId = (JsonObject) jsonArray.get(lastElement -1);
+
+        return lastId.get("messageId").getAsInt();
+    }
+
+    /**
      * To send a message to the server
      */
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
         System.out.println("Message: "+ message.trim());
         if (!checkForEmptyMessage(message)) {
-            //wsClient.sendMessage(message);
-            wsClient.send("{\"action\": \"addMessage\"}");
-            JsonObject jsonMessage = new JsonObject();
-            jsonMessage.add("message", new JsonParser().parse(message));
-            jsonMessage.add("username", new JsonParser().parse(getUsername()));
-            System.out.println("JSON: " + jsonMessage);
-            wsClient.send(jsonMessage.toString());
-            //wsClient.send("{"message":  "" +  message + "", "username"}"message);
-            //wsClient.send("{\"action\":\"getAllMessages\"}");
+
+            String action = "add";
+            Integer lastMessageID = retrieveLastMessageID();
+
+            JsonObject submitMessage = wsClient.createSubmitObject(action,
+                    message,
+                    getUsername(),
+                    lastMessageID,
+                    getProperties());
+
+            System.out.println("JSON: " + submitMessage);
+            wsClient.send(submitMessage.toString());
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
             updateMessages();
@@ -149,13 +169,7 @@ public class MainController extends ControllerUtil {
         });
         waitForMessages.run();
 
-
-
-
-
         JsonArray jsonArray = wsClient.getAllMessages();
-
-        System.out.println("HIT");
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
@@ -216,10 +230,10 @@ public class MainController extends ControllerUtil {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Orbit Messenger");
         alert.setHeaderText(null);
-        alert.setContentText("Designed and built by Brody and Maxwell in Utah!");
+        String line2 = ("Designed and built by Brody and Maxwell in Utah!" + "\n" + "https://github.com/MaxwellM/Orbit-Messenger");
         // create a hyperlink
         Hyperlink hyperlink = new Hyperlink("hyperlink");
-        alert.setContentText("Github: ");
+        alert.setContentText(line2);
         alert.showAndWait();
     }
 

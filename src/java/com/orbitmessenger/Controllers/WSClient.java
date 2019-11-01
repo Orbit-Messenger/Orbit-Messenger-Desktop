@@ -2,13 +2,11 @@ package com.orbitmessenger.Controllers;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import javafx.scene.layout.VBox;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
@@ -25,6 +23,8 @@ public class WSClient extends WebSocketClient {
         super(serverURI);
     }
 
+    public JsonObject submitObject;
+
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         send("{\"action\":\"getAllMessages\"}");
@@ -39,10 +39,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        //send("{\"action\":\"getAllMessages\"}");
-        //send(formatMessage(message));
-        allMessages = message;
-        System.out.println("received message: " + message);
+        allMessages += message;
     }
 
     @Override
@@ -71,15 +68,24 @@ public class WSClient extends WebSocketClient {
             JsonParser parser = new JsonParser();
             JsonElement tradeElement = parser.parse(allMessages);
             JsonArray trade = tradeElement.getAsJsonArray();
-            System.out.println(trade);
+            //System.out.println(trade);
             return trade;
         } catch (Exception e) {
             return null;
         }
     }
 
-//    public static void main(String[] args) throws URISyntaxException {
-//        WebSocketClient client = new WSClient(new URI("ws://localhost:8887"));
-//        client.connect();
-//    }
+    public JsonObject createSubmitObject(String action,
+                                         String message,
+                                         String username,
+                                         Integer lastMessageId,
+                                         JsonObject properties) {
+        submitObject = new JsonObject();
+        submitObject.addProperty("action", action);
+        submitObject.addProperty("message", message);
+        submitObject.addProperty("username", username);
+        submitObject.addProperty("lastMessageId", lastMessageId);
+        submitObject.addProperty("properties", String.valueOf(properties));
+        return submitObject;
+    }
 }
