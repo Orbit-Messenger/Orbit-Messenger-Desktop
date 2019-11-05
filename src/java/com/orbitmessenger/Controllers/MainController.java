@@ -11,7 +11,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -25,12 +24,11 @@ public class MainController extends ControllerUtil {
 
     private String username, password, server;
     private JsonObject properties;
-    private int localMessageCount = 0;
 
     @FXML
-    VBox messagesVbox;
+    private VBox messagesVbox;
     @FXML
-    ScrollPane messagesScrollPane;
+    private ScrollPane messagesScrollPane;
 
     @FXML
     private Button btnLogin;
@@ -68,7 +66,7 @@ public class MainController extends ControllerUtil {
         updateMessages();
     }
 
-    public String getUsername() {
+    private String getUsername() {
         return username;
     }
 
@@ -84,7 +82,7 @@ public class MainController extends ControllerUtil {
         this.password = password;
     }
 
-    public String getServer() {
+    private String getServer() {
         return server;
     }
 
@@ -92,7 +90,7 @@ public class MainController extends ControllerUtil {
         this.server = server;
     }
 
-    public JsonObject getProperties() { return properties; }
+    private JsonObject getProperties() { return properties; }
 
     public void setProperties(JsonObject properties) {this.properties = properties; }
 
@@ -113,18 +111,10 @@ public class MainController extends ControllerUtil {
      */
 
     public int retrieveLastMessageID() {
-        Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages().size() == 0) {
-                System.out.println("Waiting for allMessages!");
-            }
-        });
-        waitForMessages.run();
+        waitForAllMessages();
         JsonArray jsonArray = wsClient.getAllMessages();
-
         int lastElement = jsonArray.size();
-
         JsonObject lastId = jsonArray.get(lastElement - 1).getAsJsonObject();
-
         return lastId.get("messageId").getAsInt();
     }
 
@@ -134,7 +124,6 @@ public class MainController extends ControllerUtil {
     public void sendMessage() {
         String message = txtUserMsg.getText().trim();
         if (!checkForEmptyMessage(message)) {
-
             String action = "add";
             Integer lastMessageID = retrieveLastMessageID();
 
@@ -160,30 +149,21 @@ public class MainController extends ControllerUtil {
      * To send a message to the console or the GUI
      */
     public void updateMessages() {
-        Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages().size() == 0) {
-                System.out.println("Waiting for allMessages!" + wsClient.getAllMessages().size());
-            }
-        });
-        waitForMessages.run();
-
+        waitForAllMessages();
         JsonArray jsonArray = wsClient.getAllMessages();
-        System.out.println("jsonArray: " + jsonArray);
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
-            //System.out.println("Iteration: " + m);
             messageBoxes.add(
                     createMessageBox(m.get("username").toString().replace("\"", ""),
                     m.get("message").toString().replace("\"", ""))
             );
         }
-        System.out.println("Message Boxes: " + messageBoxes);
         //this.messagesVbox.getChildren().clear();
         this.messagesVbox.getChildren().addAll(messageBoxes);
 
         // Scrolls to the bottom
-        messagesScrollPane.setVvalue(1D);
+        scrollToBottom();
     }
 
     /**
@@ -247,5 +227,31 @@ public class MainController extends ControllerUtil {
         LoginController login = new LoginController();
         ControllerUtil ctrlUtl = new ControllerUtil();
         login.changeSceneTo(ctrlUtl.LOGIN_FXML, login, (Stage) txtUserMsg.getScene().getWindow());
+    }
+
+    /**
+     * Scrolls to the chat window to the bottom.
+     * Preferable when there are new messages.
+     */
+    public void scrollToBottom() {
+        //messagesScrollPane.setVvalue(1);
+        messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
+        //messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
+    }
+
+    /**
+     * This will return when allMessages from wsClient is > 0.
+     */
+    private void waitForAllMessages() {
+        Thread waitForMessages = new Thread(() -> {
+            while (wsClient.getAllMessages().size() == 0) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        waitForMessages.run();
     }
 }

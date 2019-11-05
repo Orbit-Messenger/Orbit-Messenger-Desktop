@@ -2,7 +2,6 @@ package com.orbitmessenger.Controllers;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import com.google.gson.*;
 import org.java_websocket.client.WebSocketClient;
@@ -28,8 +27,6 @@ public class WSClient extends WebSocketClient {
         JsonObject getAllMessages = createSubmitObject("getAllMessages", null, null, null, null);
         send(getAllMessages.toString());
         System.out.println("new connection opened");
-        //allMessages.append("[{\"messageId\":0,\"username\":\"maxwell\",\"message\":\"\\\"Test\\\"\"}]");
-        //System.out.println("Messages: " + allMessages);
     }
 
     @Override
@@ -39,10 +36,8 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
+        addIncomingMessages(message);
         System.out.println("OnMessage: " + message);
-        JsonParser parser = new JsonParser();
-        JsonArray messageArray = (JsonArray) parser.parse(message);
-        allMessages.addAll(messageArray);
         System.out.println("All Messages: " + allMessages.toString());
     }
 
@@ -54,6 +49,12 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onError(Exception ex) {
         System.err.println("an error occurred:" + ex);
+    }
+
+    private void addIncomingMessages(String messages) {
+        JsonParser parser = new JsonParser();
+        JsonArray messageArray = (JsonArray) parser.parse(messages);
+        allMessages.addAll(messageArray);
     }
 
     public boolean isAllMessagesEmpty() {
