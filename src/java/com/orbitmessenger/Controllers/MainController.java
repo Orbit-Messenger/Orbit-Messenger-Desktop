@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -19,10 +20,12 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainController extends ControllerUtil {
 
-    private String username, password, server;
+    private String username, password, server, inComingMessage, action;
     private JsonObject properties;
 
     @FXML
@@ -102,6 +105,8 @@ public class MainController extends ControllerUtil {
      */
     public void handleEnterPressed(KeyEvent event) throws ExecutionException, InterruptedException {
         if (event.getCode() == KeyCode.ENTER) {
+            action = "add";
+            inComingMessage = txtUserMsg.getText().trim();
             sendMessage();
         }
     }
@@ -122,27 +127,35 @@ public class MainController extends ControllerUtil {
      * To send a message to the server
      */
     public void sendMessage() {
-        String message = txtUserMsg.getText().trim();
-        if (!checkForEmptyMessage(message)) {
-            String action = "add";
+        if (!checkForEmptyMessage(inComingMessage)) {
+            //String action = "add";
             Integer lastMessageID = retrieveLastMessageID();
 
-            JsonObject submitMessage = wsClient.createSubmitObject(action,
-                    message,
+            JsonObject submitMessage = wsClient.createSubmitObject(
+                    action,
+                    inComingMessage,
                     getUsername(),
                     lastMessageID,
                     getProperties());
+
+            System.out.println("Message to send: " + submitMessage.toString());
 
             wsClient.send(submitMessage.toString().trim());
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
             wsClient.resetAllMessages();
+            resetInComingMessage();
             updateMessages();
         } else {
             System.out.println("Empty message. Not sending!");
             txtUserMsg.setText("");
             txtUserMsg.requestFocus();
         }
+    }
+
+    public void resetInComingMessage() {
+        action = "";
+        inComingMessage = "";
     }
 
     /**
@@ -155,8 +168,9 @@ public class MainController extends ControllerUtil {
         for (Object message : jsonArray){
             JsonObject m = (JsonObject) message;
             messageBoxes.add(
-                    createMessageBox(m.get("username").toString().replace("\"", ""),
-                    m.get("message").toString().replace("\"", ""))
+                    createMessageBox(
+                            m.get("username").toString().replace("\"", ""),
+                            m.get("message").toString().replace("\"", ""))
             );
         }
         //this.messagesVbox.getChildren().clear();
@@ -237,6 +251,19 @@ public class MainController extends ControllerUtil {
         //messagesScrollPane.setVvalue(1);
         messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
         //messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
+    }
+
+    public void selectMessageToDelete(MouseEvent event) {
+        String text = event.getTarget().toString();
+        String regex = "\"([^\"]*)\"";
+        Pattern pat = Pattern.compile(regex);
+        Matcher m = pat.matcher(text);
+        if(m.find()) {
+            System.out.println(m.group(1));
+            action = "delete";
+            inComingMessage = m.group(1);
+            sendMessage();
+        }
     }
 
     /**
