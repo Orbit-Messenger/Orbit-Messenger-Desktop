@@ -35,6 +35,7 @@ type User struct {
 	Password    string
 	Salt        string
 	AccountType string
+	Status      bool
 }
 
 // reads the database settings file or it will ask the user for the information to create one
@@ -247,7 +248,7 @@ func (dbConn DatabaseConnection) AddMessage(message Message, username string) er
 }
 
 // Changes the users status
-func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) err {
+func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) error {
 	userId, err := dbConn.GetUserId(username)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
@@ -255,18 +256,19 @@ func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) 
 
 	columnsAffected, err := dbConn.conn.Exec(
 		context.Background(),
-		"UPDATE users SET active = $1 WHERE id = $2;",
-		loggedIn,
+		"UPDATE users SET status = $1 WHERE id = $2;",
+		status,
 		userId)
 	fmt.Printf("%v columns affected", columnsAffected)
 	return err
 
 }
 
-func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, err) {
+// Gets all the users by their status
+func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, error) {
 	var usernames []string
 	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT username FROM users WHERE active = $1;", status)
+		"SELECT username FROM users WHERE status = $1;", status)
 	if err != nil {
 		return nil, err
 	}

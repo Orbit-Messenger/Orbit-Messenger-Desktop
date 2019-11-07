@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <MenuBar VBox.vgrow="NEVER">
             <menus>
@@ -58,13 +58,13 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                             <children>
-                                <ListView fx:id="listUser" layoutX="5.0" prefHeight="289.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                                <ListView fx:id="userListView" layoutX="5.0" prefHeight="289.0" prefWidth="163.0" styleClass="messageSendTextArea" />
                             </children>
                         </AnchorPane>
                     </content>
                 </TitledPane>
                 <Button fx:id="btnSend" defaultButton="true" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
-                <TextArea fx:id="txtUserMsg" layoutX="14.0" layoutY="343.0" onKeyPressed="#handleEnterPressed" prefHeight="114.0" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
+                <TextArea fx:id="messageTextArea" layoutX="14.0" layoutY="343.0" onKeyPressed="#handleEnterPressed" prefHeight="114.0" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
             </children>
         </AnchorPane>
     </children>

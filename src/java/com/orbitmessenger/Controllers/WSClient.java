@@ -1,44 +1,45 @@
 package com.orbitmessenger.Controllers;
 
-import java.net.URI;
-import java.nio.ByteBuffer;
-
-import com.google.gson.*;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.net.URI;
+import java.nio.ByteBuffer;
+
 public class WSClient extends WebSocketClient {
 
-    public JsonArray allMessages = new JsonArray();;
-
-    public WSClient(URI serverUri, Draft draft) {
-        super(serverUri, draft);
-    }
-
-    public WSClient(URI serverURI) {
-        super(serverURI);
-    }
-
+    private JsonObject serverResponse;
     public JsonObject submitObject;
+    private String username;
+
+    public WSClient(URI serverUri, String username, Draft draft) {
+        super(serverUri, draft);
+        this.username = username;
+    }
+
+    public WSClient(URI serverURI, String username) {
+        super(serverURI);
+        this.username = username;
+    }
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        JsonObject getAllMessages = createSubmitObject("getAllMessages", null, null, null, null);
-        send(getAllMessages.toString());
+        send(createLoginObject(this.username).toString());
         System.out.println("new connection opened");
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        send(createLogoutObject().toString());
         System.out.println("closed with exit code " + code + " additional info: " + reason);
     }
 
     @Override
     public void onMessage(String message) {
-        addIncomingMessages(message);
-        System.out.println("OnMessage: " + message);
-        System.out.println("All Messages: " + allMessages.toString());
+        setServerResponse(message);
     }
 
     @Override
@@ -51,38 +52,38 @@ public class WSClient extends WebSocketClient {
         System.err.println("an error occurred:" + ex);
     }
 
-    private void addIncomingMessages(String messages) {
-        JsonParser parser = new JsonParser();
-        JsonArray messageArray = (JsonArray) parser.parse(messages);
-        allMessages.addAll(messageArray);
+    private void setServerResponse(String message){
+        JsonObject json = (JsonObject) new JsonParser().parse(message);
+       this.serverResponse = json;
     }
 
-    public boolean isAllMessagesEmpty() {
-        return allMessages == null;
+    public JsonObject getServerResponse(){
+        JsonObject response = this.serverResponse;
+        this.serverResponse = null;
+        return response;
     }
 
-    public JsonArray getAllMessages() {
-        try {
-            return allMessages;
-        } catch (Exception e) {
-            return null;
-        }
+    private JsonObject createLoginObject(String username){
+        submitObject = new JsonObject();
+        submitObject.addProperty("action", "login");
+        submitObject.addProperty("username", username);
+        return submitObject;
     }
 
-    public void resetAllMessages() {
-        allMessages = new JsonArray();
+    private JsonObject createLogoutObject(){
+        submitObject = new JsonObject();
+        submitObject.addProperty("action", "logout");
+        return submitObject;
     }
 
     public JsonObject createSubmitObject(String action,
                                          String message,
                                          String username,
-                                         Integer lastMessageId,
                                          JsonObject properties) {
         submitObject = new JsonObject();
         submitObject.addProperty("action", action);
         submitObject.addProperty("message", message);
         submitObject.addProperty("username", username);
-        submitObject.addProperty("lastMessageId", lastMessageId);
         submitObject.add("properties", properties);
         return submitObject;
     }

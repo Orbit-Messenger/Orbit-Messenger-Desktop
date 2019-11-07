@@ -1,6 +1,7 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,20 +13,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainController extends ControllerUtil {
 
-    private String username, password, server, inComingMessage, action;
+    private String username, password, server;
     private JsonObject properties;
 
     @FXML
@@ -34,39 +30,23 @@ public class MainController extends ControllerUtil {
     private ScrollPane messagesScrollPane;
 
     @FXML
-    private Button btnLogin;
-    @FXML
-    private Button btnLogout;
-    @FXML
     private Button btnSend;
     @FXML
-    private TextArea txtAreaServerMsgs;
+    ListView userListView;
     @FXML
-    private TextField txtHostIP;
-    @FXML
-    private TextField txtUsername;
-    @FXML
-    private ListView<String> listUser;
-    @FXML
-    private TextArea txtUserMsg;
+    private TextArea messageTextArea;
 
     private ObservableList<String> users;
 
     // Server Configuration
     private boolean connected;
 
-    // for I/O
-    private ObjectInputStream sInput;		// to read from the socket
-    private ObjectOutputStream sOutput;		// to write on the socket
-    private Socket socket;
-
     private WSClient wsClient;
 
     public void initialize() throws URISyntaxException {
-        System.out.println("Server: " + this.getServer());
-        wsClient = new WSClient( new URI( this.getServer()+"/ws" ));
-        wsClient.connect();
-        updateMessages();
+        wsClient = new WSClient(new URI(this.getServer() + "/"), getUsername());
+        wsClient.connect(); // creates the websocket connection
+        updateHandler.start(); // Starts the update handler thread
     }
 
     private String getUsername() {
@@ -93,79 +73,104 @@ public class MainController extends ControllerUtil {
         this.server = server;
     }
 
-    private JsonObject getProperties() { return properties; }
+    private JsonObject getProperties() {
+        return properties;
+    }
 
-    public void setProperties(JsonObject properties) {this.properties = properties; }
+    public void setProperties(JsonObject properties) {
+        this.properties = properties;
+    }
 
-    private Timer timer = new Timer();
+    /**
+     * Handles all the UI updating when json is recieved from the websocket
+     */
+    private Thread updateHandler = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    JsonObject serverMessage = wsClient.getServerResponse();
+                    if(serverMessage != null) {
+                        updateMessages(getMessagesFromJsonObject(serverMessage));
+                        updateUsers(getUsersFromJsonObject(serverMessage));
+                    }
+                    Thread.sleep(500); // Milliseconds
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        ;
+    });
+
+    /**
+     * Gets the messages index from the json object passed to it
+     */
+    private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
+        if(serverResponse.has("messages")){
+            return serverResponse.getAsJsonArray("messages");
+        }
+        return null;
+    }
+
+    /**
+     * Gets the activeUser index from the json object passed to it
+     */
+    private JsonArray getUsersFromJsonObject(JsonObject serverResponse){
+        String jsonKey = "activeUsers";
+        if(serverResponse.has(jsonKey)){
+            try{
+                return serverResponse.getAsJsonArray(jsonKey);
+            } catch (Exception e){
+                return null;
+            }
+        }
+        return null;
+    }
 
     /**
      * Sends message to server
      * Used by TextArea txtUserMsg to handle Enter key event
      */
-    public void handleEnterPressed(KeyEvent event) throws ExecutionException, InterruptedException {
+    public void handleEnterPressed(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
-            action = "add";
-            inComingMessage = txtUserMsg.getText().trim();
             sendMessage();
         }
-    }
-
-    /**
-     * Returns the last messageId of all of our messages!
-     */
-
-    public int retrieveLastMessageID() {
-        waitForAllMessages();
-        JsonArray jsonArray = wsClient.getAllMessages();
-        int lastElement = jsonArray.size();
-        JsonObject lastId = jsonArray.get(lastElement - 1).getAsJsonObject();
-        return lastId.get("messageId").getAsInt();
     }
 
     /**
      * To send a message to the server
      */
     public void sendMessage() {
-        if (!checkForEmptyMessage(inComingMessage)) {
-            //String action = "add";
-            Integer lastMessageID = retrieveLastMessageID();
-
-            JsonObject submitMessage = wsClient.createSubmitObject(
-                    action,
-                    inComingMessage,
-                    getUsername(),
-                    lastMessageID,
-                    getProperties());
-
-            System.out.println("Message to send: " + submitMessage.toString());
-
-            wsClient.send(submitMessage.toString().trim());
-            txtUserMsg.setText("");
-            txtUserMsg.requestFocus();
-            wsClient.resetAllMessages();
-            resetInComingMessage();
-            updateMessages();
-        } else {
-            System.out.println("Empty message. Not sending!");
-            txtUserMsg.setText("");
-            txtUserMsg.requestFocus();
+        String userText = messageTextArea.getText().trim();
+        if(userText.isEmpty()) {
+            return;
         }
-    }
 
-    public void resetInComingMessage() {
-        action = "";
-        inComingMessage = "";
+        JsonObject submitMessage = wsClient.createSubmitObject(
+                "add",
+                userText,
+                getUsername(),
+                getProperties()
+        );
+
+        System.out.println("Message to send: " + submitMessage.toString());
+
+        wsClient.send(submitMessage.toString().trim());
+        messageTextArea.setText("");
+        messageTextArea.requestFocus();
     }
 
     /**
      * To send a message to the console or the GUI
      */
-    public void updateMessages() {
-        waitForAllMessages();
-        JsonArray jsonArray = wsClient.getAllMessages();
+    public void updateMessages(JsonArray newMessages) {
+        if(newMessages == null){
+            return;
+        }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (Object message : jsonArray){
+        for (Object message : newMessages) {
             JsonObject m = (JsonObject) message;
             messageBoxes.add(
                     createMessageBox(
@@ -173,8 +178,34 @@ public class MainController extends ControllerUtil {
                             m.get("message").toString().replace("\"", ""))
             );
         }
-        //this.messagesVbox.getChildren().clear();
-        this.messagesVbox.getChildren().addAll(messageBoxes);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                messagesVbox.getChildren().addAll(messageBoxes);
+            }
+        });
+
+        // Scrolls to the bottom
+        scrollToBottom();
+    }
+
+    public void updateUsers(JsonArray users) {
+        if(users == null){
+            return;
+        }
+        ArrayList<Label> userLabels = new ArrayList<>();
+        for (Object user : users) {
+            Label label = new Label();
+            label.setText(user.toString());
+            userLabels.add(label);
+        }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                userListView.getItems().clear();
+                userListView.getItems().addAll(userLabels);
+            }
+        });
 
         // Scrolls to the bottom
         scrollToBottom();
@@ -183,10 +214,10 @@ public class MainController extends ControllerUtil {
     /**
      * Creates a message box with proper formatting
      */
-    private VBox createMessageBox(String username, String message){
+    private VBox createMessageBox(String username, String message) {
         VBox vbox = new VBox();
         // check if username == the current user or moves messages to the right
-        if(!username.equals(this.getUsername())){
+        if (!username.equals(this.getUsername())) {
             vbox.setAlignment(Pos.CENTER_RIGHT);
         }
         vbox.setStyle(".messageBox");
@@ -200,22 +231,6 @@ public class MainController extends ControllerUtil {
         return vbox;
     }
 
-    /**
-     * Checks to make sure that the message we're trying to send isn't empty!
-     */
-    private boolean checkForEmptyMessage(String message) {
-        return (message.isEmpty());
-    }
-
-    /**
-     * Closes the program
-     */
-    public void closeProgram() {
-        System.out.println("Calling Platform.exit():");
-        Platform.exit();
-        System.out.println("Calling System.exit(0):");
-        System.exit(0);
-    }
 
     /**
      * Popup dialog box displaying About information!
@@ -240,7 +255,7 @@ public class MainController extends ControllerUtil {
         // Switches back to the Login Controller/Window
         LoginController login = new LoginController();
         ControllerUtil ctrlUtl = new ControllerUtil();
-        login.changeSceneTo(ctrlUtl.LOGIN_FXML, login, (Stage) txtUserMsg.getScene().getWindow());
+        login.changeSceneTo(ctrlUtl.LOGIN_FXML, login, (Stage) messageTextArea.getScene().getWindow());
     }
 
     /**
@@ -248,9 +263,7 @@ public class MainController extends ControllerUtil {
      * Preferable when there are new messages.
      */
     public void scrollToBottom() {
-        //messagesScrollPane.setVvalue(1);
         messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
-        //messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
     }
 
     public void selectMessageToDelete(MouseEvent event) {
@@ -258,27 +271,22 @@ public class MainController extends ControllerUtil {
         String regex = "\"([^\"]*)\"";
         Pattern pat = Pattern.compile(regex);
         Matcher m = pat.matcher(text);
-        if(m.find()) {
+        if (m.find()) {
             System.out.println(m.group(1));
-            action = "delete";
-            inComingMessage = m.group(1);
+//            action = "delete";
+//            inComingMessage = m.group(1);
             sendMessage();
         }
     }
 
     /**
-     * This will return when allMessages from wsClient is > 0.
+     * Closes the program
      */
-    private void waitForAllMessages() {
-        Thread waitForMessages = new Thread(() -> {
-            while (wsClient.getAllMessages().size() == 0) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        waitForMessages.run();
+    public void closeProgram() {
+        System.out.println("Calling Platform.exit():");
+        Platform.exit();
+        System.out.println("Calling System.exit(0):");
+        System.exit(0);
     }
+
 }
