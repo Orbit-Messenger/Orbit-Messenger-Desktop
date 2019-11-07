@@ -44,10 +44,9 @@ public class MainController extends ControllerUtil {
     private WSClient wsClient;
 
     public void initialize() throws URISyntaxException {
-        wsClient = new WSClient(new URI(this.getServer() + "/"));
-        wsClient.connect();
-        updateHandler.start();
-        //updateMessages();
+        wsClient = new WSClient(new URI(this.getServer() + "/"), getUsername());
+        wsClient.connect(); // creates the websocket connection
+        updateHandler.start(); // Starts the update handler thread
     }
 
     private String getUsername() {
@@ -82,6 +81,9 @@ public class MainController extends ControllerUtil {
         this.properties = properties;
     }
 
+    /**
+     * Handles all the UI updating when json is recieved from the websocket
+     */
     private Thread updateHandler = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -92,7 +94,7 @@ public class MainController extends ControllerUtil {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                     }
-                    Thread.sleep(500);
+                    Thread.sleep(500); // Milliseconds
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -102,6 +104,9 @@ public class MainController extends ControllerUtil {
         ;
     });
 
+    /**
+     * Gets the messages index from the json object passed to it
+     */
     private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
         if(serverResponse.has("messages")){
             return serverResponse.getAsJsonArray("messages");
@@ -109,6 +114,9 @@ public class MainController extends ControllerUtil {
         return null;
     }
 
+    /**
+     * Gets the activeUser index from the json object passed to it
+     */
     private JsonArray getUsersFromJsonObject(JsonObject serverResponse){
         String jsonKey = "activeUsers";
         if(serverResponse.has(jsonKey)){
@@ -130,18 +138,6 @@ public class MainController extends ControllerUtil {
             sendMessage();
         }
     }
-
-    /**
-     * Returns the last messageId of all of our messages!
-     */
-
-//    public int retrieveLastMessageID() {
-//        waitForAllMessages();
-//        JsonArray jsonArray = wsClient.getAllMessages();
-//        int lastElement = jsonArray.size();
-//        JsonObject lastId = jsonArray.get(lastElement - 1).getAsJsonObject();
-//        return lastId.get("messageId").getAsInt();
-//    }
 
     /**
      * To send a message to the server

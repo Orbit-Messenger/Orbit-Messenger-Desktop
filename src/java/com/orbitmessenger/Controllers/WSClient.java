@@ -13,19 +13,21 @@ public class WSClient extends WebSocketClient {
 
     private JsonObject serverResponse;
     public JsonObject submitObject;
+    private String username;
 
-    public WSClient(URI serverUri, Draft draft) {
+    public WSClient(URI serverUri, String username, Draft draft) {
         super(serverUri, draft);
+        this.username = username;
     }
 
-    public WSClient(URI serverURI) {
+    public WSClient(URI serverURI, String username) {
         super(serverURI);
+        this.username = username;
     }
-
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        send(createLoginObject("brody").toString());
+        send(createLoginObject(this.username).toString());
         System.out.println("new connection opened");
     }
 
