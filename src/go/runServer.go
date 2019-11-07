@@ -13,7 +13,7 @@ func main() {
 
 	// Routes
 	//router.GET("/verifyUser", routes.VerifyUser)
-	router.GET("/ws", routes.WebSocket)
+	router.GET("/", routes.WebSocket)
 	router.Run(":3000")
 
 }

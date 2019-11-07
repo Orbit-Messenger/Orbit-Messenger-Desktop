@@ -4,14 +4,21 @@ CREATE TABLE IF NOT EXISTS users(
   password TEXT DEFAULT '',
   salt TEXT DEFAULT '',
   account_type VARCHAR(10) DEFAULT '',
-  active boolean DEFAULT false
+  status boolean DEFAULT false
 );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test', 'admin');
 INSERT INTO users VALUES(DEFAULT, 'brody', 'test', 'test', 'admin');
+INSERT INTO users VALUES(DEFAULT, 'admin', 'test', 'test', 'admin');
+INSERT INTO users VALUES(DEFAULT, 'test', 'test', 'test', 'user');
 
 CREATE TABLE IF NOT EXISTS messages(
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id),
   message TEXT
 );
+
+INSERT INTO messages VALUES(DEFAULT, 1, 'testing 1');
+INSERT INTO messages VALUES(DEFAULT, 2, 'testing 2');
+INSERT INTO messages VALUES(DEFAULT, 3, 'testing 3');
+INSERT INTO messages VALUES(DEFAULT, 4, 'testing 4');
