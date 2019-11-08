@@ -92,6 +92,9 @@ public class MainController extends ControllerUtil {
                     if(serverMessage != null) {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
+                        if(serverMessage.has("delete")) {
+                            deleteMessageLocally(serverMessage.get("messageId").getAsInt());
+                        }
                     }
                     Thread.sleep(500); // Milliseconds
                 } catch (InterruptedException e) {
@@ -286,10 +289,25 @@ public class MainController extends ControllerUtil {
         messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
     }
 
+    /**
+     * Sends a request to the server to delete a message by sending the messageId.
+     */
     public void selectMessageToDelete() {
-        final int    selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
         System.out.println("Index: " + selectedId);
         deleteMessage(messageIds.get(selectedId).toString());
+
+        // Wait for success message
+        // messagesListView.getItems().remove(selectedId);
+    }
+
+    /**
+     * Deletes a message locally by messageId sent from the server.
+     * @param messageId
+     */
+    public void deleteMessageLocally(Integer messageId) {
+        final int selectedId = messageIds.indexOf(messageId);
+        messagesListView.getItems().remove(selectedId);
     }
 
     /**
