@@ -16,16 +16,15 @@ import javafx.stage.Stage;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainController extends ControllerUtil {
 
     private String username, password, server;
     private JsonObject properties;
+    private ArrayList<Integer> messageIds = new ArrayList<>();
 
     @FXML
-    private VBox messagesVbox;
+    private ListView messagesListView;
     @FXML
     private ScrollPane messagesScrollPane;
 
@@ -142,6 +141,22 @@ public class MainController extends ControllerUtil {
     /**
      * To send a message to the server
      */
+    public void deleteMessage(String id) {
+        JsonObject submitMessage = wsClient.createSubmitObject(
+                "delete",
+                id,
+                getUsername(),
+                getProperties()
+        );
+
+        System.out.println("Message to delete: " + submitMessage.toString());
+
+        wsClient.send(submitMessage.toString().trim());
+    }
+
+    /**
+     * To send a message to the server
+     */
     public void sendMessage() {
         String userText = messageTextArea.getText().trim();
         if(userText.isEmpty()) {
@@ -172,6 +187,11 @@ public class MainController extends ControllerUtil {
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Object message : newMessages) {
             JsonObject m = (JsonObject) message;
+
+            // Takes the messageId from the server and assigns it to the global messageIds
+            // we'll use for the delete function.
+            messageIds.add(m.get("messageId").getAsInt());
+
             messageBoxes.add(
                     createMessageBox(
                             m.get("username").toString().replace("\"", ""),
@@ -181,7 +201,7 @@ public class MainController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                messagesVbox.getChildren().addAll(messageBoxes);
+                messagesListView.getItems().addAll(messageBoxes);
             }
         });
 
@@ -263,20 +283,13 @@ public class MainController extends ControllerUtil {
      * Preferable when there are new messages.
      */
     public void scrollToBottom() {
-        messagesScrollPane.vvalueProperty().bind(messagesVbox.heightProperty());
+        messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
     }
 
-    public void selectMessageToDelete(MouseEvent event) {
-        String text = event.getTarget().toString();
-        String regex = "\"([^\"]*)\"";
-        Pattern pat = Pattern.compile(regex);
-        Matcher m = pat.matcher(text);
-        if (m.find()) {
-            System.out.println(m.group(1));
-//            action = "delete";
-//            inComingMessage = m.group(1);
-            sendMessage();
-        }
+    public void selectMessageToDelete() {
+        final int    selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        System.out.println("Index: " + selectedId);
+        deleteMessage(messageIds.get(selectedId).toString());
     }
 
     /**
