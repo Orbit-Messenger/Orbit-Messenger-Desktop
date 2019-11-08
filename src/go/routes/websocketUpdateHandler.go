@@ -79,9 +79,5 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
-	if len(messages) == 0 {
-		return
-	} else {
-		*lastMessageId = messages[len(messages)-1].MessageId
-	}
+	*lastMessageId = messages[len(messages)-1].MessageId
 }
