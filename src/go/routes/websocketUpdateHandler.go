@@ -8,8 +8,7 @@ import (
 	"time"
 )
 
-func (rc RouteController) UpdateHandler(conn *websocket.Conn, state *State) {
-	fmt.Println(state.LoggedIn)
+func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	for !state.LoggedIn {
 		// waits for the user to login
 		time.Sleep(500 * time.Millisecond)
@@ -32,7 +31,7 @@ func (rc RouteController) UpdateHandler(conn *websocket.Conn, state *State) {
 
 		if serverResponse.Messages != nil {
 			fmt.Println("sending message")
-			conn.WriteJSON(serverResponse)
+			wsConn.WriteJSON(serverResponse)
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -71,6 +70,7 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 		serverResponse.Errors = err.Error()
 		return serverResponse
 	}
+	fmt.Printf("messages: %v", messages)
 
 	serverResponse.ActiveUsers = activeUsers
 	serverResponse.Messages = messages
@@ -79,5 +79,9 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
+	if len(messages) == 0 {
+		*lastMessageId = 0
+		return
+	}
 	*lastMessageId = messages[len(messages)-1].MessageId
 }

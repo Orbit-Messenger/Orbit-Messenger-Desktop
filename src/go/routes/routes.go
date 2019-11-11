@@ -50,8 +50,8 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	var state State
 
+	var state State
 	go rc.handleAction(conn, &state)
 	go rc.UpdateHandler(conn, &state)
 }
