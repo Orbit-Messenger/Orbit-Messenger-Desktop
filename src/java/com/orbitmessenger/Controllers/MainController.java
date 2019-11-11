@@ -112,19 +112,7 @@ public class MainController extends ControllerUtil {
     /**
      * Handles when to read the Preferences Json file
      */
-    private Thread updatePreferences = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            while (getAllShowingStages().size() > 1) {
-                try {
-                    Thread.sleep(1000); // Milliseconds
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            readPreferencesFile();
-        }
-    });
+
 
     /**
      * Gets the messages index from the json object passed to it
@@ -317,6 +305,19 @@ public class MainController extends ControllerUtil {
         PreferencesController pref = new PreferencesController();
         pref.changeSceneTo(this.PREF_FXML, pref , new Stage());
 
+        Thread updatePreferences = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (getAllShowingStages().size() > 1) {
+                    try {
+                        Thread.sleep(1000); // Milliseconds
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                readPreferencesFile();
+            }
+        });
         updatePreferences.start();
     }
 

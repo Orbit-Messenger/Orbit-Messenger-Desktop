@@ -1,7 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -27,6 +26,10 @@ public class PreferencesController extends ControllerUtil {
     public static class Preferences {
         Integer messageNumber = 100;
         Boolean darkTheme = false;
+    }
+
+    public void initialize() {
+        setPreferences();
     }
 
     /**
@@ -62,6 +65,15 @@ public class PreferencesController extends ControllerUtil {
         System.out.println(json.toString());
 
         return json;
+    }
+
+    private void setPreferences() {
+        Object localPreferences = readPreferencesFile();
+        JsonObject localMessageNum = (JsonObject) new JsonParser().parse(localPreferences.toString());
+        System.out.println("Local Stuff: " + localMessageNum);
+        messageNumberTxtField.setText(localMessageNum.get("messageNumber").toString());
+        darkThemeToggleBtn.setSelected(localMessageNum.get("darkTheme").getAsBoolean());
+
     }
 
     private void writePreferencesToFile() {
