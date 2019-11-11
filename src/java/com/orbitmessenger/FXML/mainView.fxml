@@ -21,7 +21,7 @@
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#switchToLogin" text="Log Off" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="Preferences…" />
+                        <MenuItem mnemonicParsing="false" onAction="#openPreferences" text="Preferences…" />
                         <SeparatorMenuItem mnemonicParsing="false" />
                         <MenuItem mnemonicParsing="false" onAction="#closeProgram" text="Quit" />
                     </items>

@@ -1,9 +1,13 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -12,7 +16,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
+import javax.swing.text.MaskFormatter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -72,16 +79,14 @@ public class MainController extends ControllerUtil {
         this.server = server;
     }
 
-    private JsonObject getProperties() {
-        return properties;
-    }
+    private JsonObject getProperties() { return properties; }
 
     public void setProperties(JsonObject properties) {
         this.properties = properties;
     }
 
     /**
-     * Handles all the UI updating when json is recieved from the websocket
+     * Handles all the UI updating when json is received from the websocket
      */
     private Thread updateHandler = new Thread(new Runnable() {
         @Override
@@ -102,8 +107,23 @@ public class MainController extends ControllerUtil {
                 }
             }
         }
+    });
 
-        ;
+    /**
+     * Handles when to read the Preferences Json file
+     */
+    private Thread updatePreferences = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (getAllShowingStages().size() > 1) {
+                try {
+                    Thread.sleep(1000); // Milliseconds
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            readPreferencesFile();
+        }
     });
 
     /**
@@ -158,6 +178,22 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Sends the updated properties
+     */
+    public void sendProperties() {
+        JsonObject propertiesMessage = wsClient.createSubmitObject(
+                null,
+                null,
+                getUsername(),
+                getProperties()
+        );
+
+        System.out.println("Properties to send: " + propertiesMessage.toString());
+
+        wsClient.send(propertiesMessage.toString().trim());
+    }
+
+    /**
      * To send a message to the server
      */
     public void sendMessage() {
@@ -170,7 +206,7 @@ public class MainController extends ControllerUtil {
                 "add",
                 userText,
                 getUsername(),
-                getProperties()
+                null
         );
 
         System.out.println("Message to send: " + submitMessage.toString());
@@ -274,6 +310,27 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Opens the preferences window
+     */
+    public void openPreferences() {
+        System.out.println("Opening Preferences!");
+        PreferencesController pref = new PreferencesController();
+        pref.changeSceneTo(this.PREF_FXML, pref , new Stage());
+
+        updatePreferences.start();
+    }
+
+    public ObservableList<Stage> getAllShowingStages() {
+        ObservableList<Stage> stages = FXCollections.observableArrayList();
+        Window.getWindows().forEach(w -> {
+            if (w instanceof Stage) {
+                stages.add((Stage) w);
+            }
+        });
+        return stages;
+    }
+
+    /**
      * Switch back to the login scene
      */
     public void switchToLogin() {
@@ -281,8 +338,7 @@ public class MainController extends ControllerUtil {
         //wsClient.stopIntervalForPing();
         // Switches back to the Login Controller/Window
         LoginController login = new LoginController();
-        ControllerUtil ctrlUtl = new ControllerUtil();
-        login.changeSceneTo(ctrlUtl.LOGIN_FXML, login, (Stage) messageTextArea.getScene().getWindow());
+        login.changeSceneTo(this.LOGIN_FXML, login, (Stage) messageTextArea.getScene().getWindow());
     }
 
     /**
@@ -315,6 +371,16 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Reads the Preferences file
+     */
+    public void readPreferencesFile() {
+        PreferencesController pc = new PreferencesController();
+        Object ref = pc.readPreferencesFile();
+        properties = (JsonObject) new JsonParser().parse(ref.toString());
+        sendProperties();
+    }
+
+    /**
      * Closes the program
      */
     public void closeProgram() {
@@ -323,5 +389,4 @@ public class MainController extends ControllerUtil {
         System.out.println("Calling System.exit(0):");
         System.exit(0);
     }
-
 }
