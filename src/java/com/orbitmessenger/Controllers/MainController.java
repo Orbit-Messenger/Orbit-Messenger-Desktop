@@ -98,7 +98,7 @@ public class MainController extends ControllerUtil {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         if(serverMessage.has("delete")) {
-                            deleteMessageLocally(serverMessage.get("messageId").getAsInt());
+                            deleteMessageLocally(serverMessage.get("delete").getAsInt());
                         }
                     }
                     Thread.sleep(500); // Milliseconds

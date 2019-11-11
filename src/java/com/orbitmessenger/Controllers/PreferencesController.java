@@ -7,24 +7,26 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
+import org.controlsfx.control.ToggleSwitch;
 
 import java.io.*;
+import java.lang.reflect.Type;
 
 public class PreferencesController extends ControllerUtil {
 
     @FXML
-    private TextField messageNumber;
+    private TextField messageNumberTxtField;
     @FXML
-    public Button savePref;
+    private Button savePrefBtn;
     @FXML
-    private ToggleButton darkTheme;
+    private ToggleSwitch darkThemeToggleBtn;
 
     private Integer messageNum;
     private Boolean darkThm;
 
-    public class Preferences {
-        public Integer messageNumber = 100;
-        public Boolean darkTheme = false;
+    public static class Preferences {
+        Integer messageNumber = 100;
+        Boolean darkTheme = false;
     }
 
     /**
@@ -32,15 +34,17 @@ public class PreferencesController extends ControllerUtil {
      */
     @FXML
     public void savePreferences() {
-        System.out.println("Preferences saved!");
+        if (checkField(messageNumberTxtField.getText().trim())) {
+            messageNum = convertToInteger(messageNumberTxtField.getText().trim());
+            darkThm = darkThemeToggleBtn.isSelected();
 
-        messageNum = convertToInteger(messageNumber.getText().trim());
-        darkThm = darkTheme.isSelected();
+            // Write JSON file
+            writePreferencesToFile();
 
-        // Write JSON file
-        writePreferencesToFile();
+            System.out.println("Preferences saved!");
 
-        closePreferences();
+            closePreferences();
+        }
     }
 
     public Object readPreferencesFile() {
@@ -77,13 +81,21 @@ public class PreferencesController extends ControllerUtil {
     }
 
     private void closePreferences() {
-//        MainController mc = new MainController();
-//        changeSceneTo(this.MAIN_FXML, mc , (Stage) darkTheme.getScene().getWindow());
         // get a handle to the stage
-        Stage stage = (Stage) savePref.getScene().getWindow();
+        Stage stage = (Stage) savePrefBtn.getScene().getWindow();
 
         // do what you have to do
         stage.close();
+    }
+
+    private boolean checkField(String messageNumTxt) {
+        try {
+            Integer.parseInt(messageNumTxt);
+            return true;
+        } catch (Exception e) {
+            messageNumberTxtField.setStyle("-fx-control-inner-background: red");
+            return false;
+        }
     }
 
     private Integer convertToInteger(String messageNumTxt) {
