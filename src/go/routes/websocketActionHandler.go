@@ -4,6 +4,7 @@ import (
 	"Orbit-Messenger/src/go/db"
 	_ "fmt"
 	"github.com/gorilla/websocket"
+	"log"
 	"strconv"
 )
 
@@ -29,6 +30,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		case "add":
 			rc.addMessageFromClient(clientData, state.Username)
 		case "delete":
+			log.Println("deleting messenge")
 			rc.deleteMessageFromClient(clientData, state.Username)
 		default:
 			wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
@@ -38,21 +40,19 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 // Gets all the messages for the client
 func (rc RouteController) addMessageFromClient(clientData ClientData, username string) {
-	//log.Println("Adding message")
 	message := db.Message{-1, username, clientData.Message}
 	rc.dbConn.AddMessage(message, message.Username)
 }
 
 // Gets all the messages for the client
-func (rc RouteController) deleteMessageFromClient(clientData ClientData, username string) bool {
-	//log.Println("Deleting message")
+func (rc RouteController) deleteMessageFromClient(clientData ClientData, username string) {
 	messageId, err := strconv.ParseInt(clientData.Message, 10, 64)
 	if err != nil {
-		return false
+		return
 	}
-	userOfTheMessage, err := rc.dbConn.GetUsernameFromMessageId(messageId)
-	if userOfTheMessage == username && err == nil {
-		return rc.dbConn.DeleteMessageById(messageId)
+	userOfTheMessage := rc.dbConn.GetUsernameFromMessageId(messageId)
+	if userOfTheMessage == username {
+		rc.serverActions.AddDeleteAction(messageId)
+		rc.dbConn.DeleteMessageById(messageId)
 	}
-	return false
 }

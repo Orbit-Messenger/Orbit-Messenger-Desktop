@@ -113,25 +113,18 @@ func (dbConn DatabaseConnection) GetUserId(username string) (int64, error) {
 }
 
 // deletes the message from the db by using its id
-func (dbConn DatabaseConnection) DeleteMessageById(messageId int64) bool {
+func (dbConn DatabaseConnection) DeleteMessageById(messageId int64) {
 	row := dbConn.conn.QueryRow(context.Background(),
 		"DELETE FROM messages WHERE id = $1;", messageId)
 
-	err := row.Scan()
-	if err != nil {
-		return false
-	}
-	return true
+	_ = row.Scan()
 }
 
 // GetUsernameFromMessageId gets the username from a message id
-func (dbConn DatabaseConnection) GetUsernameFromMessageId(messageId int64) (string, error) {
+func (dbConn DatabaseConnection) GetUsernameFromMessageId(messageId int64) string {
 	var username string
 	row := dbConn.conn.QueryRow(context.Background(),
-		"SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id;")
-	err := row.Scan(&username)
-	if err != nil {
-		return "", err
-	}
-	return username, nil
+		"SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;", messageId)
+	_ = row.Scan(&username)
+	return username
 }

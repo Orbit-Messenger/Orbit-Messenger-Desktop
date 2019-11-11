@@ -9,10 +9,12 @@ import (
 )
 
 func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
+	serverActionLen := rc.serverActions.ActionCount
 	for !state.LoggedIn {
 		// waits for the user to login
 		time.Sleep(500 * time.Millisecond)
 	}
+
 	log.Println("user logged in")
 
 	for {
@@ -20,6 +22,18 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		if state.LoggedOut {
 			log.Println("user logged out")
 			return
+		}
+		if serverActionLen != rc.serverActions.ActionCount {
+			clientAction, err := rc.serverActions.GetNewestAction()
+			if err != nil {
+				wsConn.WriteJSON(err.Error())
+			} else {
+				data := map[string]int64{
+					clientAction.Action: clientAction.messageId,
+				}
+				wsConn.WriteJSON(data)
+				serverActionLen = rc.serverActions.ActionCount
+			}
 		}
 
 		var serverResponse ServerResponse
@@ -70,7 +84,6 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 		serverResponse.Errors = err.Error()
 		return serverResponse
 	}
-	fmt.Printf("messages: %v", messages)
 
 	serverResponse.ActiveUsers = activeUsers
 	serverResponse.Messages = messages

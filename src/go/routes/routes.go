@@ -9,7 +9,8 @@ import (
 
 // RouteController controls the database for each route
 type RouteController struct {
-	dbConn db.DatabaseConnection
+	dbConn        db.DatabaseConnection
+	serverActions *ServerActionsController
 }
 
 var upgrader = websocket.Upgrader{
@@ -42,6 +43,7 @@ type State struct {
 func CreateRouteController() RouteController {
 	return RouteController{
 		db.CreateDatabaseConnection(),
+		CreateServerActionsController(),
 	}
 }
 
