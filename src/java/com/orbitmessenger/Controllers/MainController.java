@@ -212,6 +212,10 @@ public class MainController extends ControllerUtil {
         scrollToBottom();
     }
 
+    public String trimUsers(String user) {
+        return user.replace("\"", "");
+    }
+
     public void updateUsers(JsonArray users) {
         if(users == null){
             return;
@@ -219,7 +223,7 @@ public class MainController extends ControllerUtil {
         ArrayList<Label> userLabels = new ArrayList<>();
         for (Object user : users) {
             Label label = new Label();
-            label.setText(user.toString());
+            label.setText(trimUsers(user.toString()));
             userLabels.add(label);
         }
         Platform.runLater(new Runnable() {
