@@ -38,7 +38,7 @@ public class MainController extends ControllerUtil {
     @FXML
     private Button btnSend;
     @FXML
-    ListView userListView;
+    private ListView userListView;
     @FXML
     private TextArea messageTextArea;
 
@@ -108,11 +108,6 @@ public class MainController extends ControllerUtil {
             }
         }
     });
-
-    /**
-     * Handles when to read the Preferences Json file
-     */
-
 
     /**
      * Gets the messages index from the json object passed to it
