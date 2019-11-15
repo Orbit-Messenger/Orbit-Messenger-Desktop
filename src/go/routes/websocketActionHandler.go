@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
+	"time"
 )
 
 // handles all the actions from the requesting client
@@ -40,7 +41,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 // Gets all the messages for the client
 func (rc RouteController) addMessageFromClient(clientData ClientData, username string) {
-	message := db.Message{-1, username, clientData.Message}
+	message := db.Message{-1, username, clientData.Message, time.Now()}
 	rc.dbConn.AddMessage(message, message.Username)
 }
 

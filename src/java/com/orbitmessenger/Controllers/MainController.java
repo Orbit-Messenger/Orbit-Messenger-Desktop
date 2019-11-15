@@ -9,12 +9,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -22,7 +26,13 @@ import javafx.stage.WindowEvent;
 import javax.swing.text.MaskFormatter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainController extends ControllerUtil {
 
@@ -201,6 +211,20 @@ public class MainController extends ControllerUtil {
         messageTextArea.requestFocus();
     }
 
+    private String convertTime(String time) {
+        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        Date date = null;
+        try {
+            date = sdf.parse(time);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return DateFormat.getDateTimeInstance(
+                DateFormat.SHORT,
+                DateFormat.SHORT,
+                Locale.getDefault()).format(date);
+    }
+
     /**
      * To send a message to the console or the GUI
      */
@@ -219,6 +243,7 @@ public class MainController extends ControllerUtil {
             messageBoxes.add(
                     createMessageBox(
                             m.get("username").toString().replace("\"", ""),
+                            m.get("timestamp").toString(),
                             m.get("message").toString().replace("\"", ""))
             );
         }
@@ -262,20 +287,35 @@ public class MainController extends ControllerUtil {
     /**
      * Creates a message box with proper formatting
      */
-    private VBox createMessageBox(String username, String message) {
+    private VBox createMessageBox(String username, String timestamp, String message) {
+        String shortTime = convertTime(timestamp.replace("\"", ""));
+
         VBox vbox = new VBox();
+        HBox hBox = new HBox();
         // check if username == the current user or moves messages to the right
         if (!username.equals(this.getUsername())) {
             vbox.setAlignment(Pos.CENTER_RIGHT);
+            hBox.setAlignment(Pos.CENTER_RIGHT);
         }
         vbox.setStyle(".messageBox");
         vbox.getStyleClass().add("messageBox");
         Label usernameLabel = new Label();
+        Label timeStampLabel = new Label();
         Label messageLabel = new Label();
         usernameLabel.setText(username);
+        timeStampLabel.setText(shortTime);
         messageLabel.setText(message);
         vbox.getChildren().add(usernameLabel);
+        vbox.getChildren().add(timeStampLabel);
+        hBox.getChildren().addAll(usernameLabel, timeStampLabel);
+        vbox.getChildren().add(hBox);
         vbox.getChildren().add(messageLabel);
+
+        // Set timestamp font size
+        timeStampLabel.setFont(new Font("Arial", 10));
+        timeStampLabel.setTextFill(Color.GREY);
+        timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
+
         return vbox;
     }
 

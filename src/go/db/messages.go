@@ -5,13 +5,15 @@ import (
 	"context"
 	"fmt"
 	_ "github.com/jackc/pgx"
+	"time"
 )
 
 // Message holds all the data for a message from the database
 type Message struct {
-	MessageId int64  `json:"messageId"`
-	Username  string `json:"username"`
-	Message   string `json:"message"`
+	MessageId int64     `json:"messageId"`
+	Username  string    `json:"username"`
+	Message   string    `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // adds a message to the database under the username provided
@@ -23,9 +25,10 @@ func (dbConn DatabaseConnection) AddMessage(message Message, username string) er
 
 	_, err = dbConn.conn.Exec(
 		context.Background(),
-		"INSERT INTO messages VALUES(DEFAULT, $1, $2);",
+		"INSERT INTO messages VALUES(DEFAULT, $1, $2, $3);",
 		userId,
-		message.Message)
+		message.Message,
+		time.Now())
 	return err
 }
 
@@ -53,7 +56,7 @@ func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]
 func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 	var messages []Message
 	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id;")
+		"SELECT messages.id, users.username, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id;")
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +64,7 @@ func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageId, &message.Username, &message.Message)
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Message, &message.Timestamp)
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +76,7 @@ func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
 func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64) ([]Message, error) {
 	var messages []Message
 	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id > $1 LIMIT 100;", messageId)
+		"SELECT messages.id, users.username, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id > $1 LIMIT 100;", messageId)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +84,7 @@ func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64) ([]Messa
 
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageId, &message.Username, &message.Message)
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Message, &message.Timestamp)
 		if err != nil {
 			return nil, err
 		}

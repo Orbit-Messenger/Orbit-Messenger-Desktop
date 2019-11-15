@@ -30,8 +30,8 @@
 .messageBox{
     -fx-width: 50px;
     -fx-padding: 10px;
-    -fx-border-color: #279af1;
-    -fx-border-style: solid;
+    /*-fx-border-color: #279af1;*/
+    /*-fx-border-style: solid;*/
 }
 
 .defaultButton{

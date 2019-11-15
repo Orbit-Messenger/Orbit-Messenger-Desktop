@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.controlsfx.control.ToggleSwitch;
 
@@ -13,6 +14,8 @@ import java.lang.reflect.Type;
 
 public class PreferencesController extends ControllerUtil {
 
+    @FXML
+    private VBox mainVBox;
     @FXML
     private TextField messageNumberTxtField;
     @FXML
@@ -70,10 +73,20 @@ public class PreferencesController extends ControllerUtil {
     private void setPreferences() {
         Object localPreferences = readPreferencesFile();
         JsonObject localMessageNum = (JsonObject) new JsonParser().parse(localPreferences.toString());
-        System.out.println("Local Stuff: " + localMessageNum);
         messageNumberTxtField.setText(localMessageNum.get("messageNumber").toString());
         darkThemeToggleBtn.setSelected(localMessageNum.get("darkTheme").getAsBoolean());
+        setDarkMode();
+    }
 
+    /**
+     * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
+     */
+    public void setDarkMode() {
+        if (darkThemeToggleBtn.isSelected()) {
+            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+        } else {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+        }
     }
 
     private void writePreferencesToFile() {

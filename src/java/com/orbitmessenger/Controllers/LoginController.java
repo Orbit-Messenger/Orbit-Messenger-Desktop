@@ -1,19 +1,25 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
+import java.net.URISyntaxException;
+
 public class LoginController extends ControllerUtil {
+
+    @FXML
+    VBox mainVBox;
     @FXML
     Button loginButton;
-
     @FXML
     Button createUserButton;
 
@@ -23,6 +29,13 @@ public class LoginController extends ControllerUtil {
     TextField passwordTextField;
     @FXML
     TextField serverTextField;
+
+    private JsonObject properties;
+
+    public void initialize() throws URISyntaxException {
+        readPreferencesFile();
+    }
+
 
     @FXML
     public void login() {
@@ -69,6 +82,27 @@ public class LoginController extends ControllerUtil {
             }
         } else {
             popupMissingFieldDialog();
+        }
+    }
+
+    /**
+     * Reads the Preferences file
+     */
+    public void readPreferencesFile() {
+        PreferencesController pc = new PreferencesController();
+        Object ref = pc.readPreferencesFile();
+        properties = (JsonObject) new JsonParser().parse(ref.toString());
+        setDarkMode();
+    }
+
+    /**
+     * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
+     */
+    public void setDarkMode() {
+        if (properties.get("darkTheme").getAsBoolean()) {
+            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+        } else {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
         }
     }
 
