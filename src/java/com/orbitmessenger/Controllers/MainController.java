@@ -31,6 +31,8 @@ public class MainController extends ControllerUtil {
     private ArrayList<Integer> messageIds = new ArrayList<>();
 
     @FXML
+    private VBox mainVBox;
+    @FXML
     private ListView messagesListView;
     @FXML
     private ScrollPane messagesScrollPane;
@@ -53,6 +55,7 @@ public class MainController extends ControllerUtil {
         wsClient = new WSClient(new URI(this.getServer() + "/"), getUsername());
         wsClient.connect(); // creates the websocket connection
         updateHandler.start(); // Starts the update handler thread
+        readPreferencesFile();
     }
 
     private String getUsername() {
@@ -97,6 +100,7 @@ public class MainController extends ControllerUtil {
                     if(serverMessage != null) {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
+                        System.out.println("Return: " + serverMessage);
                         if(serverMessage.has("delete")) {
                             deleteMessageLocally(serverMessage.get("delete").getAsInt());
                         }
@@ -373,7 +377,25 @@ public class MainController extends ControllerUtil {
         PreferencesController pc = new PreferencesController();
         Object ref = pc.readPreferencesFile();
         properties = (JsonObject) new JsonParser().parse(ref.toString());
+        setDarkMode();
         sendProperties();
+    }
+
+    /**
+     * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
+     */
+    public void setDarkMode() {
+        if (properties.get("darkTheme").getAsBoolean()) {
+            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+            //mainVBox.getScene().getStylesheets().add(getClass().getResource("../css/darkMode.css").toExternalForm());
+            //messagesScrollPane.getScene().getStylesheets().add("./css/darkMode.css");
+            //scene.getStyleSheets().add("darkMode.css");
+        } else {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+            //mainVBox.getScene().getStylesheets().remove(getClass().getResource("../css/darkMode.css").toExternalForm());
+            //messagesScrollPane.getScene().getStylesheets().remove("./css/darkMode.css");
+            //scene.getStyleSheets().remove("darkMode.css");
+        }
     }
 
     /**

@@ -8,7 +8,8 @@
 }
 
 .mainAnchor {
-    -fx-background-image: url('../images/digitalbackground.jpg');
+    -fx-background-color: white;
+    /*-fx-background-image: url('../images/digitalbackground.jpg');*/
     -fx-background-size: cover;
 }
 
@@ -18,7 +19,7 @@
 }
 
 .uiDefaults{
-    -fx-background-image: url('../images/digitalbackground.jpg');
+    /*-fx-background-image: url('../images/digitalbackground.jpg');*/
     -fx-background-size: cover;
 }
 
