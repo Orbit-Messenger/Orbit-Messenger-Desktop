@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.orbitmessenger.Main;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainController extends ControllerUtil {
+public class MainController extends ControllerUtil{
 
     private String username, password, server;
     private JsonObject properties;
@@ -120,6 +121,8 @@ public class MainController extends ControllerUtil {
             }
         }
     });
+
+
 
     /**
      * Gets the messages index from the json object passed to it
@@ -442,7 +445,7 @@ public class MainController extends ControllerUtil {
         // Closing the websocket by sending message we're on out way to the server!
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "logout",
-                "userText",
+                "",
                 getUsername(),
                 null
         );

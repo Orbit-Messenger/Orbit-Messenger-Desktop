@@ -28,8 +28,12 @@ public class Main extends Application {
         primaryStage.getIcons().add(new Image("com/orbitmessenger/images/orbit.png"));
         primaryStage.setTitle("Orbit Messenger");
         primaryStage.setScene(new Scene(root));
+        // This will call the closeProgram() function in MainController so it closes correctly when
+        // clicking on the red X!
+        primaryStage.setOnHidden(e -> mainController.closeProgram());
         primaryStage.show();
     }
+
 
 
     public static void main(String[] args) {
