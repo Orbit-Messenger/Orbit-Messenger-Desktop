@@ -38,7 +38,7 @@
                   <Insets right="10.0" />
                </HBox.margin>
             </Button>
-            <Button fx:id="cUsrBtn" mnemonicParsing="false" text="Create User">
+            <Button fx:id="cUsrBtn" mnemonicParsing="false" onMouseClicked="#createUser" text="Create User">
                <styleClass>
                   <String fx:value="loginButton" />
                   <String fx:value="defaultButton" />

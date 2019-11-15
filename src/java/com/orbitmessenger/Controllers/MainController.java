@@ -52,15 +52,13 @@ public class MainController extends ControllerUtil {
     private WSClient wsClient;
 
     public void initialize() throws URISyntaxException {
-        wsClient = new WSClient(new URI(this.getServer() + "/"), getUsername());
+        wsClient = new WSClient(new URI(this.getServer()), getUsername());
         wsClient.connect(); // creates the websocket connection
         updateHandler.start(); // Starts the update handler thread
         readPreferencesFile();
     }
 
-    private String getUsername() {
-        return username;
-    }
+    private String getUsername() { return username; }
 
     public void setUsername(String username) {
         this.username = username;
@@ -309,7 +307,7 @@ public class MainController extends ControllerUtil {
             public void run() {
                 while (getAllShowingStages().size() > 1) {
                     try {
-                        Thread.sleep(1000); // Milliseconds
+                        Thread.sleep(500); // Milliseconds
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

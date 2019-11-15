@@ -2,7 +2,7 @@ package routes
 
 import (
 	"fmt"
-	"log"
+	//"log"
 )
 
 type Action struct {

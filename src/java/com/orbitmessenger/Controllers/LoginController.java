@@ -48,6 +48,30 @@ public class LoginController extends ControllerUtil {
         }
     }
 
+    @FXML
+    public void createUser() {
+        String username = this.getTextFieldText(usernameTextField).trim();
+        String password = this.getTextFieldText(passwordTextField).trim();
+        String server = this.getTextFieldText(serverTextField).trim();
+        String serverPrefix = httpServerTxtCheck(server);
+        if (!checkInput(username, password, server)) {
+            int statusCode = Unirest.get(serverPrefix + "/createUser")
+                    .basicAuth(username, password).asString().getStatus();
+            if (statusCode == 200) {
+                MainController mc = new MainController();
+                mc.setUsername(username);
+                mc.setPassword(password);
+                mc.setServer(serverPrefix);
+                changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
+            } else {
+                // change to a status update
+                System.out.println("Couldn't login");
+            }
+        } else {
+            popupMissingFieldDialog();
+        }
+    }
+
     /**
      * Checks if http:// is entered in the server text field, if not affix it!
      * @return
