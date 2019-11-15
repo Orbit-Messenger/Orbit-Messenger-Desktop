@@ -2,6 +2,7 @@ package routes
 
 import (
 	"Orbit-Messenger/src/go/db"
+	"fmt"
 	_ "fmt"
 	"github.com/gorilla/websocket"
 	"log"
@@ -17,12 +18,15 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		if err != nil {
 			return
 		}
+		fmt.Println("Action: ", clientData.Action)
 		switch clientData.Action {
 		case "login":
+			fmt.Println("Logging in!")
 			rc.dbConn.ChangeUserStatus(clientData.Username, true)
 			state.LoggedIn = true
 			state.Username = clientData.Username
 		case "logout":
+			fmt.Println("Closing! " + clientData.Username)
 			rc.dbConn.ChangeUserStatus(clientData.Username, false)
 			state.LoggedIn = false
 			state.LoggedOut = true
@@ -31,7 +35,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		case "add":
 			rc.addMessageFromClient(clientData, state.Username)
 		case "delete":
-			log.Println("deleting messenge")
+			log.Println("deleting message")
 			rc.deleteMessageFromClient(clientData, state.Username)
 		default:
 			wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))

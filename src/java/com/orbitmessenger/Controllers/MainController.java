@@ -269,6 +269,7 @@ public class MainController extends ControllerUtil {
         ArrayList<Label> userLabels = new ArrayList<>();
         for (Object user : users) {
             Label label = new Label();
+            label.setId("userLabelID");
             label.setText(trimUsers(user.toString()));
             userLabels.add(label);
         }
@@ -300,8 +301,11 @@ public class MainController extends ControllerUtil {
         vbox.setStyle(".messageBox");
         vbox.getStyleClass().add("messageBox");
         Label usernameLabel = new Label();
+        usernameLabel.setId("usernameLabelID");
         Label timeStampLabel = new Label();
+        timeStampLabel.setId("timeStampLabelID");
         Label messageLabel = new Label();
+        messageLabel.setId("messageLabelID");
         usernameLabel.setText(username);
         timeStampLabel.setText(shortTime);
         messageLabel.setText(message);
@@ -313,7 +317,6 @@ public class MainController extends ControllerUtil {
 
         // Set timestamp font size
         timeStampLabel.setFont(new Font("Arial", 10));
-        timeStampLabel.setTextFill(Color.GREY);
         timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
 
         return vbox;
@@ -372,6 +375,8 @@ public class MainController extends ControllerUtil {
      * Switch back to the login scene
      */
     public void switchToLogin() {
+        // Closing the websocket
+        wsClient.close();
         // Stop timer
         //wsClient.stopIntervalForPing();
         // Switches back to the Login Controller/Window
@@ -425,14 +430,8 @@ public class MainController extends ControllerUtil {
     public void setDarkMode() {
         if (properties.get("darkTheme").getAsBoolean()) {
             mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-            //mainVBox.getScene().getStylesheets().add(getClass().getResource("../css/darkMode.css").toExternalForm());
-            //messagesScrollPane.getScene().getStylesheets().add("./css/darkMode.css");
-            //scene.getStyleSheets().add("darkMode.css");
         } else {
             mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            //mainVBox.getScene().getStylesheets().remove(getClass().getResource("../css/darkMode.css").toExternalForm());
-            //messagesScrollPane.getScene().getStylesheets().remove("./css/darkMode.css");
-            //scene.getStyleSheets().remove("darkMode.css");
         }
     }
 
@@ -440,6 +439,15 @@ public class MainController extends ControllerUtil {
      * Closes the program
      */
     public void closeProgram() {
+        // Closing the websocket by sending message we're on out way to the server!
+        JsonObject submitMessage = wsClient.createSubmitObject(
+                "logout",
+                "userText",
+                getUsername(),
+                null
+        );
+        wsClient.send(submitMessage.toString().trim());
+
         System.out.println("Calling Platform.exit():");
         Platform.exit();
         System.out.println("Calling System.exit(0):");
