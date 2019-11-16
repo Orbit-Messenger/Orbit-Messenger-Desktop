@@ -113,6 +113,7 @@ public class MainController extends ControllerUtil{
                         if(serverMessage.has("delete")) {
                             deleteMessageLocally(serverMessage.get("delete").getAsInt());
                         }
+                        scrollToBottom();
                     }
                     Thread.sleep(500); // Milliseconds
                 } catch (InterruptedException e) {
@@ -256,9 +257,6 @@ public class MainController extends ControllerUtil{
                 messagesListView.getItems().addAll(messageBoxes);
             }
         });
-
-        // Scrolls to the bottom
-        scrollToBottom();
     }
 
     public String trimUsers(String user) {
@@ -283,9 +281,6 @@ public class MainController extends ControllerUtil{
                 userListView.getItems().addAll(userLabels);
             }
         });
-
-        // Scrolls to the bottom
-        scrollToBottom();
     }
 
     /**
@@ -392,7 +387,9 @@ public class MainController extends ControllerUtil{
      * Preferable when there are new messages.
      */
     public void scrollToBottom() {
-        messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
+        System.out.println("Scrolling to the bottom!");
+        messagesScrollPane.setVvalue(messagesScrollPane.getVmax());
+        //messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
     }
 
     /**
@@ -412,8 +409,13 @@ public class MainController extends ControllerUtil{
      * @param messageId
      */
     public void deleteMessageLocally(Integer messageId) {
-        final int selectedId = messageIds.indexOf(messageId);
-        messagesListView.getItems().remove(selectedId);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                final int selectedId = messageIds.indexOf(messageId);
+                messagesListView.getItems().remove(selectedId);
+            }
+        });
     }
 
     /**
