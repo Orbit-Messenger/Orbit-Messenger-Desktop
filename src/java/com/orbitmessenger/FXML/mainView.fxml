@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
+<?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -44,20 +46,34 @@
         </MenuBar>
         <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="375.0" prefWidth="669.0" style="-fx-background-size: cover;" styleClass="mainAnchor" VBox.vgrow="ALWAYS">
             <children>
-            <ScrollPane fx:id="messagesScrollPane" layoutX="17.0" layoutY="10.0" maxWidth="612.0" prefHeight="321.0" prefWidth="584.0">
+            <Label layoutX="17.0" layoutY="14.0" text="Room" />
+            <ScrollPane fx:id="messagesScrollPane" layoutX="17.0" layoutY="30.0" maxWidth="612.0" prefHeight="301.0" prefWidth="584.0">
                <content>
-                  <ListView fx:id="messagesListView" prefHeight="317.0" prefWidth="581.0" />
+                  <ListView fx:id="messagesListView" prefHeight="299.0" prefWidth="581.0" />
                </content>
             </ScrollPane>
-                <TitledPane animated="false" layoutX="450.0" layoutY="41.0" prefHeight="321.0" prefWidth="174.0" text="Users" AnchorPane.bottomAnchor="139.0" AnchorPane.rightAnchor="15.0">
-                    <content>
+            <Accordion layoutX="612.0" layoutY="30.0" prefHeight="301.0" prefWidth="174.0">
+              <panes>
+                      <TitledPane prefHeight="301.0" prefWidth="174.0" text="Users">
+                          <content>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
+                                  <children>
+                                      <ListView fx:id="userListView" layoutX="4.0" prefHeight="271.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                                  </children>
+                              </AnchorPane>
+                          </content>
+                      </TitledPane>
+                  <TitledPane expanded="false" prefHeight="301.0" prefWidth="174.0" text="Rooms">
+                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
-                            <children>
-                                <ListView fx:id="userListView" layoutX="5.0" prefHeight="289.0" prefWidth="163.0" styleClass="messageSendTextArea" />
-                            </children>
+                           <children>
+                              <ListView fx:id="roomListView" layoutX="4.0" prefHeight="271.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                           </children>
                         </AnchorPane>
-                    </content>
-                </TitledPane>
+                     </content>
+                  </TitledPane>
+              </panes>
+            </Accordion>
                 <Button fx:id="btnSend" defaultButton="true" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
                 <TextArea fx:id="messageTextArea" layoutX="14.0" layoutY="343.0" onKeyPressed="#handleEnterPressed" prefHeight="114.0" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
             </children>

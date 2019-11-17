@@ -36,10 +36,10 @@ public class CreateRoomController extends ControllerUtil {
     public void createRoom() {
         System.out.println("Creating Room: " + this.getTextFieldText(roomNameTxtField).trim());
         String roomName = this.getTextFieldText(roomNameTxtField).trim();
-        JsonObject loginInfo = new JsonObject();
-        loginInfo.addProperty("room", roomName);
-        int statusCode = Unirest.post( mc.getServer() + "/createroom")
-                .body(loginInfo).asString().getStatus();
+        JsonObject roomInfo = new JsonObject();
+        roomInfo.addProperty("name", roomName);
+        int statusCode = Unirest.post( mc.getServer() + "/createRoom")
+                .body(roomInfo).asString().getStatus();
     }
 
     /**
