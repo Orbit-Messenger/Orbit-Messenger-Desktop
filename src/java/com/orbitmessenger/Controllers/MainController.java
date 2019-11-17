@@ -50,6 +50,8 @@ public class MainController extends ControllerUtil{
     @FXML
     private ListView userListView;
     @FXML
+    private ListView roomListView;
+    @FXML
     private TextArea messageTextArea;
 
     private ObservableList<String> users;
@@ -81,7 +83,7 @@ public class MainController extends ControllerUtil{
         this.password = password;
     }
 
-    String getServer() {
+    public String getServer() {
         return server;
     }
 
@@ -107,6 +109,7 @@ public class MainController extends ControllerUtil{
                     if(serverMessage != null) {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
+                        updateRooms(getRoomsFromJsonObject(serverMessage));
                         System.out.println("Return: " + serverMessage);
                         if(serverMessage.has("delete")) {
                             deleteMessageLocally(serverMessage.get("delete").getAsInt());
@@ -129,6 +132,21 @@ public class MainController extends ControllerUtil{
     private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
         if(serverResponse.has("messages")){
             return serverResponse.getAsJsonArray("messages");
+        }
+        return null;
+    }
+
+    /**
+     * Gets the activeRoom index from the json object passed to it
+     */
+    private JsonArray getRoomsFromJsonObject(JsonObject serverResponse){
+        String jsonKey = "rooms";
+        if(serverResponse.has(jsonKey)){
+            try{
+                return serverResponse.getAsJsonArray(jsonKey);
+            } catch (Exception e){
+                return null;
+            }
         }
         return null;
     }
@@ -260,6 +278,26 @@ public class MainController extends ControllerUtil{
         return user.replace("\"", "");
     }
 
+    public void updateRooms(JsonArray rooms) {
+        if(rooms == null){
+            return;
+        }
+        ArrayList<Label> roomLabels = new ArrayList<>();
+        for (Object room : rooms) {
+            Label label = new Label();
+            label.setId("roomLabelID");
+            label.setText(trimUsers(room.toString()));
+            roomLabels.add(label);
+        }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                roomListView.getItems().clear();
+                roomListView.getItems().addAll(roomLabels);
+            }
+        });
+    }
+
     public void updateUsers(JsonArray users) {
         if(users == null){
             return;
@@ -338,6 +376,7 @@ public class MainController extends ControllerUtil{
     public void openCreateRoom() {
         System.out.println("Opening Create Room!");
         CreateRoomController createRoom = new CreateRoomController();
+        createRoom.setServer(getServer());
         createRoom.changeSceneTo(this.CROOM_FXML, createRoom , new Stage());
 
         Thread createRoomThread = new Thread(new Runnable() {
@@ -483,6 +522,10 @@ public class MainController extends ControllerUtil{
      */
     public void copy() {
         final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        // This means no message is selected. If that is true, return.
+        if (selectedId == -1) {
+            return;
+        }
         VBox vBox = (VBox) messagesListView.getSelectionModel().getSelectedItem();
         Label children = (Label) vBox.getChildren().get(1);
 

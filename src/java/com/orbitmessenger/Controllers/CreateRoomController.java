@@ -27,7 +27,15 @@ public class CreateRoomController extends ControllerUtil {
 
     private JsonObject properties;
 
-    MainController mc;
+    private String server;
+
+    public String getServer() {
+        return server;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
 
     public void initialize() {
         settPreferences();
@@ -38,7 +46,7 @@ public class CreateRoomController extends ControllerUtil {
         String roomName = this.getTextFieldText(roomNameTxtField).trim();
         JsonObject roomInfo = new JsonObject();
         roomInfo.addProperty("name", roomName);
-        int statusCode = Unirest.post( mc.getServer() + "/createRoom")
+        int statusCode = Unirest.post(  getServer() + "/createRoom")
                 .body(roomInfo).asString().getStatus();
     }
 
