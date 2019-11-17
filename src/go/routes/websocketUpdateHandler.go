@@ -76,13 +76,11 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 
 	// send error to client
 	if err != nil {
-		log.Fatal("hit 1")
 		serverResponse.Errors = err.Error()
 		return serverResponse
 	}
 	messages, err := rc.dbConn.GetAllMessages()
 	if err != nil {
-		log.Fatalf("hit 2 %v", err.Error())
 		serverResponse.Errors = err.Error()
 		return serverResponse
 	}
@@ -94,6 +92,8 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
-	log.Printf("message id: %v", messages[len(messages)-1].MessageId)
+	if len(messages) < 1 {
+		return
+	}
 	*lastMessageId = messages[len(messages)-1].MessageId
 }
