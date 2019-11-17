@@ -15,6 +15,7 @@ class FxUtil{
     final public String LOGIN_FXML = PATH_TO_FXML + "loginView.fxml";
     final public String MAIN_FXML = PATH_TO_FXML + "mainView.fxml";
     final public String PREF_FXML = PATH_TO_FXML + "preferences.fxml";
+    final public String CROOM_FXML = PATH_TO_FXML + "createRoom.fxml";
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
 

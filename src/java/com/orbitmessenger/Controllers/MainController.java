@@ -81,7 +81,7 @@ public class MainController extends ControllerUtil{
         this.password = password;
     }
 
-    private String getServer() {
+    String getServer() {
         return server;
     }
 
@@ -330,6 +330,29 @@ public class MainController extends ControllerUtil{
         Hyperlink hyperlink = new Hyperlink("hyperlink");
         alert.setContentText(line2);
         alert.showAndWait();
+    }
+
+    /**
+     * Opens the create room window
+     */
+    public void openCreateRoom() {
+        System.out.println("Opening Create Room!");
+        CreateRoomController createRoom = new CreateRoomController();
+        createRoom.changeSceneTo(this.CROOM_FXML, createRoom , new Stage());
+
+        Thread createRoomThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (getAllShowingStages().size() > 1) {
+                    try {
+                        Thread.sleep(500); // Milliseconds
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        createRoomThread.start();
     }
 
     /**
