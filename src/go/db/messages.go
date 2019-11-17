@@ -12,6 +12,7 @@ import (
 type Message struct {
 	MessageId int64     `json:"messageId"`
 	Username  string    `json:"username"`
+	Chatroom  string    `json:"chatroom"`
 	Message   string    `json:"message"`
 	Timestamp time.Time `json:"timestamp"`
 }
