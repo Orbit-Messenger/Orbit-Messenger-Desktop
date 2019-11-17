@@ -6,6 +6,8 @@ import com.google.gson.JsonParser;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import kong.unirest.Unirest;
 import org.controlsfx.control.ToggleSwitch;
@@ -28,15 +30,26 @@ public class CreateRoomController extends ControllerUtil {
     MainController mc;
 
     public void initialize() {
-        setPreferences();
+        settPreferences();
     }
 
     public void createRoom() {
+        System.out.println("Creating Room: " + this.getTextFieldText(roomNameTxtField).trim());
         String roomName = this.getTextFieldText(roomNameTxtField).trim();
         JsonObject loginInfo = new JsonObject();
         loginInfo.addProperty("room", roomName);
         int statusCode = Unirest.post( mc.getServer() + "/createroom")
                 .body(loginInfo).asString().getStatus();
+    }
+
+    /**
+     * Sends message to server
+     * Used by TextArea txtUserMsg to handle Enter key event
+     */
+    public void handleEnterPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            createRoom();
+        }
     }
 
     public Object readPreferencesFile() {
@@ -56,9 +69,12 @@ public class CreateRoomController extends ControllerUtil {
         return json;
     }
 
-    private void setPreferences() {
-        Object localPreferences = readPreferencesFile();
-        JsonObject localMessageNum = (JsonObject) new JsonParser().parse(localPreferences.toString());
+    /**
+     * Reads the Preferences file
+     */
+    public void settPreferences() {
+        Object ref = readPreferencesFile();
+        properties = (JsonObject) new JsonParser().parse(ref.toString());
         setDarkMode();
     }
 
