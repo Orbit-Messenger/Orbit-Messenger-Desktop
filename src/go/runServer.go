@@ -16,6 +16,7 @@ func main() {
 	router.GET("/", routes.WebSocket)
 	router.POST("/verifyUser", routes.VerifyUser)
 	router.POST("/createUser", routes.CreateUser)
+	router.POST("/createRoom", routes.CreateChatroom)
 	router.Run(":3000")
 
 }
