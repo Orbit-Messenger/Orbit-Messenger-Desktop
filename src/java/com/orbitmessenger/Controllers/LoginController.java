@@ -70,8 +70,11 @@ public class LoginController extends ControllerUtil {
         String server = this.getTextFieldText(serverTextField).trim();
         String serverPrefix = httpServerTxtCheck(server);
         if (!checkInput(username, password, server)) {
-            int statusCode = Unirest.get(serverPrefix + "/createUser")
-                    .basicAuth(username, password).asString().getStatus();
+            JsonObject loginInfo = new JsonObject();
+            loginInfo.addProperty("username", username);
+            loginInfo.addProperty("password", password);
+            int statusCode = Unirest.post(serverPrefix + "/createUser")
+                    .body(loginInfo).asString().getStatus();
             if (statusCode == 200) {
                 MainController mc = new MainController();
                 mc.setUsername(username);
