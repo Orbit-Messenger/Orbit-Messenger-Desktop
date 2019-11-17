@@ -1,9 +1,9 @@
 .root {
-    -fx-base: #3f474f;
+    -fx-base: #0e0d0f;
     -fx-accent: #e7eff7 ;
-    -fx-default-button: #7f878f ;
-    -fx-focus-color: #efefef;
-    -fx-faint-focus-color: #efefef22;
+    -fx-default-button: #ff4365;
+    -fx-focus-color: #b7ad99;
+    -fx-faint-focus-color: #b7ad99;
     -fx-focused-text-base-color : ladder(
             -fx-selection-bar,
             -fx-light-text-color 45%,
@@ -26,13 +26,14 @@
 }
 
 .mainAnchor {
-    -fx-background-color: GRAY;
+    -fx-background-color: #0e0d0f;
 }
 
 #usernameLabelID, #messageLabelID, #userLabelID  {
-    -fx-text-fill: WHITE;
+    -fx-text-fill: #00d9c0;
+    -fx-font-size: 1.1em;
 }
 
 #timeStampID {
-    -fx-text-fill: GRAY;
+    -fx-text-fill: #b7ad99;
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"log"
 )
 
 // RouteController controls the database for each route
@@ -44,6 +45,17 @@ func CreateRouteController() RouteController {
 	return RouteController{
 		db.CreateDatabaseConnection(),
 		CreateServerActionsController(),
+	}
+}
+
+func (rc RouteController) VerifyUser(c *gin.Context) {
+	var user Auth
+	c.BindJSON(&user)
+	log.Println(user)
+	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+		c.Status(200)
+	} else {
+		c.Status(403)
 	}
 }
 
