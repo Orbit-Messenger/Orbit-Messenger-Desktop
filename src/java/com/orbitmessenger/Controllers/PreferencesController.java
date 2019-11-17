@@ -83,9 +83,11 @@ public class PreferencesController extends ControllerUtil {
      */
     public void setDarkMode() {
         if (darkThemeToggleBtn.isSelected()) {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
             mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
         } else {
             mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
         }
     }
 

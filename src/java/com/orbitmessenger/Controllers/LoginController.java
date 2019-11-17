@@ -105,9 +105,11 @@ public class LoginController extends ControllerUtil {
      */
     public void setDarkMode() {
         if (properties.get("darkTheme").getAsBoolean()) {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
             mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
         } else {
             mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
         }
     }
 

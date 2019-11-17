@@ -1,5 +1,5 @@
 .root {
-    -fx-base: #0e0d0f;
+    -fx-base: #4C4C4C;
     -fx-accent: #e7eff7 ;
     -fx-default-button: #ff4365;
     -fx-focus-color: #b7ad99;
@@ -26,7 +26,7 @@
 }
 
 .mainAnchor {
-    -fx-background-color: #0e0d0f;
+    -fx-background-color: #4C4C4C;
 }
 
 #usernameLabelID, #messageLabelID, #userLabelID  {
@@ -36,4 +36,27 @@
 
 #timeStampID {
     -fx-text-fill: #b7ad99;
+}
+
+.loginInputBox{
+    -fx-max-width: 300px;
+}
+
+.defaultButton{
+    -fx-background-color: #279af1;
+    -fx-text-fill: white;
+}
+
+.loginButton{
+    -fx-min-width: 200px;
+    -fx-cursor: hand;
+}
+
+.loginButton:hover {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-color: white;
+}
+
+.loginLabels{
+    -fx-font-size: 1.5em;
 }

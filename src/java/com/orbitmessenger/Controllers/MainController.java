@@ -6,10 +6,15 @@ import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -391,9 +396,6 @@ public class MainController extends ControllerUtil{
         final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
         System.out.println("Index: " + selectedId);
         deleteMessage(messageIds.get(selectedId).toString());
-
-        // Wait for success message
-        // messagesListView.getItems().remove(selectedId);
     }
 
     /**
@@ -426,9 +428,11 @@ public class MainController extends ControllerUtil{
      */
     public void setDarkMode() {
         if (properties.get("darkTheme").getAsBoolean()) {
+            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
             mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
         } else {
             mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
         }
     }
 
@@ -449,5 +453,30 @@ public class MainController extends ControllerUtil{
         Platform.exit();
         System.out.println("Calling System.exit(0):");
         System.exit(0);
+    }
+
+    /**
+     * Copies the selected object on the UI
+     */
+    public void copy() {
+        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        VBox vBox = (VBox) messagesListView.getSelectionModel().getSelectedItem();
+        Label children = (Label) vBox.getChildren().get(1);
+
+        // Our clipboard!
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+
+        content.putString(children.getText());
+
+        clipboard.setContent(content);
+    }
+
+    /**
+     * Pastes what in your clipboard!
+     */
+    public void paste() {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        messageTextArea.setText(clipboard.getString());
     }
 }
