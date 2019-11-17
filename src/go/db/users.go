@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 )
 
 type User struct {
@@ -92,4 +93,26 @@ func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, error)
 		usernames = append(usernames, username)
 	}
 	return usernames, nil
+}
+
+// checks if a user exists
+func (dbConn DatabaseConnection) CheckIfUserExists(username string) bool {
+	row := dbConn.conn.QueryRow(context.Background(), "SELECT username FROM users WHERE username = $1;", username)
+	var dbUser string
+	_ = row.Scan(&dbUser)
+	log.Printf("username:%v", dbUser)
+	if dbUser == "" {
+		return false
+	}
+	return true
+}
+
+// checks if a user exists
+func (dbConn DatabaseConnection) CreateUser(username, password string) {
+	row := dbConn.conn.QueryRow(context.Background(), "INSERT INTO users VALUES(DEFAULT, $1, $2, $2, 'admin')",
+		username, password)
+	err := row.Scan()
+	if err != nil {
+		fmt.Println(err)
+	}
 }

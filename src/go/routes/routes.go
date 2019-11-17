@@ -59,6 +59,21 @@ func (rc RouteController) VerifyUser(c *gin.Context) {
 	}
 }
 
+func (rc RouteController) CreateUser(c *gin.Context) {
+	var user Auth
+	c.BindJSON(&user)
+	log.Println(user)
+	if !rc.dbConn.CheckIfUserExists(user.Username) {
+		log.Println("creating user")
+		rc.dbConn.CreateUser(user.Username, user.Password)
+	}
+	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+		c.Status(200)
+	} else {
+		c.Status(500)
+	}
+}
+
 func (rc RouteController) WebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
