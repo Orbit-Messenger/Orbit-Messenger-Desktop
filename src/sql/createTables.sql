@@ -15,10 +15,11 @@ INSERT INTO users VALUES(DEFAULT, 'test', 'test', 'test', 'user');
 CREATE TABLE IF NOT EXISTS messages(
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id),
-  message TEXT
+  message TEXT,
+  time_stamp timestamp
 );
 
-INSERT INTO messages VALUES(DEFAULT, 1, 'testing 1');
-INSERT INTO messages VALUES(DEFAULT, 2, 'testing 2');
-INSERT INTO messages VALUES(DEFAULT, 3, 'testing 3');
-INSERT INTO messages VALUES(DEFAULT, 4, 'testing 4');
+INSERT INTO messages VALUES(DEFAULT, 1, 'testing 1', 'now');
+INSERT INTO messages VALUES(DEFAULT, 2, 'testing 2', 'now');
+INSERT INTO messages VALUES(DEFAULT, 3, 'testing 3', 'now');
+INSERT INTO messages VALUES(DEFAULT, 4, 'testing 4', 'now');
