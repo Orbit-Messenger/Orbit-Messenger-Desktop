@@ -14,6 +14,7 @@ func main() {
 	// Routes
 	//router.GET("/verifyUser", routes.VerifyUser)
 	router.GET("/", routes.WebSocket)
+	router.POST("/verifyUser", routes.VerifyUser)
 	router.Run(":3000")
 
 }

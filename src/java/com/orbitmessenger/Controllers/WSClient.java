@@ -23,6 +23,7 @@ public class WSClient extends WebSocketClient {
     public WSClient(URI serverURI, String username) {
         super(serverURI);
         this.username = username;
+        this.connect();
     }
 
     @Override

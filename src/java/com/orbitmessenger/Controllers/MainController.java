@@ -1,33 +1,25 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.orbitmessenger.Main;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 
-import javax.swing.text.MaskFormatter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,8 +56,9 @@ public class MainController extends ControllerUtil{
 
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
-        wsClient.connect(); // creates the websocket connection
         updateHandler.start(); // Starts the update handler thread
+        while(!wsClient.isOpen()){
+        }
         readPreferencesFile();
     }
 
@@ -188,7 +181,6 @@ public class MainController extends ControllerUtil{
         );
 
         System.out.println("Properties to send: " + propertiesMessage.toString());
-
         wsClient.send(propertiesMessage.toString().trim());
     }
 
