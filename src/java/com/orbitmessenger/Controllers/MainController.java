@@ -66,7 +66,9 @@ public class MainController extends ControllerUtil{
         updateHandler.start(); // Starts the update handler thread
         while(!wsClient.isOpen()){
         }
-        readPreferencesFile();
+        loadPreferences();
+        sendProperties();
+        setDarkMode();
     }
 
     private String getUsername() { return username; }
@@ -91,7 +93,7 @@ public class MainController extends ControllerUtil{
         this.server = server;
     }
 
-    private JsonObject getProperties() { return properties; }
+    //private JsonObject getProperties() { return properties; }
 
     public void setProperties(JsonObject properties) {
         this.properties = properties;
@@ -184,7 +186,7 @@ public class MainController extends ControllerUtil{
                 "delete",
                 id,
                 getUsername(),
-                getProperties()
+                getPreferences()
         );
 
         System.out.println("Message to delete: " + submitMessage.toString());
@@ -200,7 +202,7 @@ public class MainController extends ControllerUtil{
                 null,
                 null,
                 getUsername(),
-                getProperties()
+                getPreferences()
         );
 
         System.out.println("Properties to send: " + propertiesMessage.toString());
@@ -412,7 +414,9 @@ public class MainController extends ControllerUtil{
                         e.printStackTrace();
                     }
                 }
-                readPreferencesFile();
+                loadPreferences();
+                sendProperties();
+                setDarkMode();
             }
         });
         updatePreferences.start();
@@ -475,27 +479,21 @@ public class MainController extends ControllerUtil{
     }
 
     /**
-     * Reads the Preferences file
-     */
-    public void readPreferencesFile() {
-        PreferencesController pc = new PreferencesController();
-        Object ref = pc.readPreferencesFile();
-        properties = (JsonObject) new JsonParser().parse(ref.toString());
-        setDarkMode();
-        sendProperties();
-    }
-
-    /**
      * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
      */
-    public void setDarkMode() {
-        if (properties.get("darkTheme").getAsBoolean()) {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-        } else {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-        }
+    private void setDarkMode() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+                } else {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
+                }
+            }
+        });
     }
 
     /**

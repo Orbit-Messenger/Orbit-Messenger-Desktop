@@ -3,6 +3,7 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -38,7 +39,8 @@ public class CreateRoomController extends ControllerUtil {
     }
 
     public void initialize() {
-        settPreferences();
+        loadPreferences();
+        setDarkMode();
     }
 
     public void createRoom() {
@@ -60,42 +62,21 @@ public class CreateRoomController extends ControllerUtil {
         }
     }
 
-    public Object readPreferencesFile() {
-        BufferedReader bufferedReader = null;
-        try {
-            bufferedReader = new BufferedReader(new FileReader(this.PREF_LOC));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        Gson gson = new Gson();
-        Object json = gson.fromJson(bufferedReader, Object.class);
-
-        System.out.println(json.getClass());
-        System.out.println(json.toString());
-
-        return json;
-    }
-
-    /**
-     * Reads the Preferences file
-     */
-    public void settPreferences() {
-        Object ref = readPreferencesFile();
-        properties = (JsonObject) new JsonParser().parse(ref.toString());
-        setDarkMode();
-    }
-
     /**
      * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
      */
-    public void setDarkMode() {
-        if (properties.get("darkTheme").getAsBoolean()) {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-        } else {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-        }
+    private void setDarkMode() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+                } else {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
+                }
+            }
+        });
     }
 }

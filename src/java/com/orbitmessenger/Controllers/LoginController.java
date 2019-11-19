@@ -2,6 +2,7 @@ package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -33,7 +34,8 @@ public class LoginController extends ControllerUtil {
     private JsonObject properties;
 
     public void initialize() throws URISyntaxException {
-        readPreferencesFile();
+        loadPreferences();
+        setDarkMode();
     }
 
 
@@ -91,26 +93,21 @@ public class LoginController extends ControllerUtil {
     }
 
     /**
-     * Reads the Preferences file
-     */
-    public void readPreferencesFile() {
-        PreferencesController pc = new PreferencesController();
-        Object ref = pc.readPreferencesFile();
-        properties = (JsonObject) new JsonParser().parse(ref.toString());
-        setDarkMode();
-    }
-
-    /**
      * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
      */
-    public void setDarkMode() {
-        if (properties.get("darkTheme").getAsBoolean()) {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-        } else {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-        }
+    private void setDarkMode() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+                } else {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
+                }
+            }
+        });
     }
 
     /**

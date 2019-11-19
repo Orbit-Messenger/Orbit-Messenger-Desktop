@@ -1,12 +1,15 @@
 package com.orbitmessenger.Controllers;
 
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -18,6 +21,11 @@ class FxUtil{
     final public String CROOM_FXML = PATH_TO_FXML + "createRoom.fxml";
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
+
+
+    public Integer messageNumber;
+    public Boolean darkTheme;
+    public JsonObject PreferencesObject;
 
     //+++++++++ Stage functions ++++++++++
 
@@ -64,6 +72,46 @@ class FxUtil{
         } catch (IOException e) {
             throw new RuntimeException("couldn't change scene" + "\n" + e);
         }
+    }
+
+    public void loadPreferences() {
+        Object returnedPreferences = readPreferencesFile();
+        PreferencesObject = (JsonObject) new JsonParser().parse(returnedPreferences.toString());
+    }
+
+    private Object readPreferencesFile() {
+        BufferedReader bufferedReader = null;
+        try {
+            bufferedReader = new BufferedReader(new FileReader(this.PREF_LOC));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Gson gson = new Gson();
+        Object json = gson.fromJson(bufferedReader, Object.class);
+
+        return json;
+    }
+
+    public void writePreferencesToFile() {
+        try (Writer writer = new FileWriter(this.PREF_LOC)) {
+            Gson gson = new GsonBuilder().create();
+
+            String json = gson.toJson(PreferencesObject);
+            gson.toJson(json, writer);
+        } catch (IOException e) {
+            System.out.println("Error writing JSON Preferences file.");
+            e.printStackTrace();
+        }
+    }
+
+    public JsonObject getPreferences() {
+        return PreferencesObject;
+    }
+
+    public void setPreferences() {
+        PreferencesObject.addProperty("messageNumber", messageNumber);
+        PreferencesObject.addProperty("darkTheme", darkTheme);
     }
 }
 
