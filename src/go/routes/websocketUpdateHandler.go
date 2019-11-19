@@ -85,8 +85,12 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerRe
 		return serverResponse
 	}
 
+	rooms, err := rc.dbConn.GetAllRooms()
+
+
 	serverResponse.ActiveUsers = activeUsers
 	serverResponse.Messages = messages
+	serverResponse.Rooms = rooms
 	updateLastMessageId(messages, lastMessageId)
 	return serverResponse
 }

@@ -29,6 +29,7 @@ type ClientData struct {
 
 type ServerResponse struct {
 	ActiveUsers []string     `json:"activeUsers"`
+	Rooms       []string     `json:"rooms"`
 	Messages    []db.Message `json:"messages"`
 	Errors      string       `json:"errors"`
 }
