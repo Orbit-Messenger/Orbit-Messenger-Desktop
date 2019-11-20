@@ -39,6 +39,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			}
 			wsConn.WriteJSON(chatrooms)
 
+
 		case "logout":
 			fmt.Println("Closing! " + clientData.Username)
 			rc.dbConn.ChangeUserStatus(clientData.Username, false)
@@ -57,13 +58,14 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		case "chatroom":
 			log.Println("changing chatroom")
 			state.Chatroom = clientData.Chatroom
-			wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
 
 		default:
 			wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
 		}
 	}
 }
+
+func (rc RouteController) deleteMessageFromClient(clientData ClientData, username string) {
 
 // Gets all the messages for the client
 func (rc RouteController) deleteMessageFromClient(clientData ClientData, username string) {

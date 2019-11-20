@@ -1,9 +1,15 @@
 package db
 
 import (
-	_ "Orbit-Messenger/src/go/utils"
 	"context"
-	_ "github.com/jackc/pgx"
+)
+
+const (
+	create_chatroom   = "INSERT INTO chatrooms VALUES(DEFAULT, $1);"
+	get_all_chatrooms = "SELECT * FROM chatrooms;"
+	chatroom_exists   = "SELECT EXISTS(SELECT name FROM chatrooms WHERE name = $1);"
+	get_id_from_name  = "SELECT name FROM chatrooms WHERE id = $1;"
+	get_name_from_id  = "SELECT id FROM chatrooms WHERE name = $1;"
 )
 
 type Chatroom struct {
@@ -11,15 +17,30 @@ type Chatroom struct {
 	Name string `json:"name"`
 }
 
+type Chatrooms struct {
+	Chatrooms []Chatroom `json:"chatrooms"`
+}
+
 func (dbConn DatabaseConnection) CreateChatroom(name string) error {
-	row := dbConn.conn.QueryRow(context.Background(), "INSERT INTO chatrooms VALUES(DEFAULT, $1);", name)
-	err := row.Scan()
+	_, err := dbConn.conn.Exec(context.Background(), create_chatroom, name)
 	return err
 }
 
-func (dbConn DatabaseConnection) GetAllChatrooms() ([]Chatroom, error) {
-	var chatrooms []Chatroom
-	rows, err := dbConn.conn.Query(context.Background(), "SELECT name FROM chatrooms;")
+func (dbConn DatabaseConnection) GetNameFromChatroomId(id int64) string {
+	var name string
+	_ = dbConn.conn.QueryRow(context.Background(), get_name_from_id, id).Scan(&name)
+	return name
+}
+
+func (dbConn DatabaseConnection) GetIdFromChatroomName(name string) int64 {
+	var id int64
+	_ = dbConn.conn.QueryRow(context.Background(), get_id_from_name, name).Scan(&id)
+	return id
+}
+
+func (dbConn DatabaseConnection) GetAllChatrooms() (Chatrooms, error) {
+	var chatrooms Chatrooms
+	rows, err := dbConn.conn.Query(context.Background(), get_all_chatrooms)
 	if err != nil {
 		return chatrooms, err
 	}
@@ -29,17 +50,14 @@ func (dbConn DatabaseConnection) GetAllChatrooms() ([]Chatroom, error) {
 		if err != nil {
 			return chatrooms, err
 		}
-		chatrooms = append(chatrooms, chatroom)
+		chatrooms.Chatrooms = append(chatrooms.Chatrooms, chatroom)
 	}
 	return chatrooms, nil
 }
 
 func (dbConn DatabaseConnection) CheckIfChatroomExists(name string) bool {
-	row := dbConn.conn.QueryRow(context.Background(), "SELECT name FROM chatrooms WHERE name = $1;", name)
-	var dbName string
-	_ = row.Scan(&dbName)
-	if dbName == "" {
-		return false
-	}
-	return true
+	row := dbConn.conn.QueryRow(context.Background(), chatroom_exists, name)
+	var exists bool
+	_ = row.Scan(&exists)
+	return exists
 }

@@ -1,11 +1,18 @@
 package db
 
 import (
-	_ "Orbit-Messenger/src/go/utils"
 	"context"
 	"fmt"
-	_ "github.com/jackc/pgx"
 	"time"
+)
+
+const (
+	ADD_MESSAGE                  = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3);"
+	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1;"
+	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 and name = $2;"
+	GET_MESSAGE_COUNT            = "SELECT count(id) FROM full_messages WHERE name = $1;"
+	GET_USERNAME_FROM_MESSAGE_ID = "SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;"
+	DELETE_MESSAGE               = "DELETE FROM messages WHERE id = $1;"
 )
 
 // Message holds all the data for a message from the database
@@ -17,118 +24,101 @@ type Message struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+type Messages struct {
+	Messages []Message `json:"messages"`
+}
+
 // adds a message to the database under the username provided
-func (dbConn DatabaseConnection) AddMessage(message Message, username string) error {
+func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName string) error {
 	userId, err := dbConn.GetUserId(username)
+	chatroomId := dbConn.GetIdFromChatroomName(chatroomName)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
 	}
 
-	_, err = dbConn.conn.Exec(
-		context.Background(),
-		"INSERT INTO messages VALUES(DEFAULT, $1, $2, $3);",
-		userId,
-		message.Message,
-		time.Now())
+	_, err = dbConn.conn.Exec(context.Background(), ADD_MESSAGE, userId, chatroomId, message)
 	return err
 }
 
-func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]Message, error) {
-
-	// First lets check if the messages are different than they were the last time we checked. If so, end.
-	returnedMessageCount, messageErr := dbConn.GetMessageCount()
-	if messageErr != nil {
-		return nil, messageErr
-	}
-
-	if messageCount != returnedMessageCount {
-		// Update the messages API
-		messages, err := dbConn.GetAllMessages()
-		if err != nil {
-			return nil, err
-		}
-		return messages, nil
-	} else {
-		return nil, nil
-	}
-}
+//func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]Message, error) {
+//
+//	// First lets check if the messages are different than they were the last time we checked. If so, end.
+//	returnedMessageCount, messageErr := dbConn.GetMessageCount()
+//	if messageErr != nil {
+//		return nil, messageErr
+//	}
+//
+//	if messageCount != returnedMessageCount {
+//		// Update the messages API
+//		messages, err := dbConn.GetAllMessages()
+//		if err != nil {
+//			return nil, err
+//		}
+//		return messages, nil
+//	} else {
+//		return nil, nil
+//	}
+//}
 
 // GetAllMessages returns an array of Message types containing all the messages from the database
-func (dbConn DatabaseConnection) GetAllMessages() ([]Message, error) {
-	var messages []Message
-	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id;")
+func (dbConn DatabaseConnection) GetAllMessages(chatroom string) (Messages, error) {
+	var messages Messages
+	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_MESSAGES, chatroom)
 	if err != nil {
-		return nil, err
+		return messages, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageId, &message.Username, &message.Message, &message.Timestamp)
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Chatroom, &message.Message, &message.Timestamp)
 		if err != nil {
-			return nil, err
+			return messages, err
 		}
-		messages = append(messages, message)
+		messages.Messages = append(messages.Messages, message)
 	}
 	return messages, nil
 }
 
-func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64) ([]Message, error) {
-	var messages []Message
-	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT messages.id, users.username, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id > $1 LIMIT 100;", messageId)
+func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64, chatroom string) (Messages, error) {
+	var messages Messages
+	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_MESSAGES, messageId, chatroom)
 	if err != nil {
-		return nil, err
+		return messages, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.MessageId, &message.Username, &message.Message, &message.Timestamp)
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Chatroom, &message.Message, &message.Timestamp)
 		if err != nil {
-			return nil, err
+			return messages, err
 		}
-		messages = append(messages, message)
+		messages.Messages = append(messages.Messages, message)
 	}
 	return messages, nil
 }
 
 // GetMessageCount returns the message count from the database
-func (dbConn DatabaseConnection) GetMessageCount() (int64, error) {
+func (dbConn DatabaseConnection) GetMessageCount(chatroom string) (int64, error) {
 	var count int64
-	err := dbConn.conn.QueryRow(context.Background(),
-		"SELECT count(id) FROM messages;").Scan(&count)
+	err := dbConn.conn.QueryRow(context.Background(), GET_MESSAGE_COUNT, chatroom).Scan(&count)
 	if err != nil {
 		return -1, err
 	}
 	return count, nil
 }
 
-// GetUserId gets the users id from the username
-func (dbConn DatabaseConnection) GetUserId(username string) (int64, error) {
-	var id int64
-	err := dbConn.conn.QueryRow(context.Background(),
-		"SELECT id FROM users WHERE username = $1;", username).Scan(&id)
-	if err != nil {
-		return -1, err
-	}
-	return id, nil
-}
-
 // deletes the message from the db by using its id
-func (dbConn DatabaseConnection) DeleteMessageById(messageId int64) {
-	row := dbConn.conn.QueryRow(context.Background(),
-		"DELETE FROM messages WHERE id = $1;", messageId)
-
-	_ = row.Scan()
+func (dbConn DatabaseConnection) DeleteMessageById(messageId int64) error {
+	_, err := dbConn.conn.Exec(context.Background(), DELETE_MESSAGE, messageId)
+	return err
 }
 
 // GetUsernameFromMessageId gets the username from a message id
 func (dbConn DatabaseConnection) GetUsernameFromMessageId(messageId int64) string {
 	var username string
-	row := dbConn.conn.QueryRow(context.Background(),
-		"SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;", messageId)
+	row := dbConn.conn.QueryRow(context.Background(), GET_USERNAME_FROM_MESSAGE_ID, messageId)
 	_ = row.Scan(&username)
 	return username
 }

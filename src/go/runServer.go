@@ -12,7 +12,6 @@ func main() {
 	routes := routes.CreateRouteController()
 
 	// Routes
-	//router.GET("/verifyUser", routes.VerifyUser)
 	router.GET("/", routes.WebSocket)
 	router.POST("/verifyUser", routes.VerifyUser)
 	router.POST("/createUser", routes.CreateUser)

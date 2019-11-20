@@ -2,7 +2,6 @@ package routes
 
 import (
 	"Orbit-Messenger/src/go/db"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
 	"time"
@@ -10,12 +9,11 @@ import (
 
 func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	serverActionLen := rc.serverActions.ActionCount
+
+	// waits for the user to login
 	for !state.LoggedIn {
-		// waits for the user to login
 		time.Sleep(500 * time.Millisecond)
 	}
-
-	log.Println("user logged in")
 
 	for {
 		// checks if the user has logged out
@@ -34,65 +32,34 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				wsConn.WriteJSON(data)
 				serverActionLen = rc.serverActions.ActionCount
 			}
-		}
-
-		var serverResponse ServerResponse
-		if state.LastMessageId == 0 {
-			serverResponse = rc.getAllMessagesForClient(&state.LastMessageId)
-		} else {
-			serverResponse = rc.getNewMessages(&state.LastMessageId)
-		}
-
-		if serverResponse.Messages != nil {
-			fmt.Println("sending message")
-			wsConn.WriteJSON(serverResponse)
+			wsConn.WriteJSON(rc.getNewMessages(&state.LastMessageId, &state.Chatroom))
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 }
 
-func (rc RouteController) getNewMessages(lastMessageId *int64) ServerResponse {
-	var serverResponse ServerResponse
-	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId)
-
+func (rc RouteController) getNewMessages(lastMessageId *int64, chatroom *string) db.Messages {
+	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
 	if err != nil {
-		serverResponse.Errors = err.Error()
-		return serverResponse
-	}
-	if len(messages) == 0 {
-		return serverResponse
+		log.Println(err)
+		return messages
 	}
 
-	serverResponse.Messages = messages
-	updateLastMessageId(messages, lastMessageId)
-	return serverResponse
+	updateLastMessageId(messages.Messages, lastMessageId)
+	return messages
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64) ServerResponse {
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
 	log.Println("getting All Messages")
-	var serverResponse ServerResponse
-	activeUsers, err := rc.dbConn.GetUsersByStatus(true)
-
-	// send error to client
+	messages, err := rc.dbConn.GetAllMessages(*chatroom)
 	if err != nil {
-		serverResponse.Errors = err.Error()
-		return serverResponse
-	}
-	messages, err := rc.dbConn.GetAllMessages()
-	if err != nil {
-		serverResponse.Errors = err.Error()
-		return serverResponse
+		log.Println(err)
+		return messages
 	}
 
-	rooms, err := rc.dbConn.GetAllRooms()
-
-
-	serverResponse.ActiveUsers = activeUsers
-	serverResponse.Messages = messages
-	serverResponse.Rooms = rooms
-	updateLastMessageId(messages, lastMessageId)
-	return serverResponse
+	updateLastMessageId(messages.Messages, lastMessageId)
+	return messages
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {

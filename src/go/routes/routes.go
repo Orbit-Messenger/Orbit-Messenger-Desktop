@@ -21,22 +21,23 @@ var upgrader = websocket.Upgrader{
 
 type ClientData struct {
 	Message       string                 `json:"message"`
+	Chatroom      string                 `json:"chatroom"`
 	Username      string                 `json:"username"`
 	Action        string                 `json:"action"`
 	LastMessageId int64                  `json:"lastMessageId"`
 	Properties    map[string]interface{} `json:"properties"`
 }
 
-type ServerResponse struct {
-	ActiveUsers []string     `json:"activeUsers"`
-	Rooms       []string     `json:"rooms"`
-	Messages    []db.Message `json:"messages"`
-	Errors      string       `json:"errors"`
-}
+//type ServerResponse struct {
+//	ActiveUsers []string     `json:"activeUsers"`
+//	Messages    []db.Message `json:"messages"`
+//	Errors      string       `json:"errors"`
+//}
 
 type State struct {
 	LastMessageId int64
 	Username      string
+	Chatroom      string
 	LoggedIn      bool
 	LoggedOut     bool
 }
@@ -93,6 +94,8 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 	}
 
 	var state State
+	state.Chatroom = "general"
+
 	go rc.handleAction(conn, &state)
 	go rc.UpdateHandler(conn, &state)
 }
