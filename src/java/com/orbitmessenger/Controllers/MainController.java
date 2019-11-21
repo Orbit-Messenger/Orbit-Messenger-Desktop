@@ -64,13 +64,11 @@ public class MainController extends ControllerUtil{
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
         updateHandler.start(); // Starts the update handler thread
-        while(!wsClient.isOpen()){
-        }
+        while(!wsClient.isOpen()){}
         loadPreferences();
         sendProperties();
         setDarkMode();
     }
-
     private String getUsername() { return username; }
 
     public void setUsername(String username) {
@@ -109,6 +107,7 @@ public class MainController extends ControllerUtil{
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if(serverMessage != null) {
+                        System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -119,20 +118,19 @@ public class MainController extends ControllerUtil{
                         scrollToBottom();
                     }
                     Thread.sleep(500); // Milliseconds
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
     });
 
-
-
     /**
      * Gets the messages index from the json object passed to it
      */
     private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
         if(serverResponse.has("messages")){
+            System.out.println("hit");
             return serverResponse.getAsJsonArray("messages");
         }
         return null;

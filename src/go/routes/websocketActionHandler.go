@@ -25,19 +25,19 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			state.Username = clientData.Username
 
 			// sends all the messages, active users, and chatrooms to the client
-			wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
+			messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom)
 
 			activeUsers, err := rc.dbConn.GetUsersByStatus(true)
 			if err != nil {
 				log.Println(err)
 			}
-			wsConn.WriteJSON(activeUsers)
 
 			chatrooms, err := rc.dbConn.GetAllChatrooms()
 			if err != nil {
 				log.Println(err)
 			}
-			wsConn.WriteJSON(chatrooms)
+
+			wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
 
 		case "logout":
 			fmt.Println("Closing! " + clientData.Username)

@@ -34,6 +34,12 @@ type ClientData struct {
 //	Errors      string       `json:"errors"`
 //}
 
+type FullData struct {
+	Messages    []db.Message  `json:"messages"`
+	ActiveUsers []string      `json:"activeUsers"`
+	Chatrooms   []db.Chatroom `json:"chatrooms"`
+}
+
 type State struct {
 	LastMessageId int64
 	Username      string
