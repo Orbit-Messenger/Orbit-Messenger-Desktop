@@ -7,7 +7,7 @@ import (
 
 type Action struct {
 	Action    string
-	messageId int64
+	MessageId int64
 }
 
 type ServerActionsController struct {

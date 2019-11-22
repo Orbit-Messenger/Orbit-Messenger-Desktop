@@ -48,7 +48,10 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			return
 
 		case "add":
-			rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
+			err = rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
+			if err != nil {
+				log.Println(err)
+			}
 
 		case "delete":
 			log.Println("deleting message")

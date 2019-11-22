@@ -28,12 +28,6 @@ type ClientData struct {
 	Properties    map[string]interface{} `json:"properties"`
 }
 
-//type ServerResponse struct {
-//	ActiveUsers []string     `json:"activeUsers"`
-//	Messages    []db.Message `json:"messages"`
-//	Errors      string       `json:"errors"`
-//}
-
 type FullData struct {
 	Messages    []db.Message  `json:"messages"`
 	ActiveUsers []string      `json:"activeUsers"`
@@ -104,4 +98,35 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 
 	go rc.handleAction(conn, &state)
 	go rc.UpdateHandler(conn, &state)
+}
+
+func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
+	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
+	if err != nil {
+		log.Println(err)
+		return messages
+	}
+
+	updateLastMessageId(messages.Messages, lastMessageId)
+	return messages
+}
+
+// Gets all the messages for the client
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
+	log.Println("getting All Messages")
+	messages, err := rc.dbConn.GetAllMessages(*chatroom)
+	if err != nil {
+		log.Println(err)
+		return messages
+	}
+
+	updateLastMessageId(messages.Messages, lastMessageId)
+	return messages
+}
+
+func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
+	if len(messages) < 1 {
+		return
+	}
+	*lastMessageId = messages[len(messages)-1].MessageId
 }

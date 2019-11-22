@@ -2,14 +2,15 @@ package db
 
 import (
 	"context"
+	"log"
 )
 
 const (
 	create_chatroom   = "INSERT INTO chatrooms VALUES(DEFAULT, $1);"
 	get_all_chatrooms = "SELECT * FROM chatrooms;"
 	chatroom_exists   = "SELECT EXISTS(SELECT name FROM chatrooms WHERE name = $1);"
-	get_id_from_name  = "SELECT name FROM chatrooms WHERE id = $1;"
-	get_name_from_id  = "SELECT id FROM chatrooms WHERE name = $1;"
+	get_name_from_id  = "SELECT name FROM chatrooms WHERE id = $1;"
+	get_id_from_name  = "SELECT id FROM chatrooms WHERE name = $1;"
 )
 
 type Chatroom struct {
@@ -34,7 +35,8 @@ func (dbConn DatabaseConnection) GetNameFromChatroomId(id int64) string {
 
 func (dbConn DatabaseConnection) GetIdFromChatroomName(name string) int64 {
 	var id int64
-	_ = dbConn.conn.QueryRow(context.Background(), get_id_from_name, name).Scan(&id)
+	err := dbConn.conn.QueryRow(context.Background(), get_id_from_name, name).Scan(&id)
+	log.Println(err)
 	return id
 }
 

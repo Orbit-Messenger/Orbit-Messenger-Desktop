@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -32,6 +33,7 @@ type Messages struct {
 func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName string) error {
 	userId, err := dbConn.GetUserId(username)
 	chatroomId := dbConn.GetIdFromChatroomName(chatroomName)
+	log.Printf("user id: %v  chatroom: %v", userId, chatroomId)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
 	}
@@ -39,26 +41,6 @@ func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName stri
 	_, err = dbConn.conn.Exec(context.Background(), ADD_MESSAGE, userId, chatroomId, message)
 	return err
 }
-
-//func (dbConn DatabaseConnection) CheckForUpdatedMessages(messageCount int64) ([]Message, error) {
-//
-//	// First lets check if the messages are different than they were the last time we checked. If so, end.
-//	returnedMessageCount, messageErr := dbConn.GetMessageCount()
-//	if messageErr != nil {
-//		return nil, messageErr
-//	}
-//
-//	if messageCount != returnedMessageCount {
-//		// Update the messages API
-//		messages, err := dbConn.GetAllMessages()
-//		if err != nil {
-//			return nil, err
-//		}
-//		return messages, nil
-//	} else {
-//		return nil, nil
-//	}
-//}
 
 // GetAllMessages returns an array of Message types containing all the messages from the database
 func (dbConn DatabaseConnection) GetAllMessages(chatroom string) (Messages, error) {
@@ -100,13 +82,13 @@ func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64, chatroom
 }
 
 // GetMessageCount returns the message count from the database
-func (dbConn DatabaseConnection) GetMessageCount(chatroom string) (int64, error) {
+func (dbConn DatabaseConnection) GetMessageCount(chatroom string) int64 {
 	var count int64
 	err := dbConn.conn.QueryRow(context.Background(), GET_MESSAGE_COUNT, chatroom).Scan(&count)
 	if err != nil {
-		return -1, err
+		log.Println(err)
 	}
-	return count, nil
+	return count
 }
 
 // deletes the message from the db by using its id
