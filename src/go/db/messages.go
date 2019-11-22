@@ -33,7 +33,6 @@ type Messages struct {
 func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName string) error {
 	userId, err := dbConn.GetUserId(username)
 	chatroomId := dbConn.GetIdFromChatroomName(chatroomName)
-	log.Printf("user id: %v  chatroom: %v", userId, chatroomId)
 	if userId == 0 || err != nil {
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
 	}

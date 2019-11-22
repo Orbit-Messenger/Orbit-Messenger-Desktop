@@ -16,7 +16,6 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		if err != nil {
 			return
 		}
-		fmt.Println("Action: ", clientData.Action)
 		switch clientData.Action {
 		case "login":
 			fmt.Println("Logging in!")

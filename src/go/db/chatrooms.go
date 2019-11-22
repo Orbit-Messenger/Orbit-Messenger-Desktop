@@ -36,7 +36,9 @@ func (dbConn DatabaseConnection) GetNameFromChatroomId(id int64) string {
 func (dbConn DatabaseConnection) GetIdFromChatroomName(name string) int64 {
 	var id int64
 	err := dbConn.conn.QueryRow(context.Background(), get_id_from_name, name).Scan(&id)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return id
 }
 
