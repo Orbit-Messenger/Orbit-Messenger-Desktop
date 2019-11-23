@@ -1,8 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -10,12 +8,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import kong.unirest.Unirest;
-import org.controlsfx.control.ToggleSwitch;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 
 public class CreateRoomController extends ControllerUtil {
 
@@ -50,6 +44,17 @@ public class CreateRoomController extends ControllerUtil {
         roomInfo.addProperty("name", roomName);
         int statusCode = Unirest.post(  getServer() + "/createRoom")
                 .body(roomInfo).asString().getStatus();
+
+        // Closes the window upon creating a room!
+        closeCreateRoom();
+    }
+
+    private void closeCreateRoom() {
+        // get a handle to the stage
+        Stage stage = (Stage) createRoomBtn.getScene().getWindow();
+
+        // do what you have to do
+        stage.close();
     }
 
     /**

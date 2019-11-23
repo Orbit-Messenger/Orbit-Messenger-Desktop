@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import kong.unirest.Unirest;
 import org.controlsfx.control.ToggleSwitch;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -24,35 +23,12 @@ public class PreferencesController extends ControllerUtil {
     private Button savePrefBtn;
     @FXML
     private ToggleSwitch darkThemeToggleBtn;
-    @FXML
-    TextField usernameTextField;
-    @FXML
-    TextField passwordTextField;
-
-    String server, username;
-
-    public PreferencesController(String server, String username){
-       this.server = server;
-       this.username = username;
-    }
 
     public void initialize() {
         loadPreferences();
         setDarkMode();
         messageNumberTxtField.setText(PreferencesObject.get("messageNumber").toString());
         darkThemeToggleBtn.setSelected(PreferencesObject.get("darkTheme").getAsBoolean());
-    }
-    /**
-     * Updates the clients from the preferences screen
-     */
-    @FXML
-    public void changePassword() {
-        String password = passwordTextField.getText();
-        JsonObject json = new JsonObject();
-        json.addProperty("username", this.username);
-        json.addProperty("password", password);
-        int status = Unirest.post(this.server + "/changePassword").body(json).asString().getStatus();
-        System.out.println("Password change: " + status);
     }
 
     /**
