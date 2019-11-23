@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <MenuBar VBox.vgrow="NEVER">
             <menus>
@@ -46,19 +46,19 @@
         </MenuBar>
         <AnchorPane prefHeight="375.0" prefWidth="669.0" style="-fx-background-size: cover;" styleClass="mainAnchor" VBox.vgrow="ALWAYS">
             <children>
-            <Label layoutX="17.0" layoutY="14.0" text="Room" />
-            <ScrollPane fx:id="messagesScrollPane" fitToHeight="true" fitToWidth="true" layoutX="11.0" layoutY="33.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="301.0" prefWidth="584.0" vvalue="1.0">
+            <Label layoutX="3.0" text="Room" />
+            <ScrollPane fx:id="messagesScrollPane" fitToHeight="true" fitToWidth="true" layoutX="-1.0" layoutY="18.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="407.0" prefWidth="609.0" vvalue="1.0">
                <content>
-                  <ListView fx:id="messagesListView" prefHeight="296.0" prefWidth="577.0" />
+                  <ListView fx:id="messagesListView" prefHeight="296.0" prefWidth="607.0" />
                </content>
             </ScrollPane>
-            <Accordion layoutX="612.0" layoutY="30.0" prefHeight="301.0" prefWidth="174.0">
+            <Accordion expandedPane="$userPane" layoutX="607.0" layoutY="18.0" prefHeight="407.0" prefWidth="194.0">
               <panes>
-                      <TitledPane contentDisplay="CENTER" prefHeight="301.0" prefWidth="174.0" text="Users">
+                      <TitledPane fx:id="userPane" contentDisplay="CENTER" prefHeight="301.0" prefWidth="174.0" text="Users">
                           <content>
                               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                                   <children>
-                                      <ListView fx:id="userListView" layoutX="4.0" prefHeight="271.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                                      <ListView fx:id="userListView" layoutX="4.0" prefHeight="350.0" prefWidth="187.0" styleClass="messageSendTextArea" />
                                   </children>
                               </AnchorPane>
                           </content>
@@ -67,15 +67,15 @@
                      <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
                            <children>
-                              <ListView fx:id="roomListView" layoutX="4.0" prefHeight="271.0" prefWidth="163.0" styleClass="messageSendTextArea" />
+                              <ListView fx:id="roomListView" layoutX="4.0" prefHeight="350.0" prefWidth="187.0" styleClass="messageSendTextArea" />
                            </children>
                         </AnchorPane>
                      </content>
                   </TitledPane>
               </panes>
             </Accordion>
-                <Button fx:id="btnSend" defaultButton="true" layoutX="611.0" layoutY="378.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="44.0" prefWidth="174.0" text="Send" />
-                <TextArea fx:id="messageTextArea" layoutX="14.0" layoutY="343.0" onKeyPressed="#handleEnterPressed" prefHeight="114.0" prefWidth="584.0" promptText="Type your Message here..." wrapText="true" />
+                <Button fx:id="btnSend" defaultButton="true" layoutX="607.0" layoutY="425.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="47.0" prefWidth="194.0" text="Send" />
+                <TextArea fx:id="messageTextArea" layoutX="-3.0" layoutY="424.0" onKeyPressed="#handleEnterPressed" prefHeight="47.0" prefWidth="611.0" promptText="Type your Message here..." wrapText="true" />
             </children>
         </AnchorPane>
     </children>
