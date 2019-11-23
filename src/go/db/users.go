@@ -14,12 +14,13 @@ const (
 	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1;"
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
+	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
 )
 
 type User struct {
-	Id       int64
-	Username string
-	Password string
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 	Salt     string
 	Status   bool
 }
@@ -48,6 +49,12 @@ func (dbConn DatabaseConnection) GetPasswordById(id int64) (string, error) {
 	return password, nil
 }
 
+// changes the users password
+func (dbConn DatabaseConnection) ChangePassword(userId int64, password string) error {
+	_, err := dbConn.conn.Exec(context.Background(), CHANGE_PASSWORD, userId, password)
+	return err
+}
+
 // GetUsername gets the users password from the id
 func (dbConn DatabaseConnection) GetPasswordByUsername(username string) (string, error) {
 	var password string
@@ -59,7 +66,7 @@ func (dbConn DatabaseConnection) GetPasswordByUsername(username string) (string,
 }
 
 // GetUsername gets the users username from the id
-func (dbConn DatabaseConnection) GetUsername(id int64) (string, error) {
+func (dbConn DatabaseConnection) GetUsernameFromId(id int64) (string, error) {
 	var username string
 	err := dbConn.conn.QueryRow(context.Background(),
 		GET_USERNAME_FROM_ID, id).Scan(&username)

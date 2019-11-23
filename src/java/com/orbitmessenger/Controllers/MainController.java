@@ -130,7 +130,7 @@ public class MainController extends ControllerUtil {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if (serverMessage != null) {
-                        System.out.println(serverMessage);
+                        //System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -206,9 +206,6 @@ public class MainController extends ControllerUtil {
                 getUsername(),
                 getPreferences()
         );
-
-        System.out.println("Message to delete: " + submitMessage.toString());
-
         wsClient.send(submitMessage.toString().trim());
     }
 
@@ -222,8 +219,6 @@ public class MainController extends ControllerUtil {
                 getUsername(),
                 getPreferences()
         );
-
-        System.out.println("Properties to send: " + propertiesMessage.toString());
         wsClient.send(propertiesMessage.toString().trim());
     }
 
@@ -242,9 +237,6 @@ public class MainController extends ControllerUtil {
                 getUsername(),
                 null
         );
-
-        System.out.println("Message to send: " + submitMessage.toString());
-
         wsClient.send(submitMessage.toString().trim());
         messageTextArea.setText("");
         messageTextArea.requestFocus();
@@ -417,7 +409,7 @@ public class MainController extends ControllerUtil {
      */
     public void openPreferences() {
         System.out.println("Opening Preferences!");
-        PreferencesController pref = new PreferencesController();
+        PreferencesController pref = new PreferencesController(this.server, this.username);
         pref.changeSceneTo(this.PREF_FXML, pref, new Stage());
 
         Thread updatePreferences = new Thread(new Runnable() {
@@ -466,7 +458,6 @@ public class MainController extends ControllerUtil {
      * Preferable when there are new messages.
      */
     private void scrollToBottom() {
-        System.out.println("Scrolling to the bottom!");
         messagesScrollPane.layout();
         messagesScrollPane.setVvalue(messagesScrollPane.getVmax());
     }
@@ -476,7 +467,6 @@ public class MainController extends ControllerUtil {
      */
     public void selectMessageToDelete() {
         final int selectedId = messagesListView.getSelectionModel().getSelectedIndex();
-        System.out.println("Index: " + selectedId);
         deleteMessage(messageIds.get(selectedId).toString());
     }
 
