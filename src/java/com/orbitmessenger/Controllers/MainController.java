@@ -1,6 +1,7 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.application.Platform;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainController extends ControllerUtil{
+public class MainController extends ControllerUtil {
 
     private String username, password, server;
     private JsonObject properties;
@@ -61,15 +62,37 @@ public class MainController extends ControllerUtil{
 
     private WSClient wsClient;
 
+    private Thread wsConnectionThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            while (!wsClient.isOpen()) {
+                    wsClient.reconnect();
+            }
+        }
+    });
+
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
+        wsConnectionThread.start();
+        try {
+            wsConnectionThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         updateHandler.start(); // Starts the update handler thread
-        while(!wsClient.isOpen()){}
         loadPreferences();
         sendProperties();
         setDarkMode();
     }
-    private String getUsername() { return username; }
+
+    private String getUsername() {
+        return username;
+    }
 
     public void setUsername(String username) {
         this.username = username;
@@ -106,16 +129,14 @@ public class MainController extends ControllerUtil{
             while (true) {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
-                    if(serverMessage != null) {
+                    if (serverMessage != null) {
                         System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
-                        System.out.println("Return: " + serverMessage);
-                        if(serverMessage.has("delete")) {
-                            deleteMessageLocally(serverMessage.get("delete").getAsInt());
+                        if (serverMessage.has("action")) {
+                                deleteMessageLocally(serverMessage.get("messageId").getAsInt());
                         }
-                        scrollToBottom();
                     }
                     Thread.sleep(500); // Milliseconds
                 } catch (Exception e) {
@@ -128,9 +149,8 @@ public class MainController extends ControllerUtil{
     /**
      * Gets the messages index from the json object passed to it
      */
-    private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
-        if(serverResponse.has("messages")){
-            System.out.println("hit");
+    private JsonArray getMessagesFromJsonObject(JsonObject serverResponse) {
+        if (serverResponse.has("messages")) {
             return serverResponse.getAsJsonArray("messages");
         }
         return null;
@@ -139,12 +159,12 @@ public class MainController extends ControllerUtil{
     /**
      * Gets the activeRoom index from the json object passed to it
      */
-    private JsonArray getRoomsFromJsonObject(JsonObject serverResponse){
-        String jsonKey = "rooms";
-        if(serverResponse.has(jsonKey)){
-            try{
+    private JsonArray getRoomsFromJsonObject(JsonObject serverResponse) {
+        String jsonKey = "chatrooms";
+        if (serverResponse.has(jsonKey)) {
+            try {
                 return serverResponse.getAsJsonArray(jsonKey);
-            } catch (Exception e){
+            } catch (Exception e) {
                 return null;
             }
         }
@@ -154,12 +174,12 @@ public class MainController extends ControllerUtil{
     /**
      * Gets the activeUser index from the json object passed to it
      */
-    private JsonArray getUsersFromJsonObject(JsonObject serverResponse){
+    private JsonArray getUsersFromJsonObject(JsonObject serverResponse) {
         String jsonKey = "activeUsers";
-        if(serverResponse.has(jsonKey)){
-            try{
+        if (serverResponse.has(jsonKey)) {
+            try {
                 return serverResponse.getAsJsonArray(jsonKey);
-            } catch (Exception e){
+            } catch (Exception e) {
                 return null;
             }
         }
@@ -212,7 +232,7 @@ public class MainController extends ControllerUtil{
      */
     public void sendMessage() {
         String userText = messageTextArea.getText().trim();
-        if(userText.isEmpty()) {
+        if (userText.isEmpty()) {
             return;
         }
 
@@ -248,7 +268,7 @@ public class MainController extends ControllerUtil{
      * To send a message to the console or the GUI
      */
     public void updateMessages(JsonArray newMessages) {
-        if(newMessages == null){
+        if (newMessages == null) {
             return;
         }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
@@ -266,11 +286,9 @@ public class MainController extends ControllerUtil{
                             m.get("message").toString().replace("\"", ""))
             );
         }
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                messagesListView.getItems().addAll(messageBoxes);
-            }
+        Platform.runLater(() -> {
+            messagesListView.getItems().addAll(messageBoxes);
+            scrollToBottom();
         });
     }
 
@@ -279,14 +297,14 @@ public class MainController extends ControllerUtil{
     }
 
     public void updateRooms(JsonArray rooms) {
-        if(rooms == null){
+        if (rooms == null) {
             return;
         }
         ArrayList<Label> roomLabels = new ArrayList<>();
-        for (Object room : rooms) {
+        for (JsonElement room : rooms) {
+            JsonObject obj = room.getAsJsonObject();
             Label label = new Label();
-            label.setId("roomLabelID");
-            label.setText(trimUsers(room.toString()));
+            label.setText(trimUsers(obj.get("name").toString()));
             roomLabels.add(label);
         }
         Platform.runLater(new Runnable() {
@@ -299,7 +317,7 @@ public class MainController extends ControllerUtil{
     }
 
     public void updateUsers(JsonArray users) {
-        if(users == null){
+        if (users == null) {
             return;
         }
         ArrayList<Label> userLabels = new ArrayList<>();
@@ -377,7 +395,7 @@ public class MainController extends ControllerUtil{
         System.out.println("Opening Create Room!");
         CreateRoomController createRoom = new CreateRoomController();
         createRoom.setServer(getServer());
-        createRoom.changeSceneTo(this.CROOM_FXML, createRoom , new Stage());
+        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, new Stage());
 
         Thread createRoomThread = new Thread(new Runnable() {
             @Override
@@ -400,7 +418,7 @@ public class MainController extends ControllerUtil{
     public void openPreferences() {
         System.out.println("Opening Preferences!");
         PreferencesController pref = new PreferencesController();
-        pref.changeSceneTo(this.PREF_FXML, pref , new Stage());
+        pref.changeSceneTo(this.PREF_FXML, pref, new Stage());
 
         Thread updatePreferences = new Thread(new Runnable() {
             @Override
@@ -447,23 +465,24 @@ public class MainController extends ControllerUtil{
      * Scrolls to the chat window to the bottom.
      * Preferable when there are new messages.
      */
-    public void scrollToBottom() {
+    private void scrollToBottom() {
         System.out.println("Scrolling to the bottom!");
+        messagesScrollPane.layout();
         messagesScrollPane.setVvalue(messagesScrollPane.getVmax());
-        //messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
     }
 
     /**
      * Sends a request to the server to delete a message by sending the messageId.
      */
     public void selectMessageToDelete() {
-        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        final int selectedId = messagesListView.getSelectionModel().getSelectedIndex();
         System.out.println("Index: " + selectedId);
         deleteMessage(messageIds.get(selectedId).toString());
     }
 
     /**
      * Deletes a message locally by messageId sent from the server.
+     *
      * @param messageId
      */
     public void deleteMessageLocally(Integer messageId) {
@@ -517,7 +536,7 @@ public class MainController extends ControllerUtil{
      * Copies the selected object on the UI
      */
     public void copy() {
-        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        final int selectedId = messagesListView.getSelectionModel().getSelectedIndex();
         // This means no message is selected. If that is true, return.
         if (selectedId == -1) {
             return;

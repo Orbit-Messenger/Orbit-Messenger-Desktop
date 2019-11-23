@@ -75,7 +75,7 @@ func (rc RouteController) deleteMessageFromClient(clientData ClientData, usernam
 	}
 	userOfTheMessage := rc.dbConn.GetUsernameFromMessageId(messageId)
 	if userOfTheMessage == username {
-		rc.serverActions.AddDeleteAction(messageId)
 		rc.dbConn.DeleteMessageById(messageId)
+		rc.serverActions.AddDeleteAction(messageId)
 	}
 }

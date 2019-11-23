@@ -2,7 +2,12 @@ package routes
 
 import (
 	"github.com/gorilla/websocket"
+	"log"
 	"time"
+)
+
+const (
+	tick_speed = 500 * time.Millisecond
 )
 
 func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
@@ -10,7 +15,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 
 	// waits for the user to login
 	for !state.LoggedIn {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(tick_speed)
 	}
 
 	for {
@@ -18,10 +23,15 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		if len(messages.Messages) > 0 {
 			wsConn.WriteJSON(messages)
 		}
-
 		if serverActionLen != rc.serverActions.ActionCount {
-			//newestAction, err := rc.serverActions.GetNewestAction
+			newestAction, err := rc.serverActions.GetNewestAction()
+			if err != nil {
+				log.Println(err)
+			}
+			wsConn.WriteJSON(newestAction)
+			log.Println("sending delete request")
+			serverActionLen = rc.serverActions.ActionCount
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(tick_speed)
 	}
 }

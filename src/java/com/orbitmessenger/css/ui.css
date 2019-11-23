@@ -15,7 +15,7 @@
 
 .messageDisplayTextArea .content,
 .messageSendTextArea .content {
-    -fx-background-color: #eff0f1;
+    -fx-background-color: black;
 }
 
 .uiDefaults{

@@ -11,11 +11,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
     <stylesheets>
         <URL value="@../css/ui.css" />
     </stylesheets>
    <children>
+      <Label fx:id="statusBarLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" textAlignment="CENTER" />
       <ImageView fitHeight="169.0" fitWidth="292.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../images/orbit-messenger-logo.png" />

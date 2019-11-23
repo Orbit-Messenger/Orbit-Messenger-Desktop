@@ -24,6 +24,7 @@ public class WSClient extends WebSocketClient {
         super(serverURI);
         this.username = username;
         this.connect();
+        System.out.println("past wsClient");
     }
 
     @Override

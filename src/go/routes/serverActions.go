@@ -2,12 +2,11 @@ package routes
 
 import (
 	"fmt"
-	//"log"
 )
 
 type Action struct {
-	Action    string
-	MessageId int64
+	Action    string `json:"action"`
+	MessageId int64  `json:"messageId"`
 }
 
 type ServerActionsController struct {

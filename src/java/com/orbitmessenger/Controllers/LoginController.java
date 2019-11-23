@@ -6,10 +6,13 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
@@ -17,6 +20,8 @@ import java.net.URISyntaxException;
 
 public class LoginController extends ControllerUtil {
 
+    @FXML
+    Label statusBarLabel;
     @FXML
     VBox mainVBox;
     @FXML
@@ -49,13 +54,20 @@ public class LoginController extends ControllerUtil {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
-            int statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
+            int statusCode;
+            try{
+                statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
+            } catch (Exception e){
+                sendStatusBarError("Couldn't connect to server: " + e.toString());
+                return;
+            }
             if (statusCode == 200) {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
                 mc.setServer(serverPrefix);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
+                System.out.println("moving to next scene");
             } else {
                 // change to a status update
                 System.out.println("Couldn't login");
@@ -155,5 +167,10 @@ public class LoginController extends ControllerUtil {
         alert.setHeaderText(null);
         alert.setContentText("Missing Field!");
         alert.showAndWait();
+    }
+
+    private void sendStatusBarError(String message){
+        statusBarLabel.setText(message);
+        statusBarLabel.setStyle("-fx-background-color: red;");
     }
 }
