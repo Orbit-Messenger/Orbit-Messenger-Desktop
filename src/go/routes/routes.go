@@ -87,6 +87,20 @@ func (rc RouteController) CreateChatroom(c *gin.Context) {
 	}
 }
 
+func (rc RouteController) ChangePassword(c *gin.Context) {
+	var user db.User
+	c.BindJSON(&user)
+	id, err := rc.dbConn.GetUserId(user.Username)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = rc.dbConn.ChangePassword(id, user.Password)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func (rc RouteController) WebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {

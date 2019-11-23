@@ -13,6 +13,7 @@ func main() {
 
 	// Routes
 	router.GET("/", routes.WebSocket)
+	router.POST("/changePassword", routes.ChangePassword)
 	router.POST("/verifyUser", routes.VerifyUser)
 	router.POST("/createUser", routes.CreateUser)
 	router.POST("/createRoom", routes.CreateChatroom)
