@@ -1,17 +1,12 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import org.controlsfx.control.ToggleSwitch;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.io.*;
-import java.lang.reflect.Type;
+import org.controlsfx.control.ToggleSwitch;
 
 public class PreferencesController extends ControllerUtil {
 
