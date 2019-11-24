@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -13,9 +12,11 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="1000.0" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <MenuBar VBox.vgrow="NEVER">
             <menus>
@@ -44,40 +45,48 @@
                 </Menu>
             </menus>
         </MenuBar>
-        <AnchorPane prefHeight="375.0" prefWidth="669.0" style="-fx-background-size: cover;" styleClass="mainAnchor" VBox.vgrow="ALWAYS">
-            <children>
-            <Label fx:id="roomLabel" layoutX="3.0" text="General" />
-            <ScrollPane fx:id="messagesScrollPane" fitToHeight="true" fitToWidth="true" layoutX="-1.0" layoutY="18.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="407.0" prefWidth="609.0" vvalue="1.0" AnchorPane.leftAnchor="-1.0">
+      <BorderPane prefHeight="200.0" prefWidth="200.0">
+         <top>
+            <Label fx:id="roomLabel" text="General" BorderPane.alignment="CENTER" />
+         </top>
+         <left>
+                <TitledPane fx:id="userPane" collapsible="false" contentDisplay="CENTER" prefHeight="407.0" prefWidth="150.0" text="Users" BorderPane.alignment="CENTER">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="150.0">
+                            <children>
+                                <ListView fx:id="userListView" layoutX="1.0" prefHeight="380.0" prefWidth="150.0" styleClass="messageSendTextArea" />
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </TitledPane>
+         </left>
+         <right>
+            <TitledPane fx:id="roomPane" alignment="TOP_LEFT" collapsible="false" contentDisplay="CENTER" prefHeight="407.0" prefWidth="150.0" text="Rooms" BorderPane.alignment="CENTER">
                <content>
-                  <ListView fx:id="messagesListView" prefHeight="296.0" prefWidth="607.0" />
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="150.0">
+                     <children>
+                        <ListView fx:id="roomListView" layoutX="-1.0" prefHeight="380.0" prefWidth="150.0" styleClass="messageSendTextArea" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </TitledPane>
+         </right>
+         <center>
+            <ScrollPane fx:id="messagesScrollPane" fitToHeight="true" fitToWidth="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="407.0" prefWidth="706.0" vvalue="1.0" BorderPane.alignment="CENTER">
+               <content>
+                  <ListView fx:id="messagesListView" prefHeight="296.0" prefWidth="487.0" />
                </content>
             </ScrollPane>
-            <Accordion expandedPane="$userPane" layoutX="607.0" layoutY="18.0" prefHeight="407.0" prefWidth="194.0" AnchorPane.rightAnchor="0.0">
-              <panes>
-                      <TitledPane fx:id="userPane" contentDisplay="CENTER" prefHeight="301.0" prefWidth="174.0" text="Users">
-                          <content>
-                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
-                                  <children>
-                                      <ListView fx:id="userListView" layoutX="4.0" prefHeight="350.0" prefWidth="187.0" styleClass="messageSendTextArea" />
-                                  </children>
-                              </AnchorPane>
-                          </content>
-                      </TitledPane>
-                  <TitledPane alignment="TOP_LEFT" contentDisplay="CENTER" expanded="false" prefHeight="301.0" prefWidth="174.0" text="Rooms">
-                     <content>
-                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="172.0">
-                           <children>
-                              <ListView fx:id="roomListView" layoutX="4.0" prefHeight="350.0" prefWidth="187.0" styleClass="messageSendTextArea" />
-                           </children>
-                        </AnchorPane>
-                     </content>
-                  </TitledPane>
-              </panes>
-            </Accordion>
-                <Button fx:id="btnSend" defaultButton="true" layoutX="607.0" layoutY="425.0" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="47.0" prefWidth="194.0" text="Send" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-                <TextArea fx:id="messageTextArea" layoutX="-3.0" layoutY="424.0" onKeyPressed="#handleEnterPressed" prefHeight="47.0" prefWidth="611.0" promptText="Type your Message here..." wrapText="true" />
-            </children>
-        </AnchorPane>
+         </center>
+         <bottom>
+            <HBox prefHeight="50.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <children>
+                      <TextArea fx:id="messageTextArea" onKeyPressed="#handleEnterPressed" prefHeight="50.0" prefWidth="855.0" promptText="Type your Message here..." wrapText="true" />
+                      <Button fx:id="btnSend" defaultButton="true" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="50.0" prefWidth="151.0" text="Send" />
+               </children>
+            </HBox>
+         </bottom>
+      </BorderPane>
     </children>
     <stylesheets>
         <URL value="@../css/ui.css" />
