@@ -16,6 +16,7 @@
         <URL value="@../css/ui.css" />
     </stylesheets>
    <children>
+      <Label fx:id="statusBarLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" textAlignment="CENTER" />
       <ImageView fitHeight="169.0" fitWidth="292.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../images/orbit-messenger-logo.png" />

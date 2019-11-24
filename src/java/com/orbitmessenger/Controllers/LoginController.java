@@ -1,10 +1,11 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -16,6 +17,8 @@ import java.net.URISyntaxException;
 
 public class LoginController extends ControllerUtil {
 
+    @FXML
+    Label statusBarLabel;
     @FXML
     VBox mainVBox;
     @FXML
@@ -33,7 +36,8 @@ public class LoginController extends ControllerUtil {
     private JsonObject properties;
 
     public void initialize() throws URISyntaxException {
-        readPreferencesFile();
+        loadPreferences();
+        setDarkMode();
     }
 
 
@@ -47,7 +51,13 @@ public class LoginController extends ControllerUtil {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
-            int statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
+            int statusCode;
+            try{
+                statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
+            } catch (Exception e){
+                sendStatusBarError("Couldn't connect to server: " + e.toString());
+                return;
+            }
             if (statusCode == 200) {
                 MainController mc = new MainController();
                 mc.setUsername(username);
@@ -91,26 +101,21 @@ public class LoginController extends ControllerUtil {
     }
 
     /**
-     * Reads the Preferences file
-     */
-    public void readPreferencesFile() {
-        PreferencesController pc = new PreferencesController();
-        Object ref = pc.readPreferencesFile();
-        properties = (JsonObject) new JsonParser().parse(ref.toString());
-        setDarkMode();
-    }
-
-    /**
      * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
      */
-    public void setDarkMode() {
-        if (properties.get("darkTheme").getAsBoolean()) {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-        } else {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-        }
+    private void setDarkMode() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+                } else {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
+                }
+            }
+        });
     }
 
     /**
@@ -140,12 +145,7 @@ public class LoginController extends ControllerUtil {
      */
     @FXML
     private boolean checkInput(String username, String password, String server) {
-        System.out.println("Username: " + username + username.isEmpty());
-        System.out.println("Password: " + password + password.isEmpty());
-        System.out.println("Server: " + server + server.isEmpty());
-        boolean b = username.isEmpty() || (password.isEmpty()) || (server.isEmpty());
-        System.out.println(b);
-        return b;
+        return username.isEmpty() || (password.isEmpty()) || (server.isEmpty());
     }
 
     /**
@@ -158,5 +158,10 @@ public class LoginController extends ControllerUtil {
         alert.setHeaderText(null);
         alert.setContentText("Missing Field!");
         alert.showAndWait();
+    }
+
+    private void sendStatusBarError(String message){
+        statusBarLabel.setText(message);
+        statusBarLabel.setStyle("-fx-background-color: red;");
     }
 }

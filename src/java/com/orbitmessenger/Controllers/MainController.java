@@ -1,22 +1,17 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -32,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainController extends ControllerUtil{
+public class MainController extends ControllerUtil {
 
     private String username, password, server;
     private JsonObject properties;
@@ -50,7 +45,11 @@ public class MainController extends ControllerUtil{
     @FXML
     private ListView userListView;
     @FXML
+    private ListView roomListView;
+    @FXML
     private TextArea messageTextArea;
+    @FXML
+    private Label roomLabel;
 
     private ObservableList<String> users;
 
@@ -59,15 +58,38 @@ public class MainController extends ControllerUtil{
 
     private WSClient wsClient;
 
+    private Thread wsConnectionThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            while (!wsClient.isOpen()) {
+                    wsClient.reconnect();
+            }
+        }
+    });
+
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
-        updateHandler.start(); // Starts the update handler thread
-        while(!wsClient.isOpen()){
+        wsConnectionThread.start();
+        try {
+            wsConnectionThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        readPreferencesFile();
+        updateHandler.start(); // Starts the update handler thread
+        loadPreferences();
+        sendProperties();
+        setDarkMode();
+        roomLabel.setText("general");
     }
 
-    private String getUsername() { return username; }
+    private String getUsername() {
+        return username;
+    }
 
     public void setUsername(String username) {
         this.username = username;
@@ -81,7 +103,7 @@ public class MainController extends ControllerUtil{
         this.password = password;
     }
 
-    private String getServer() {
+    public String getServer() {
         return server;
     }
 
@@ -89,7 +111,7 @@ public class MainController extends ControllerUtil{
         this.server = server;
     }
 
-    private JsonObject getProperties() { return properties; }
+    //private JsonObject getProperties() { return properties; }
 
     public void setProperties(JsonObject properties) {
         this.properties = properties;
@@ -104,31 +126,44 @@ public class MainController extends ControllerUtil{
             while (true) {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
-                    if(serverMessage != null) {
+                    if (serverMessage != null) {
+                        //System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
-                        System.out.println("Return: " + serverMessage);
-                        if(serverMessage.has("delete")) {
-                            deleteMessageLocally(serverMessage.get("delete").getAsInt());
+                        updateRooms(getRoomsFromJsonObject(serverMessage));
+                        if (serverMessage.has("action")) {
+                                deleteMessageLocally(serverMessage.get("messageId").getAsInt());
                         }
-                        scrollToBottom();
                     }
                     Thread.sleep(500); // Milliseconds
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
     });
 
-
-
     /**
      * Gets the messages index from the json object passed to it
      */
-    private JsonArray getMessagesFromJsonObject(JsonObject serverResponse){
-        if(serverResponse.has("messages")){
+    private JsonArray getMessagesFromJsonObject(JsonObject serverResponse) {
+        if (serverResponse.has("messages")) {
             return serverResponse.getAsJsonArray("messages");
+        }
+        return null;
+    }
+
+    /**
+     * Gets the activeRoom index from the json object passed to it
+     */
+    private JsonArray getRoomsFromJsonObject(JsonObject serverResponse) {
+        String jsonKey = "chatrooms";
+        if (serverResponse.has(jsonKey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonKey);
+            } catch (Exception e) {
+                return null;
+            }
         }
         return null;
     }
@@ -136,12 +171,12 @@ public class MainController extends ControllerUtil{
     /**
      * Gets the activeUser index from the json object passed to it
      */
-    private JsonArray getUsersFromJsonObject(JsonObject serverResponse){
+    private JsonArray getUsersFromJsonObject(JsonObject serverResponse) {
         String jsonKey = "activeUsers";
-        if(serverResponse.has(jsonKey)){
-            try{
+        if (serverResponse.has(jsonKey)) {
+            try {
                 return serverResponse.getAsJsonArray(jsonKey);
-            } catch (Exception e){
+            } catch (Exception e) {
                 return null;
             }
         }
@@ -161,16 +196,14 @@ public class MainController extends ControllerUtil{
     /**
      * To send a message to the server
      */
-    public void deleteMessage(String id) {
+    public void deleteMessage(int index) {
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "delete",
-                id,
+                null,
+                messageIds.get(index).toString(),
                 getUsername(),
-                getProperties()
+                getPreferences()
         );
-
-        System.out.println("Message to delete: " + submitMessage.toString());
-
         wsClient.send(submitMessage.toString().trim());
     }
 
@@ -181,11 +214,10 @@ public class MainController extends ControllerUtil{
         JsonObject propertiesMessage = wsClient.createSubmitObject(
                 null,
                 null,
+                null,
                 getUsername(),
-                getProperties()
+                getPreferences()
         );
-
-        System.out.println("Properties to send: " + propertiesMessage.toString());
         wsClient.send(propertiesMessage.toString().trim());
     }
 
@@ -194,19 +226,17 @@ public class MainController extends ControllerUtil{
      */
     public void sendMessage() {
         String userText = messageTextArea.getText().trim();
-        if(userText.isEmpty()) {
+        if (userText.isEmpty()) {
             return;
         }
 
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "add",
+                null,
                 userText,
                 getUsername(),
                 null
         );
-
-        System.out.println("Message to send: " + submitMessage.toString());
-
         wsClient.send(submitMessage.toString().trim());
         messageTextArea.setText("");
         messageTextArea.requestFocus();
@@ -230,7 +260,7 @@ public class MainController extends ControllerUtil{
      * To send a message to the console or the GUI
      */
     public void updateMessages(JsonArray newMessages) {
-        if(newMessages == null){
+        if (newMessages == null) {
             return;
         }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
@@ -248,11 +278,9 @@ public class MainController extends ControllerUtil{
                             m.get("message").toString().replace("\"", ""))
             );
         }
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                messagesListView.getItems().addAll(messageBoxes);
-            }
+        Platform.runLater(() -> {
+            messagesListView.getItems().addAll(messageBoxes);
+            scrollToBottom();
         });
     }
 
@@ -260,8 +288,38 @@ public class MainController extends ControllerUtil{
         return user.replace("\"", "");
     }
 
+    public void updateRooms(JsonArray rooms) {
+        if (rooms == null) {
+            return;
+        }
+        ArrayList<Label> roomLabels = new ArrayList<>();
+        for (JsonElement room : rooms) {
+            JsonObject obj = room.getAsJsonObject();
+            Label label = new Label();
+
+            label.setOnMouseClicked(new EventHandler<MouseEvent>(){
+                @Override
+                public void handle(MouseEvent event){
+                    if (event.getClickCount() == 2) {
+                        switchRoom(label.getText());
+                    }
+                }
+            });
+
+            label.setText(trimUsers(obj.get("name").toString()));
+            roomLabels.add(label);
+        }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                roomListView.getItems().clear();
+                roomListView.getItems().addAll(roomLabels);
+            }
+        });
+    }
+
     public void updateUsers(JsonArray users) {
-        if(users == null){
+        if (users == null) {
             return;
         }
         ArrayList<Label> userLabels = new ArrayList<>();
@@ -333,12 +391,36 @@ public class MainController extends ControllerUtil{
     }
 
     /**
+     * Opens the create room window
+     */
+    public void openCreateRoom() {
+        System.out.println("Opening Create Room!");
+        CreateRoomController createRoom = new CreateRoomController();
+        createRoom.setServer(getServer());
+        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, new Stage());
+
+        Thread createRoomThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (getAllShowingStages().size() > 1) {
+                    try {
+                        Thread.sleep(500); // Milliseconds
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        createRoomThread.start();
+    }
+
+    /**
      * Opens the preferences window
      */
     public void openPreferences() {
         System.out.println("Opening Preferences!");
-        PreferencesController pref = new PreferencesController();
-        pref.changeSceneTo(this.PREF_FXML, pref , new Stage());
+        PreferencesController pref = new PreferencesController(this.server, this.username);
+        pref.changeSceneTo(this.PREF_FXML, pref, new Stage());
 
         Thread updatePreferences = new Thread(new Runnable() {
             @Override
@@ -350,7 +432,9 @@ public class MainController extends ControllerUtil{
                         e.printStackTrace();
                     }
                 }
-                readPreferencesFile();
+                loadPreferences();
+                sendProperties();
+                setDarkMode();
             }
         });
         updatePreferences.start();
@@ -383,57 +467,51 @@ public class MainController extends ControllerUtil{
      * Scrolls to the chat window to the bottom.
      * Preferable when there are new messages.
      */
-    public void scrollToBottom() {
-        System.out.println("Scrolling to the bottom!");
+    private void scrollToBottom() {
+        messagesScrollPane.layout();
         messagesScrollPane.setVvalue(messagesScrollPane.getVmax());
-        //messagesScrollPane.vvalueProperty().bind(messagesListView.heightProperty());
     }
 
     /**
      * Sends a request to the server to delete a message by sending the messageId.
      */
     public void selectMessageToDelete() {
-        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
-        System.out.println("Index: " + selectedId);
-        deleteMessage(messageIds.get(selectedId).toString());
+        int selectedIndex = messagesListView.getSelectionModel().getSelectedIndex();
+        deleteMessage(selectedIndex);
     }
 
     /**
      * Deletes a message locally by messageId sent from the server.
+     *
      * @param messageId
      */
     public void deleteMessageLocally(Integer messageId) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                final int selectedId = messageIds.indexOf(messageId);
-                messagesListView.getItems().remove(selectedId);
+                int index = messageIds.indexOf(messageId);
+                messagesListView.getItems().remove(index);
+                messageIds.remove(index);
             }
         });
     }
 
     /**
-     * Reads the Preferences file
-     */
-    public void readPreferencesFile() {
-        PreferencesController pc = new PreferencesController();
-        Object ref = pc.readPreferencesFile();
-        properties = (JsonObject) new JsonParser().parse(ref.toString());
-        setDarkMode();
-        sendProperties();
-    }
-
-    /**
      * Toggles Dark Mode based upon the properties Object, obtained from the properties.json file.
      */
-    public void setDarkMode() {
-        if (properties.get("darkTheme").getAsBoolean()) {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-        } else {
-            mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-            mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-        }
+    private void setDarkMode() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
+                } else {
+                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
+                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
+                }
+            }
+        });
     }
 
     /**
@@ -443,6 +521,7 @@ public class MainController extends ControllerUtil{
         // Closing the websocket by sending message we're on out way to the server!
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "logout",
+                null,
                 "",
                 getUsername(),
                 null
@@ -459,7 +538,11 @@ public class MainController extends ControllerUtil{
      * Copies the selected object on the UI
      */
     public void copy() {
-        final int selectedId  = messagesListView.getSelectionModel().getSelectedIndex();
+        final int selectedId = messagesListView.getSelectionModel().getSelectedIndex();
+        // This means no message is selected. If that is true, return.
+        if (selectedId == -1) {
+            return;
+        }
         VBox vBox = (VBox) messagesListView.getSelectionModel().getSelectedItem();
         Label children = (Label) vBox.getChildren().get(1);
 
@@ -478,5 +561,22 @@ public class MainController extends ControllerUtil{
     public void paste() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         messageTextArea.setText(clipboard.getString());
+    }
+
+    /**
+     * Switches room!
+     */
+    public void switchRoom(String room) {
+        System.out.println("Room: " + room);
+        JsonObject submitMessage = wsClient.createSubmitObject(
+                "chatroom",
+                room,
+                "",
+                getUsername(),
+                properties);
+        wsClient.send(submitMessage.toString().trim());
+        messagesListView.getItems().clear();
+        messageIds.clear();
+        roomLabel.setText(room);
     }
 }

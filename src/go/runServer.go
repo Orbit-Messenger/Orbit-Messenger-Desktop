@@ -12,10 +12,11 @@ func main() {
 	routes := routes.CreateRouteController()
 
 	// Routes
-	//router.GET("/verifyUser", routes.VerifyUser)
 	router.GET("/", routes.WebSocket)
+	router.POST("/changePassword", routes.ChangePassword)
 	router.POST("/verifyUser", routes.VerifyUser)
 	router.POST("/createUser", routes.CreateUser)
+	router.POST("/createRoom", routes.CreateChatroom)
 	router.Run(":3000")
 
 }

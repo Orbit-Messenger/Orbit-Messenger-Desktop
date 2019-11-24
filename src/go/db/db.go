@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgxpool"
 	"io/ioutil"
 )
 
@@ -14,7 +14,7 @@ const DATABASE_SETTINGS_FILE = "database_settings.json"
 
 // DatabaseConnection holds all the important data for the postgres connection
 type DatabaseConnection struct {
-	conn         *pgx.Conn
+	conn         *pgxpool.Pool
 	Username     string `json:"username"`
 	Password     string `json:"password"`
 	Port         string `json:"port"`
@@ -81,7 +81,7 @@ func CreateDatabaseConnection() DatabaseConnection {
 	dbConn.createDatabaseUrl()
 
 	// creates the connection with pgx
-	conn, err := pgx.Connect(context.Background(), dbConn.url)
+	conn, err := pgxpool.Connect(context.Background(), dbConn.url)
 	if err != nil {
 		panic("couldn't create datbase connection: " + err.Error())
 	}

@@ -24,6 +24,7 @@ public class WSClient extends WebSocketClient {
         super(serverURI);
         this.username = username;
         this.connect();
+        System.out.println("past wsClient");
     }
 
     @Override
@@ -78,11 +79,13 @@ public class WSClient extends WebSocketClient {
     }
 
     public JsonObject createSubmitObject(String action,
+                                         String chatRoom,
                                          String message,
                                          String username,
                                          JsonObject properties) {
         submitObject = new JsonObject();
         submitObject.addProperty("action", action);
+        submitObject.addProperty("chatroom", chatRoom);
         submitObject.addProperty("message", message);
         submitObject.addProperty("username", username);
         submitObject.add("properties", properties);

@@ -15,7 +15,7 @@
 
 .messageDisplayTextArea .content,
 .messageSendTextArea .content {
-    -fx-background-color: #eff0f1;
+    -fx-background-color: black;
 }
 
 .uiDefaults{
@@ -34,7 +34,12 @@
     /*-fx-border-style: solid;*/
 }
 
+#userPane, #roomPane {
+    -fx-border-width: 0;
+}
+
 .defaultButton{
+    -fx-background-radius: 0;
     -fx-background-color: #279af1;
     -fx-text-fill: white;
 }
@@ -44,11 +49,13 @@
 }
 
 .loginButton{
+    -fx-background-radius: 0;
     -fx-min-width: 200px;
     -fx-cursor: hand;
 }
 
 .loginButton:hover {
+    -fx-background-radius: 0;
     -fx-background-color: #4CAF50; /* Green */
     -fx-color: white;
 }

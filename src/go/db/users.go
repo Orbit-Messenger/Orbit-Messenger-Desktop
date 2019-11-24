@@ -3,34 +3,62 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
+)
+
+const (
+	GET_ID_FROM_USERNAME       = "SELECT id FROM users WHERE username = $1;"
+	GET_PASSWORD_FROM_ID       = "SELECT password FROM users WHERE id = $1;"
+	GET_PASSWORD_FROM_USERNAME = "SELECT password FROM users WHERE username = $1;"
+	GET_USERNAME_FROM_ID       = "SELECT username FROM users WHERE id = $1;"
+	UPDATE_USER_STATUS         = "UPDATE users SET status = $1 WHERE id = $2;"
+	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1;"
+	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
+	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
+	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
 )
 
 type User struct {
-	Id          int64
-	Username    string
-	Password    string
-	Salt        string
-	AccountType string
-	Status      bool
+	Id       int64  `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Salt     string
+	Status   bool
+}
+
+type ActiveUsers struct {
+	ActiveUsers []string `json:"activeUsers"`
+}
+
+// GetUserId gets the users id from the username
+func (dbConn DatabaseConnection) GetUserId(username string) (int64, error) {
+	var id int64
+	err := dbConn.conn.QueryRow(context.Background(), GET_ID_FROM_USERNAME, username).Scan(&id)
+	if err != nil {
+		return -1, err
+	}
+	return id, nil
 }
 
 // GetUsername gets the users password from the id
 func (dbConn DatabaseConnection) GetPasswordById(id int64) (string, error) {
 	var password string
-	err := dbConn.conn.QueryRow(context.Background(),
-		"SELECT password FROM users WHERE id = $1;", id).Scan(&password)
+	err := dbConn.conn.QueryRow(context.Background(), GET_PASSWORD_FROM_ID, id).Scan(&password)
 	if err != nil {
 		return "", err
 	}
 	return password, nil
 }
 
+// changes the users password
+func (dbConn DatabaseConnection) ChangePassword(userId int64, password string) error {
+	_, err := dbConn.conn.Exec(context.Background(), CHANGE_PASSWORD, userId, password)
+	return err
+}
+
 // GetUsername gets the users password from the id
 func (dbConn DatabaseConnection) GetPasswordByUsername(username string) (string, error) {
 	var password string
-	err := dbConn.conn.QueryRow(context.Background(),
-		"SELECT password FROM users WHERE username = $1;", username).Scan(&password)
+	err := dbConn.conn.QueryRow(context.Background(), GET_PASSWORD_FROM_USERNAME, username).Scan(&password)
 	if err != nil {
 		return "", err
 	}
@@ -38,10 +66,10 @@ func (dbConn DatabaseConnection) GetPasswordByUsername(username string) (string,
 }
 
 // GetUsername gets the users username from the id
-func (dbConn DatabaseConnection) GetUsername(id int64) (string, error) {
+func (dbConn DatabaseConnection) GetUsernameFromId(id int64) (string, error) {
 	var username string
 	err := dbConn.conn.QueryRow(context.Background(),
-		"SELECT username FROM users WHERE id = $1;", id).Scan(&username)
+		GET_USERNAME_FROM_ID, id).Scan(&username)
 	if err != nil {
 		return "", err
 	}
@@ -64,23 +92,17 @@ func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) 
 		return fmt.Errorf("Couldn't find anyone with the username %v", username)
 	}
 
-	columnsAffected, err := dbConn.conn.Exec(
-		context.Background(),
-		"UPDATE users SET status = $1 WHERE id = $2;",
-		status,
-		userId)
-	fmt.Printf("%v columns affected", columnsAffected)
+	_, err = dbConn.conn.Exec(context.Background(), UPDATE_USER_STATUS, status, userId)
 	return err
 
 }
 
 // Gets all the users by their status
-func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, error) {
-	var usernames []string
-	rows, err := dbConn.conn.Query(context.Background(),
-		"SELECT username FROM users WHERE status = $1;", status)
+func (dbConn DatabaseConnection) GetUsersByStatus(status bool) (ActiveUsers, error) {
+	var usernames ActiveUsers
+	rows, err := dbConn.conn.Query(context.Background(), GET_USERNAMES_FROM_STATUS, status)
 	if err != nil {
-		return nil, err
+		return usernames, err
 	}
 	defer rows.Close()
 
@@ -88,31 +110,22 @@ func (dbConn DatabaseConnection) GetUsersByStatus(status bool) ([]string, error)
 		var username string
 		err = rows.Scan(&username)
 		if err != nil {
-			return nil, err
+			return usernames, err
 		}
-		usernames = append(usernames, username)
+		usernames.ActiveUsers = append(usernames.ActiveUsers, username)
 	}
 	return usernames, nil
 }
 
 // checks if a user exists
 func (dbConn DatabaseConnection) CheckIfUserExists(username string) bool {
-	row := dbConn.conn.QueryRow(context.Background(), "SELECT username FROM users WHERE username = $1;", username)
-	var dbUser string
-	_ = row.Scan(&dbUser)
-	log.Printf("username:%v", dbUser)
-	if dbUser == "" {
-		return false
-	}
-	return true
+	var exists bool
+	_ = dbConn.conn.QueryRow(context.Background(), CHECK_IF_USER_EXISTS, username).Scan(exists)
+	return exists
 }
 
 // checks if a user exists
-func (dbConn DatabaseConnection) CreateUser(username, password string) {
-	row := dbConn.conn.QueryRow(context.Background(), "INSERT INTO users VALUES(DEFAULT, $1, $2, $2, 'admin')",
-		username, password)
-	err := row.Scan()
-	if err != nil {
-		fmt.Println(err)
-	}
+func (dbConn DatabaseConnection) CreateUser(username, password string) error {
+	_, err := dbConn.conn.Exec(context.Background(), CREATE_USER, username, password)
+	return err
 }

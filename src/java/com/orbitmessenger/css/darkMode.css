@@ -29,7 +29,7 @@
     -fx-background-color: #4C4C4C;
 }
 
-#usernameLabelID, #messageLabelID, #userLabelID  {
+#usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
     -fx-text-fill: #00d9c0;
     -fx-font-size: 1.1em;
 }
@@ -42,17 +42,24 @@
     -fx-max-width: 300px;
 }
 
+#userPane, #roomPane {
+    -fx-border-width: 0;
+}
+
 .defaultButton{
+    -fx-background-radius: 0;
     -fx-background-color: #279af1;
     -fx-text-fill: white;
 }
 
 .loginButton{
+    -fx-background-radius: 0;
     -fx-min-width: 200px;
     -fx-cursor: hand;
 }
 
 .loginButton:hover {
+    -fx-background-radius: 0;
     -fx-background-color: #4CAF50; /* Green */
     -fx-color: white;
 }
