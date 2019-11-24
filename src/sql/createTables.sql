@@ -43,6 +43,6 @@ INSERT INTO messages VALUES(DEFAULT, 2, 3, 'stuff 2');
 INSERT INTO messages VALUES(DEFAULT, 3, 3, 'stuff 3');
 INSERT INTO messages VALUES(DEFAULT, 4, 3, 'stuff 4');
 
-CREATE VIEW full_messages AS SELECT messages.id, users.username, chatrooms.name, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id INNER JOIN chatrooms ON chatrooms.id = messages.chatroom_id;
+CREATE VIEW full_messages AS SELECT messages.id, users.username, chatrooms.name, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id INNER JOIN chatrooms ON chatrooms.id = messages.chatroom_id ORDER BY messages.id ASC;
 
 

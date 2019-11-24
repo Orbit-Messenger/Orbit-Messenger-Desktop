@@ -64,7 +64,6 @@ public class LoginController extends ControllerUtil {
                 mc.setPassword(password);
                 mc.setServer(serverPrefix);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
-                System.out.println("moving to next scene");
             } else {
                 // change to a status update
                 System.out.println("Couldn't login");
@@ -146,12 +145,7 @@ public class LoginController extends ControllerUtil {
      */
     @FXML
     private boolean checkInput(String username, String password, String server) {
-        System.out.println("Username: " + username + username.isEmpty());
-        System.out.println("Password: " + password + password.isEmpty());
-        System.out.println("Server: " + server + server.isEmpty());
-        boolean b = username.isEmpty() || (password.isEmpty()) || (server.isEmpty());
-        System.out.println(b);
-        return b;
+        return username.isEmpty() || (password.isEmpty()) || (server.isEmpty());
     }
 
     /**

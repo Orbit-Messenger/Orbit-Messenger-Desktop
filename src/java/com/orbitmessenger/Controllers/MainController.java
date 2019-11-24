@@ -127,7 +127,7 @@ public class MainController extends ControllerUtil {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if (serverMessage != null) {
-                        System.out.println(serverMessage);
+                        //System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -196,11 +196,11 @@ public class MainController extends ControllerUtil {
     /**
      * To send a message to the server
      */
-    public void deleteMessage(String id) {
+    public void deleteMessage(int index) {
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "delete",
                 null,
-                id,
+                messageIds.get(index).toString(),
                 getUsername(),
                 getPreferences()
         );
@@ -476,8 +476,8 @@ public class MainController extends ControllerUtil {
      * Sends a request to the server to delete a message by sending the messageId.
      */
     public void selectMessageToDelete() {
-        final int selectedId = messagesListView.getSelectionModel().getSelectedIndex();
-        deleteMessage(messageIds.get(selectedId).toString());
+        int selectedIndex = messagesListView.getSelectionModel().getSelectedIndex();
+        deleteMessage(selectedIndex);
     }
 
     /**
@@ -489,8 +489,9 @@ public class MainController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                final int selectedId = messageIds.indexOf(messageId);
-                messagesListView.getItems().remove(selectedId);
+                int index = messageIds.indexOf(messageId);
+                messagesListView.getItems().remove(index);
+                messageIds.remove(index);
             }
         });
     }

@@ -53,7 +53,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			}
 
 		case "delete":
-			log.Println("deleting message")
+			log.Println("deleting message ")
 			rc.deleteMessageFromClient(clientData, state.Username)
 
 		case "chatroom":
@@ -75,7 +75,7 @@ func (rc RouteController) deleteMessageFromClient(clientData ClientData, usernam
 	}
 	userOfTheMessage := rc.dbConn.GetUsernameFromMessageId(messageId)
 	if userOfTheMessage == username {
-		rc.dbConn.DeleteMessageById(messageId)
 		rc.serverActions.AddDeleteAction(messageId)
+		err = rc.dbConn.DeleteMessageById(messageId)
 	}
 }

@@ -29,7 +29,6 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				log.Println(err)
 			}
 			wsConn.WriteJSON(newestAction)
-			log.Println("sending delete request")
 			serverActionLen = rc.serverActions.ActionCount
 		}
 		time.Sleep(tick_speed)
