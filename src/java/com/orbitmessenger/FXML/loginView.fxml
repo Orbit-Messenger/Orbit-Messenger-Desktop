@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="uiDefaults" xmlns:fx="http://javafx.com/fxml/1">
     <stylesheets>
         <URL value="@../css/ui.css" />
     </stylesheets>

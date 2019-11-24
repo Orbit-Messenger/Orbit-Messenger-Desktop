@@ -6,14 +6,12 @@ import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -50,6 +48,8 @@ public class MainController extends ControllerUtil {
     private ListView roomListView;
     @FXML
     private TextArea messageTextArea;
+    @FXML
+    private Label roomLabel;
 
     private ObservableList<String> users;
 
@@ -84,6 +84,7 @@ public class MainController extends ControllerUtil {
         loadPreferences();
         sendProperties();
         setDarkMode();
+        roomLabel.setText("general");
     }
 
     private String getUsername() {
@@ -126,7 +127,7 @@ public class MainController extends ControllerUtil {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if (serverMessage != null) {
-                        //System.out.println(serverMessage);
+                        System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -198,6 +199,7 @@ public class MainController extends ControllerUtil {
     public void deleteMessage(String id) {
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "delete",
+                null,
                 id,
                 getUsername(),
                 getPreferences()
@@ -210,6 +212,7 @@ public class MainController extends ControllerUtil {
      */
     public void sendProperties() {
         JsonObject propertiesMessage = wsClient.createSubmitObject(
+                null,
                 null,
                 null,
                 getUsername(),
@@ -229,6 +232,7 @@ public class MainController extends ControllerUtil {
 
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "add",
+                null,
                 userText,
                 getUsername(),
                 null
@@ -292,6 +296,16 @@ public class MainController extends ControllerUtil {
         for (JsonElement room : rooms) {
             JsonObject obj = room.getAsJsonObject();
             Label label = new Label();
+
+            label.setOnMouseClicked(new EventHandler<MouseEvent>(){
+                @Override
+                public void handle(MouseEvent event){
+                    if (event.getClickCount() == 2) {
+                        switchRoom(label.getText());
+                    }
+                }
+            });
+
             label.setText(trimUsers(obj.get("name").toString()));
             roomLabels.add(label);
         }
@@ -506,6 +520,7 @@ public class MainController extends ControllerUtil {
         // Closing the websocket by sending message we're on out way to the server!
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "logout",
+                null,
                 "",
                 getUsername(),
                 null
@@ -545,5 +560,22 @@ public class MainController extends ControllerUtil {
     public void paste() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         messageTextArea.setText(clipboard.getString());
+    }
+
+    /**
+     * Switches room!
+     */
+    public void switchRoom(String room) {
+        System.out.println("Room: " + room);
+        JsonObject submitMessage = wsClient.createSubmitObject(
+                "chatroom",
+                room,
+                "",
+                getUsername(),
+                properties);
+        wsClient.send(submitMessage.toString().trim());
+        messagesListView.getItems().clear();
+        messageIds.clear();
+        roomLabel.setText(room);
     }
 }
