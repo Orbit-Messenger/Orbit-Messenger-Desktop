@@ -125,10 +125,10 @@ public class LoginController extends ControllerUtil {
      * @return
      */
     public String httpServerTxtCheck(String server) {
-        if (server.startsWith("http://")) {
+        if (server.startsWith("https://")) {
             return server;
         } else {
-            return "http://"+server;
+            return "https://"+server;
         }
     }
 
