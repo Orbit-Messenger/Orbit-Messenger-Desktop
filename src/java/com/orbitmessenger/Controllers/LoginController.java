@@ -10,7 +10,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class LoginController extends ControllerUtil {
 
@@ -38,6 +42,23 @@ public class LoginController extends ControllerUtil {
         loadPreferences();
         setDarkMode();
     }
+    
+    public String readCert() {
+        String filePath = "./localhost.crt";
+        String content = "";
+
+        try
+        {
+            content = Files.readString(Paths.get(filePath));
+
+            System.out.println(content);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return content;
+    }
 
 
     @FXML
@@ -47,11 +68,13 @@ public class LoginController extends ControllerUtil {
         String server = this.getTextFieldText(serverTextField).trim();
         Boolean ssl = this.sslCheckBox.isSelected();
         String serverPrefix = httpServerTxtCheck(server);
+        String cert = readCert();
         if (!checkInput(username, password, server)) {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
             loginInfo.addProperty("ssl", ssl);
+            loginInfo.addProperty("cert", cert);
             int statusCode;
             try{
                 statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
