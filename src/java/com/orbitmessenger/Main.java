@@ -8,6 +8,15 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.cert.CertificateException;
+
 public class Main extends Application {
 
     @Override
@@ -32,8 +41,6 @@ public class Main extends Application {
         //primaryStage.setOnHidden(e -> LoginController.closeProgram());
         primaryStage.show();
     }
-
-
 
     public static void main(String[] args) {
         launch(args);

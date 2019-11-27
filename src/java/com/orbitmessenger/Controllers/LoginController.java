@@ -3,10 +3,7 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
@@ -32,6 +29,8 @@ public class LoginController extends ControllerUtil {
     TextField passwordTextField;
     @FXML
     TextField serverTextField;
+    @FXML
+    CheckBox sslCheckBox;
 
     private JsonObject properties;
 
@@ -46,11 +45,13 @@ public class LoginController extends ControllerUtil {
         String username = this.getTextFieldText(usernameTextField).trim();
         String password = this.getTextFieldText(passwordTextField).trim();
         String server = this.getTextFieldText(serverTextField).trim();
+        Boolean ssl = this.sslCheckBox.isSelected();
         String serverPrefix = httpServerTxtCheck(server);
         if (!checkInput(username, password, server)) {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
+            loginInfo.addProperty("ssl", ssl);
             int statusCode;
             try{
                 statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
@@ -63,6 +64,7 @@ public class LoginController extends ControllerUtil {
                 mc.setUsername(username);
                 mc.setPassword(password);
                 mc.setServer(serverPrefix);
+                mc.setSSL(ssl);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
