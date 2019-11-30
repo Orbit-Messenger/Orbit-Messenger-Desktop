@@ -102,6 +102,7 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 }
 
 func (rc RouteController) WebSocket(c *gin.Context) {
+	log.Println("hit")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println(err)
