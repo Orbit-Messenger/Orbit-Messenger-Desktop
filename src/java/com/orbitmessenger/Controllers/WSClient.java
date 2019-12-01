@@ -7,19 +7,8 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.DefaultWebSocketServerFactory;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.cert.CertificateException;
 
 public class WSClient extends WebSocketClient {
 
@@ -37,7 +26,6 @@ public class WSClient extends WebSocketClient {
     public WSClient(URI serverURI, String username) {
         super(serverURI);
         this.username = username;
-        this.setEnv();
         this.connect();
         System.out.println("past wsClient");
     }
@@ -105,11 +93,5 @@ public class WSClient extends WebSocketClient {
         submitObject.addProperty("username", username);
         submitObject.add("properties", properties);
         return submitObject;
-    }
-
-    // https://stackoverflow.com/questions/38426695/sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find-valid
-    public void setEnv() {
-        System.setProperty ("javax.net.ssl.trustStore", "././keystore.jks");
-        System.setProperty ("javax.net.ssl.trustStorePassword", "password");
     }
 }

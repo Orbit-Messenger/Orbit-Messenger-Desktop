@@ -32,8 +32,6 @@ public class LoginController extends ControllerUtil {
     TextField passwordTextField;
     @FXML
     TextField serverTextField;
-    @FXML
-    CheckBox sslCheckBox;
 
     private JsonObject properties;
 
@@ -41,38 +39,17 @@ public class LoginController extends ControllerUtil {
         loadPreferences();
         setDarkMode();
     }
-    
-    public String readCert() {
-        String filePath = "./cert.pem";
-        String content = "";
-
-        try
-        {
-            content = Files.readString(Paths.get(filePath));
-
-            System.out.println(content);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        return content;
-    }
-
 
     @FXML
     public void login() {
         String username = this.getTextFieldText(usernameTextField).trim();
         String password = this.getTextFieldText(passwordTextField).trim();
         String server = this.getTextFieldText(serverTextField).trim();
-        Boolean ssl = this.sslCheckBox.isSelected();
         String serverPrefix = httpServerTxtCheck(server);
-        //String cert = readCert();
         if (!checkInput(username, password, server)) {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
-            loginInfo.addProperty("ssl", ssl);
             //loginInfo.addProperty("cert", cert);
             int statusCode;
             try{
@@ -86,8 +63,7 @@ public class LoginController extends ControllerUtil {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
-                mc.setServer(serverPrefix);
-                mc.setSSL(ssl);
+                mc.setServer(wssServerChange(serverPrefix));
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
@@ -114,7 +90,7 @@ public class LoginController extends ControllerUtil {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
-                mc.setServer(serverPrefix);
+                mc.setServer(wssServerChange(serverPrefix));
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
@@ -141,6 +117,11 @@ public class LoginController extends ControllerUtil {
                 }
             }
         });
+    }
+
+    public String wssServerChange(String server) {
+        System.out.println("WSS: " + server.replaceFirst("https", "wss"));
+        return server.replaceFirst("https", "wss");
     }
 
     /**
