@@ -17,12 +17,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.java_websocket.server.CustomSSLWebSocketServerFactory;
-import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSocketFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -80,6 +74,7 @@ public class MainController extends ControllerUtil {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
         wsClient.setConnectionLostTimeout( 30 );
+
         wsConnectionThread.start();
         try {
             wsConnectionThread.join();
