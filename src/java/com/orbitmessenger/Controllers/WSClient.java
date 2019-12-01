@@ -11,6 +11,8 @@ import org.java_websocket.server.DefaultWebSocketServerFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -35,6 +37,7 @@ public class WSClient extends WebSocketClient {
     public WSClient(URI serverURI, String username) {
         super(serverURI);
         this.username = username;
+        this.setEnv();
         this.connect();
         System.out.println("past wsClient");
     }
@@ -104,40 +107,9 @@ public class WSClient extends WebSocketClient {
         return submitObject;
     }
 
-    /**
-     * Method which returns a SSLContext from a keystore or IllegalArgumentException on error
-     *
-     * @return a valid SSLContext
-     * @throws IllegalArgumentException when some exception occurred
-     */
-    public SSLContext getSSLConextFromKeystore() {
-        // load up the key store
-        String storeType = "JKS";
-        String keystore = "keystore.jks";
-        String storePassword = "password";
-        String keyPassword = "password";
-        KeyStore ks;
-        SSLContext sslContext;
-        try {
-            ks = KeyStore.getInstance(storeType);
-            ks.load(Files.newInputStream(Paths.get("././", keystore)), storePassword.toCharArray());
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, keyPassword.toCharArray());
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-            tmf.init(ks);
-
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-        } catch (KeyStoreException | IOException | CertificateException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
-            System.out.println("UnRecoverable: " + e);
-            throw new IllegalArgumentException();
-        }
-        return sslContext;
-    }
-
-    public final void setWebSocketFactory( WebSocketServerFactory wsf ) {
-        if (this.wsf != null)
-            this.wsf.close();
-        this.wsf = wsf;
+    // https://stackoverflow.com/questions/38426695/sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find-valid
+    public void setEnv() {
+        System.setProperty ("javax.net.ssl.trustStore", "././keystore.jks");
+        System.setProperty ("javax.net.ssl.trustStorePassword", "password");
     }
 }

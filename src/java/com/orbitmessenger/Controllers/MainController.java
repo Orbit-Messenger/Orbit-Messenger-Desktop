@@ -17,17 +17,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.java_websocket.server.CustomSSLWebSocketServerFactory;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocketFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class MainController extends ControllerUtil {
 
@@ -78,15 +79,7 @@ public class MainController extends ControllerUtil {
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
-        SSLContext context = wsClient.getSSLConextFromKeystore();
-//        wsClient.setSocketFactory(new DefaultSSLWebSocketServerFactory( context ));
-
-        System.out.println("Context: " + context);
-        if( context != null ) {
-            wsClient.setWebSocketFactory( new DefaultSSLWebSocketServerFactory( wsClient.getSSLConextFromKeystore() ) );
-        }
         wsClient.setConnectionLostTimeout( 30 );
-
         wsConnectionThread.start();
         try {
             wsConnectionThread.join();

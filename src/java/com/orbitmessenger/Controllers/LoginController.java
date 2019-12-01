@@ -44,7 +44,7 @@ public class LoginController extends ControllerUtil {
     }
     
     public String readCert() {
-        String filePath = "./localhost.crt";
+        String filePath = "./cert.pem";
         String content = "";
 
         try
@@ -68,15 +68,16 @@ public class LoginController extends ControllerUtil {
         String server = this.getTextFieldText(serverTextField).trim();
         Boolean ssl = this.sslCheckBox.isSelected();
         String serverPrefix = httpServerTxtCheck(server);
-        String cert = readCert();
+        //String cert = readCert();
         if (!checkInput(username, password, server)) {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
             loginInfo.addProperty("ssl", ssl);
-            loginInfo.addProperty("cert", cert);
+            //loginInfo.addProperty("cert", cert);
             int statusCode;
             try{
+                System.out.println("Server: " + serverPrefix);
                 statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
             } catch (Exception e){
                 sendStatusBarError("Couldn't connect to server: " + e.toString());
