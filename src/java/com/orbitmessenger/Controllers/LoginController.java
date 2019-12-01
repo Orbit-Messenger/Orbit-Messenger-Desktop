@@ -3,17 +3,17 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class LoginController extends ControllerUtil {
 
@@ -40,7 +40,6 @@ public class LoginController extends ControllerUtil {
         setDarkMode();
     }
 
-
     @FXML
     public void login() {
         String username = this.getTextFieldText(usernameTextField).trim();
@@ -51,8 +50,10 @@ public class LoginController extends ControllerUtil {
             JsonObject loginInfo = new JsonObject();
             loginInfo.addProperty("username", username);
             loginInfo.addProperty("password", password);
+            //loginInfo.addProperty("cert", cert);
             int statusCode;
             try{
+                System.out.println("Server: " + serverPrefix);
                 statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
             } catch (Exception e){
                 sendStatusBarError("Couldn't connect to server: " + e.toString());
@@ -62,7 +63,7 @@ public class LoginController extends ControllerUtil {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
-                mc.setServer(serverPrefix);
+                mc.setServer(wssServerChange(serverPrefix));
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
@@ -89,7 +90,7 @@ public class LoginController extends ControllerUtil {
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
-                mc.setServer(serverPrefix);
+                mc.setServer(wssServerChange(serverPrefix));
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
@@ -118,15 +119,20 @@ public class LoginController extends ControllerUtil {
         });
     }
 
+    public String wssServerChange(String server) {
+        System.out.println("WSS: " + server.replaceFirst("https", "wss"));
+        return server.replaceFirst("https", "wss");
+    }
+
     /**
      * Checks if http:// is entered in the server text field, if not affix it!
      * @return
      */
     public String httpServerTxtCheck(String server) {
-        if (server.startsWith("http://")) {
+        if (server.startsWith("https://")) {
             return server;
         } else {
-            return "http://"+server;
+            return "https://"+server;
         }
     }
 

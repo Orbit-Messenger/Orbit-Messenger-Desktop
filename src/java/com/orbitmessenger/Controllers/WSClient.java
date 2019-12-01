@@ -2,10 +2,11 @@ package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.java_websocket.WebSocketServerFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
-
+import org.java_websocket.server.DefaultWebSocketServerFactory;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
@@ -14,6 +15,8 @@ public class WSClient extends WebSocketClient {
     private JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
+
+    private WebSocketServerFactory wsf = new DefaultWebSocketServerFactory();
 
     public WSClient(URI serverUri, String username, Draft draft) {
         super(serverUri, draft);

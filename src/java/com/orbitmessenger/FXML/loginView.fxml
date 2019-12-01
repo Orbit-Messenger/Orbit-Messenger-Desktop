@@ -26,8 +26,8 @@
       <TextField fx:id="usernameTextField" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
       <Label styleClass="loginLabels" text="Password" />
       <TextField fx:id="passwordTextField" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
-      <Label layoutX="366.0" layoutY="293.0" styleClass="loginLabels" text="Server" />
-      <TextField fx:id="serverTextField" layoutX="260.0" layoutY="321.0" onKeyPressed="#handleEnterPressed" styleClass="loginInputBox" />
+      <Label styleClass="loginLabels" text="Server" />
+      <TextField fx:id="serverTextField" onKeyPressed="#handleEnterPressed" prefWidth="225.0" styleClass="loginInputBox" />
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
          <children>
             <Button fx:id="loginBtn" mnemonicParsing="false" onMouseClicked="#login" text="Login">

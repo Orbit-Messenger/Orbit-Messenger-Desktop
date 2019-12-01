@@ -17,19 +17,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class MainController extends ControllerUtil {
 
     private String username, password, server;
+    private Boolean ssl;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
 
@@ -74,12 +72,18 @@ public class MainController extends ControllerUtil {
 
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
+
+        wsClient.setConnectionLostTimeout( 30 );
+
         wsConnectionThread.start();
         try {
             wsConnectionThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Server Settings: " + wsClient.getConnection().toString());
+
         updateHandler.start(); // Starts the update handler thread
         loadPreferences();
         sendProperties();
@@ -110,6 +114,10 @@ public class MainController extends ControllerUtil {
     public void setServer(String server) {
         this.server = server;
     }
+
+    public Boolean getSSL() { return ssl;}
+
+    public void setSSL(Boolean ssl) { this.ssl = ssl; }
 
     //private JsonObject getProperties() { return properties; }
 

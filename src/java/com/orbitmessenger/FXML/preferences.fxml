@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.controlsfx.control.ToggleSwitch?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="186.0" prefWidth="273.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="180.0" prefWidth="275.0" xmlns:fx="http://javafx.com/fxml/1">
   <children>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefWidth="306.0" VBox.vgrow="ALWAYS">
       <children>
