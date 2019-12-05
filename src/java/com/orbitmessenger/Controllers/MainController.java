@@ -27,6 +27,7 @@ import java.util.*;
 public class MainController extends ControllerUtil {
 
     private String username, password, server;
+    private String wsServer, httpsServer;
     private Boolean ssl;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
@@ -107,9 +108,8 @@ public class MainController extends ControllerUtil {
         this.password = password;
     }
 
-    public String getServer() {
-        return server;
-    }
+    public String getServer() { return server; }
+    public String getWsServer() { return wsServer = server.replace("https", "wss"); }
 
     public void setServer(String server) {
         this.server = server;
@@ -586,5 +586,12 @@ public class MainController extends ControllerUtil {
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
+    }
+
+    /**
+     * Configures the server into http/ws style
+     */
+    public void setServerVariables() {
+        wsServer = getServer().replace("https", "wss");
     }
 }

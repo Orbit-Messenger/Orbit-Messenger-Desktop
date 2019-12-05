@@ -23,10 +23,12 @@ public class CreateRoomController extends ControllerUtil {
     private JsonObject properties;
 
     private String server;
+    private String wsServer;
 
     public String getServer() {
-        return server;
+        return server.replace("wss", "https");
     }
+    public String getWsServer() { return wsServer = getServer().replace("https", "wss"); }
 
     public void setServer(String server) {
         this.server = server;
@@ -42,6 +44,7 @@ public class CreateRoomController extends ControllerUtil {
         String roomName = this.getTextFieldText(roomNameTxtField).trim();
         JsonObject roomInfo = new JsonObject();
         roomInfo.addProperty("name", roomName);
+        System.out.println("SERVER: " + getServer());
         int statusCode = Unirest.post(  getServer() + "/createRoom")
                 .body(roomInfo).asString().getStatus();
 
