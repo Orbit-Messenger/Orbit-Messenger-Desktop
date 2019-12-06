@@ -1,0 +1,29 @@
+.background{
+    -fx-background-color: blue;
+}
+
+.list-view-backgrounds{
+    -fx-background-color: purple;
+}
+
+.font-color{
+    -fx-text-fill: red;
+}
+
+.text-input{
+    -fx-background-color: orange;
+}
+
+.button-color{
+    -fx-background-color: green;
+}
+
+.button-color:hover{
+    -fx-background-radius: 0;
+    -fx-background-color: #4CAF50;
+    -fx-color: white;
+}
+
+.tool-bar{
+    -fx-background-color: yellow;
+}
