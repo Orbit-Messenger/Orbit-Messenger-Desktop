@@ -1,7 +1,6 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,7 +22,7 @@ class FxUtil{
 
 
     public Integer messageNumber;
-    public Boolean darkTheme;
+    public String theme;
     public JsonObject PreferencesObject;
 
     //+++++++++ Stage functions ++++++++++
@@ -111,7 +109,7 @@ class FxUtil{
 
     public void setPreferences() {
         PreferencesObject.addProperty("messageNumber", messageNumber);
-        PreferencesObject.addProperty("darkTheme", darkTheme);
+        PreferencesObject.addProperty("theme", theme);
     }
 }
 

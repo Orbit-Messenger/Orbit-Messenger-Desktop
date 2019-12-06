@@ -104,13 +104,8 @@ public class LoginController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
-                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-                } else {
-                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-                }
+                mainVBox.getStylesheets().clear();
+                mainVBox.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
     }

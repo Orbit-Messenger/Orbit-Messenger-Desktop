@@ -2,17 +2,17 @@ package com.orbitmessenger.Controllers;
 
 import com.google.gson.*;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
 import kong.unirest.Unirest;
-import org.controlsfx.control.ToggleSwitch;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 public class PreferencesController extends ControllerUtil {
 
@@ -23,13 +23,14 @@ public class PreferencesController extends ControllerUtil {
     @FXML
     private Button savePrefBtn;
     @FXML
-    private ToggleSwitch darkThemeToggleBtn;
-    @FXML
     TextField usernameTextField;
     @FXML
     TextField passwordTextField;
+    @FXML
+    ChoiceBox themeChoicesDropdown;
 
     private String server, wsServer, username;
+    private ArrayList<String> cssChoices = new ArrayList<String>();
 
     public String getWsServer() { return wsServer = server.replace("https", "wss"); }
 
@@ -40,9 +41,10 @@ public class PreferencesController extends ControllerUtil {
 
     public void initialize() {
         loadPreferences();
+        readCSSFiles();
         setDarkMode();
         messageNumberTxtField.setText(PreferencesObject.get("messageNumber").toString());
-        darkThemeToggleBtn.setSelected(PreferencesObject.get("darkTheme").getAsBoolean());
+        themeChoicesDropdown.getSelectionModel().select(cssChoices.indexOf(PreferencesObject.get("theme").toString().replace("\"", "")));
     }
     /**
      * Updates the clients from the preferences screen
@@ -64,7 +66,7 @@ public class PreferencesController extends ControllerUtil {
     public void savePreferences() {
         if (checkField(messageNumberTxtField.getText().trim())) {
             messageNumber = convertToInteger(messageNumberTxtField.getText().trim());
-            darkTheme = darkThemeToggleBtn.isSelected();
+            theme = themeChoicesDropdown.getSelectionModel().getSelectedItem().toString();
             setPreferences();
 
             // Write JSON file
@@ -83,13 +85,8 @@ public class PreferencesController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                if (PreferencesObject.get("darkTheme").getAsBoolean()) {
-                    mainVBox.getStylesheets().remove(getClass().getResource("../css/ui.css").toString());
-                    mainVBox.getStylesheets().add(getClass().getResource("../css/darkMode.css").toString());
-                } else {
-                    mainVBox.getStylesheets().remove(getClass().getResource("../css/darkMode.css").toString());
-                    mainVBox.getStylesheets().add(getClass().getResource("../css/ui.css").toString());
-                }
+                mainVBox.getStylesheets().clear();
+                mainVBox.getStylesheets().add(getClass().getResource("../css/" + themeChoicesDropdown.getSelectionModel().getSelectedItem()).toString().replace("\"", ""));
             }
         });
     }
@@ -110,6 +107,21 @@ public class PreferencesController extends ControllerUtil {
             messageNumberTxtField.setStyle("-fx-control-inner-background: red");
             return false;
         }
+    }
+
+    private void readCSSFiles() {
+        File folder = new File("src/java/com/orbitmessenger/css");
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                cssChoices.add(listOfFiles[i].getName());
+                System.out.println("File " + listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+        themeChoicesDropdown.setItems((FXCollections.observableArrayList(cssChoices)));
     }
 
     private Integer convertToInteger(String messageNumTxt) {
