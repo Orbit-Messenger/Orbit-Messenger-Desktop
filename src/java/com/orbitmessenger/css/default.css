@@ -2,7 +2,7 @@
     -fx-background-color: blue;
 }
 
-.list-view-backgrounds{
+.listViewBackgrounds{
     -fx-background-color: purple;
 }
 
@@ -18,12 +18,28 @@
     -fx-background-color: green;
 }
 
-.button-color:hover{
+.button:hover{
     -fx-background-radius: 0;
-    -fx-background-color: #4CAF50;
+    -fx-background-color: black;
     -fx-color: white;
 }
 
 .tool-bar{
     -fx-background-color: yellow;
 }
+
+-- login
+
+.login-labels {
+    -fx-font-size: 1.5em;
+}
+
+.login-text-views{
+    -fx-max-width: 300px;
+}
+.login-button{
+    -fx-background-radius: 0;
+    -fx-min-width: 200px;
+    -fx-cursor: hand;
+}
+
