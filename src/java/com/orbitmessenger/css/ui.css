@@ -58,13 +58,13 @@
     -fx-max-width: 300px;
 }
 
-.loginButton{
+.loginButton, #cUsrBtn, #loginBtn{
     -fx-background-radius: 0;
     -fx-min-width: 200px;
     -fx-cursor: hand;
 }
 
-.loginButton:hover {
+.loginButton:hover, #cUsrBtn:hover, #loginBtn:hover {
     -fx-background-radius: 0;
     -fx-background-color: #4CAF50; /* Green */
     -fx-color: white;
