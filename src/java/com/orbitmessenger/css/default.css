@@ -2,8 +2,20 @@
     -fx-background-color: blue;
 }
 
-.listViewBackgrounds{
+.anchor-pane-background{
+    -fx-background-color: black;
+    -fx-body-color: black;
+    -fx-inner-border-color: black;
+    -fx-text-fill: yellow;
+}
+
+.list-view-background{
     -fx-background-color: purple;
+    -fx-control-inner-background: transparent;
+}
+
+.list-view-background:selected{
+    -fx-background-color: brown;
 }
 
 .font-color{
@@ -12,6 +24,11 @@
 
 .text-input{
     -fx-background-color: orange;
+}
+
+.textInput{
+    -fx-background-color: orange;
+    -fx-control-inner-background: orange;
 }
 
 .button-color{
@@ -27,8 +44,6 @@
 .tool-bar{
     -fx-background-color: yellow;
 }
-
--- login
 
 .login-labels {
     -fx-font-size: 1.5em;

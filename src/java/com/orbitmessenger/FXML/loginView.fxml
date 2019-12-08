@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="background" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="500.0" prefWidth="800.0" styleClass="background" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
    <children>
       <Label fx:id="statusBarLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" textAlignment="CENTER" />
       <ImageView fitHeight="169.0" fitWidth="292.0" pickOnBounds="true" preserveRatio="true">
@@ -21,20 +21,24 @@
       </ImageView>
       <Label fx:id="usernameLabel" text="Username">
          <styleClass>
-            <String fx:value="login-labels" />
             <String fx:value="font-color" />
+            <String fx:value="login-labels" />
          </styleClass></Label>
       <TextField fx:id="usernameTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" promptText="username">
          <styleClass>
-            <String fx:value="text-input" />
             <String fx:value="login-text-views" />
+            <String fx:value="font-color" />
          </styleClass></TextField>
       <Label fx:id="passwordLabel" text="Password">
          <styleClass>
             <String fx:value="login-labels" />
             <String fx:value="font-color" />
          </styleClass></Label>
-      <PasswordField fx:id="passwordTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" promptText="password" />
+      <PasswordField fx:id="passwordTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" promptText="password">
+         <styleClass>
+            <String fx:value="login-text-views" />
+            <String fx:value="font-color" />
+         </styleClass></PasswordField>
       <Label fx:id="serverLabel" text="Server">
          <styleClass>
             <String fx:value="login-labels" />
@@ -42,14 +46,15 @@
          </styleClass></Label>
       <TextField fx:id="serverTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" prefWidth="225.0" promptText="https://">
          <styleClass>
-            <String fx:value="text-input" />
             <String fx:value="login-text-views" />
+            <String fx:value="font-color" />
          </styleClass></TextField>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
          <children>
             <Button fx:id="loginBtn" mnemonicParsing="false" onMouseClicked="#login" text="Login">
                <styleClass>
                   <String fx:value="login-button" />
+                  <String fx:value="login-text-views" />
                   <String fx:value="button-color" />
                   <String fx:value="font-color" />
                </styleClass>
@@ -60,6 +65,7 @@
             <Button fx:id="cUsrBtn" mnemonicParsing="false" onMouseClicked="#createUser" text="Create User">
                <styleClass>
                   <String fx:value="login-button" />
+                  <String fx:value="login-text-views" />
                   <String fx:value="button-color" />
                   <String fx:value="font-color" />
                </styleClass>

@@ -319,6 +319,7 @@ public class MainController extends ControllerUtil {
         for (JsonElement room : rooms) {
             JsonObject obj = room.getAsJsonObject();
             Label label = new Label();
+            label.getStyleClass().add("font-color");
             label.setId("roomLabelID");
 
             label.setOnMouseClicked(new EventHandler<MouseEvent>(){
@@ -349,6 +350,8 @@ public class MainController extends ControllerUtil {
         ArrayList<Label> userLabels = new ArrayList<>();
         for (Object user : users) {
             Label label = new Label();
+            label.getStyleClass().add("font-color");
+            label.setAlignment(Pos.CENTER);
             label.setId("userLabelID");
             label.setText(trimUsers(user.toString()));
             userLabels.add(label);
@@ -378,14 +381,17 @@ public class MainController extends ControllerUtil {
         vbox.setStyle(".messageBox");
         vbox.getStyleClass().add("messageBox");
         Label usernameLabel = new Label();
-        usernameLabel.setId("usernameLabelID");
         Label timeStampLabel = new Label();
-        timeStampLabel.setId("timeStampLabelID");
         Label messageLabel = new Label();
-        messageLabel.setId("messageLabelID");
+
+        usernameLabel.getStyleClass().add("font-color");
+        timeStampLabel.getStyleClass().add("font-color");
+        messageLabel.getStyleClass().add("font-color");
+
         usernameLabel.setText(username);
         timeStampLabel.setText(shortTime);
         messageLabel.setText(message);
+
         vbox.getChildren().add(usernameLabel);
         vbox.getChildren().add(timeStampLabel);
         hBox.getChildren().addAll(usernameLabel, timeStampLabel);

@@ -1,0 +1,83 @@
+.root {
+    -fx-base: #4C4C4C;
+    -fx-accent: #e7eff7 ;
+    -fx-default-button: #ff4365;
+    -fx-focus-color: #b7ad99;
+    -fx-faint-focus-color: #b7ad99;
+    -fx-focused-text-base-color : ladder(
+            -fx-selection-bar,
+            -fx-light-text-color 45%,
+            -fx-dark-text-color 46%,
+            -fx-dark-text-color 59%,
+            -fx-mid-text-color 60%
+    );
+    -fx-focused-mark-color : -fx-focused-text-base-color ;
+
+}
+
+.text-input:focused {
+    -fx-highlight-text-fill: ladder(
+            -fx-highlight-fill,
+            -fx-light-text-color 45%,
+            -fx-dark-text-color  46%,
+            -fx-dark-text-color  59%,
+            -fx-mid-text-color   60%
+    );
+}
+
+/*#usernameTextField, #passwordTextField, #serverTextField {*/
+/*    -fx-min-width: 300px;*/
+/*    -fx-max-width: 400px;*/
+
+/*}*/
+
+.mainAnchor {
+    -fx-background-color: #4C4C4C;
+}
+
+#roomLabelID:hover {
+    -fx-cursor: hand;
+}
+
+#usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
+    -fx-text-fill: #00d9c0;
+    -fx-font-size: 1.1em;
+}
+
+#timeStampID {
+    -fx-text-fill: #b7ad99;
+}
+
+.loginInputBox{
+    -fx-max-width: 300px;
+}
+
+#userPane, #roomPane {
+    -fx-border-width: 0;
+}
+
+.defaultButton{
+    -fx-background-radius: 0;
+    -fx-background-color: #279af1;
+    -fx-text-fill: white;
+}
+
+.loginButton, #cUsrBtn, #loginBtn{
+    -fx-background-radius: 0;
+    -fx-min-width: 200px;
+    -fx-cursor: hand;
+}
+
+.loginButton:hover, #cUsrBtn:hover, #loginBtn:hover {
+    -fx-background-radius: 0;
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-color: white;
+}
+
+#usernameLabel, #passwordLabel, #serverLabel {
+    -fx-font-size: 1.5em;
+}
+
+.loginLabels {
+    -fx-font-size: 1.5em;
+}
