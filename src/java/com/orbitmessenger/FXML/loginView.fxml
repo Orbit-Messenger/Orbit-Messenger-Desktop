@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -33,11 +34,7 @@
             <String fx:value="login-labels" />
             <String fx:value="font-color" />
          </styleClass></Label>
-      <TextField fx:id="passwordTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" promptText="password">
-         <styleClass>
-            <String fx:value="text-input" />
-            <String fx:value="login-text-views" />
-         </styleClass></TextField>
+      <PasswordField fx:id="passwordTextField" maxWidth="400.0" onKeyPressed="#handleEnterPressed" promptText="password" />
       <Label fx:id="serverLabel" text="Server">
          <styleClass>
             <String fx:value="login-labels" />

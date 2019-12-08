@@ -33,6 +33,7 @@ public class PreferencesController extends ControllerUtil {
     private ArrayList<String> cssChoices = new ArrayList<String>();
 
     public String getWsServer() { return wsServer = server.replace("https", "wss"); }
+    public String getServer() { return server.replace("wss", "https"); }
 
     public PreferencesController(String server, String username){
        this.server = server;
@@ -55,7 +56,7 @@ public class PreferencesController extends ControllerUtil {
         JsonObject json = new JsonObject();
         json.addProperty("username", this.username);
         json.addProperty("password", password);
-        int status = Unirest.post(getWsServer() + "/changePassword").body(json).asString().getStatus();
+        int status = Unirest.post(getServer() + "/changePassword").body(json).asString().getStatus();
         System.out.println("Password change: " + status);
     }
 

@@ -1,5 +1,25 @@
 ![Orbit Messenger logo](https://github.com/MaxwellM/Orbit-Messenger/blob/master/src/images/orbit-messenger-logo.png)
 
+## GENERAL
+This application consists of a server and client component.  
+The server consists of Golang and Gin/Gorilla.  
+The database consists of PostgreSQL.  
+The client consists of Java11 and JavaFX.  
+
+Orbit Messenger is a multi-threaded, TLS encrypted, websocketed application that allows multiple users to communicate via secured messaging. 
+
+##FEATURE LIST
+* Create Users
+* Change User Password
+* Create Rooms
+* Deleting rooms
+* TLS support
+* Deleting messages
+* Copy/Paste message
+* Number of messages returned
+* Window resizing
+* CUSTOM CSS THEMES!
+
 ## DATABASE
 * Create a database called orbitmessengerdb
 run:
