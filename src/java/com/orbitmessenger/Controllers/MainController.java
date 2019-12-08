@@ -304,6 +304,7 @@ public class MainController extends ControllerUtil {
         for (JsonElement room : rooms) {
             JsonObject obj = room.getAsJsonObject();
             Label label = new Label();
+            label.setId("roomLabelID");
 
             label.setOnMouseClicked(new EventHandler<MouseEvent>(){
                 @Override

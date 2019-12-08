@@ -35,6 +35,10 @@
     -fx-background-color: #4C4C4C;
 }
 
+#roomLabelID:hover {
+    -fx-cursor: hand;
+}
+
 #usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
     -fx-text-fill: #00d9c0;
     -fx-font-size: 1.1em;
