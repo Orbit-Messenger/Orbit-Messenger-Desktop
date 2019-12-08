@@ -155,7 +155,6 @@ public class MainController extends ControllerUtil {
         public void run() {
             while(true) {
                 try {
-                    System.out.println("Sending Ping to Server!");
                     wsClient.sendPing();
                     Thread.sleep(15000); // 15 Seconds in Milliseconds
                 } catch (Exception e) {

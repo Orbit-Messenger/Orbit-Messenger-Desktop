@@ -11,15 +11,24 @@ import (
 
 // handles all the actions from the requesting client
 func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
-	defer log.Println("Closing connection")
+
+	// makes sure the connection closes smoothly
+	defer func() {
+		if r := recover(); r != nil {
+			wsConn.Close()
+			log.Println("closing connection")
+		}
+	}()
 
 	for {
-		wsConn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		var clientData ClientData
 		err := wsConn.ReadJSON(&clientData)
+		wsConn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		if err != nil {
-			return
+			// catches bad user input and counts it as a ping so the connection stays alive
+			continue
 		}
+
 		switch clientData.Action {
 		case "login":
 			fmt.Println("Logging in!")
