@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
 // RouteController controls the database for each route
@@ -48,6 +49,20 @@ func CreateRouteController() RouteController {
 		db.CreateDatabaseConnection(),
 		CreateServerActionsController(),
 	}
+}
+
+func (rc RouteController) WebSocket(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+
+	var state State
+	state.Chatroom = "general"
+
+	go rc.handleAction(conn, &state)
+	go rc.UpdateHandler(conn, &state)
 }
 
 func (rc RouteController) VerifyUser(c *gin.Context) {
@@ -117,20 +132,6 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 	if err != nil {
 		log.Printf("database error couldn't change user password: %v", err)
 	}
-}
-
-func (rc RouteController) WebSocket(c *gin.Context) {
-	log.Println("hit")
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var state State
-	state.Chatroom = "general"
-
-	go rc.handleAction(conn, &state)
-	go rc.UpdateHandler(conn, &state)
 }
 
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {

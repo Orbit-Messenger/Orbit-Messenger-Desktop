@@ -6,11 +6,15 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"strconv"
+	"time"
 )
 
 // handles all the actions from the requesting client
 func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
+	defer log.Println("Closing connection")
+
 	for {
+		wsConn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		var clientData ClientData
 		err := wsConn.ReadJSON(&clientData)
 		if err != nil {
