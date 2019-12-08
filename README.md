@@ -8,7 +8,7 @@ The client consists of Java11 and JavaFX.
 
 Orbit Messenger is a multi-threaded, TLS encrypted, websocketed application that allows multiple users to communicate via secured messaging. 
 
-##FEATURE LIST
+## FEATURE LIST
 * Create Users
 * Change User Password
 * Create Rooms

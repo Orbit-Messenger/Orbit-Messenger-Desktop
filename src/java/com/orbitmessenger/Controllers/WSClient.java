@@ -52,11 +52,6 @@ public class WSClient extends WebSocketClient {
         System.out.println("received ByteBuffer");
     }
 
-//    @Override
-//    public void onPing(String message) {
-//        System.out.println("Pong received! " + message.trim());
-//    }
-
     @Override
     public void onError(Exception ex) {
         System.err.println("an error occurred:" + ex);

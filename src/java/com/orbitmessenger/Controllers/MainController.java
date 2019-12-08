@@ -147,6 +147,8 @@ public class MainController extends ControllerUtil {
                     Thread.sleep(500); // Milliseconds
                 } catch (Exception e) {
                     e.printStackTrace();
+                    switchToLogin();
+                    return;
                 }
             }
         }
@@ -162,6 +164,8 @@ public class MainController extends ControllerUtil {
                     Thread.sleep(15000); // 15 Seconds in Milliseconds
                 } catch (Exception e) {
                     e.printStackTrace();
+                    switchToLogin();
+                    return;
                 }
             }
         }
@@ -479,13 +483,18 @@ public class MainController extends ControllerUtil {
      * Switch back to the login scene
      */
     public void switchToLogin() {
-        // Closing the websocket
-        wsClient.close();
-        // Stop timer
-        //wsClient.stopIntervalForPing();
-        // Switches back to the Login Controller/Window
-        LoginController login = new LoginController();
-        login.changeSceneTo(this.LOGIN_FXML, login, (Stage) messageTextArea.getScene().getWindow());
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                // Closing the websocket
+                wsClient.close();
+                // Stop timer
+                //wsClient.stopIntervalForPing();
+                // Switches back to the Login Controller/Window
+                LoginController login = new LoginController();
+                login.changeSceneTo(LOGIN_FXML, login, (Stage) messageTextArea.getScene().getWindow());
+            }
+        });
     }
 
     /**
@@ -547,7 +556,6 @@ public class MainController extends ControllerUtil {
                 null
         );
         wsClient.send(submitMessage.toString().trim());
-
         System.out.println("Calling Platform.exit():");
         Platform.exit();
         System.out.println("Calling System.exit(0):");
