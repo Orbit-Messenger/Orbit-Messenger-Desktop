@@ -77,8 +77,10 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			}
 
 		default:
-			writeErr := wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
-			fmt.Println("Error writing message: ", writeErr.Error())
+			err := wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
+			if err != nil {
+				fmt.Println("Error writing message: ", err.Error())
+			}
 		}
 	}
 }
