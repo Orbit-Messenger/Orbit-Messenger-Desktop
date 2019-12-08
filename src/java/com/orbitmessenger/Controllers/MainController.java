@@ -116,10 +116,6 @@ public class MainController extends ControllerUtil {
         this.server = server;
     }
 
-    public Boolean getSSL() { return ssl;}
-
-    public void setSSL(Boolean ssl) { this.ssl = ssl; }
-
     //private JsonObject getProperties() { return properties; }
 
     public void setProperties(JsonObject properties) {
@@ -606,12 +602,5 @@ public class MainController extends ControllerUtil {
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
-    }
-
-    /**
-     * Configures the server into http/ws style
-     */
-    public void setServerVariables() {
-        wsServer = getServer().replace("https", "wss");
     }
 }
