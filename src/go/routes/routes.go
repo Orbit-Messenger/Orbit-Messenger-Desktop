@@ -52,7 +52,11 @@ func CreateRouteController() RouteController {
 
 func (rc RouteController) VerifyUser(c *gin.Context) {
 	var user Auth
-	c.BindJSON(&user)
+	// Shouldn't ignore err.
+	bindErr := c.BindJSON(&user)
+	if bindErr != nil {
+		fmt.Println("Bind Err: ", bindErr.Error())
+	}
 	log.Println(user)
 	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
 		c.Status(200)
@@ -63,7 +67,11 @@ func (rc RouteController) VerifyUser(c *gin.Context) {
 
 func (rc RouteController) CreateUser(c *gin.Context) {
 	var user Auth
-	c.BindJSON(&user)
+	// Shouldn't ignore err.
+	bindErr := c.BindJSON(&user)
+	if bindErr != nil {
+		fmt.Println("Bind Err: ", bindErr.Error())
+	}
 	if !rc.dbConn.CheckIfUserExists(user.Username) {
 		rc.dbConn.CreateUser(user.Username, user.Password)
 	}
@@ -76,7 +84,11 @@ func (rc RouteController) CreateUser(c *gin.Context) {
 
 func (rc RouteController) CreateChatroom(c *gin.Context) {
 	var chatroom db.Chatroom
-	c.BindJSON(&chatroom)
+	// Shouldn't ignore err.
+	bindErr := c.BindJSON(&chatroom)
+	if bindErr != nil {
+		fmt.Println("Bind Err: ", bindErr.Error())
+	}
 	if !rc.dbConn.CheckIfChatroomExists(chatroom.Name) {
 		rc.dbConn.CreateChatroom(chatroom.Name)
 	}
@@ -89,7 +101,11 @@ func (rc RouteController) CreateChatroom(c *gin.Context) {
 
 func (rc RouteController) ChangePassword(c *gin.Context) {
 	var user db.User
-	c.BindJSON(&user)
+	// Shouldn't ignore err.
+	bindErr := c.BindJSON(&user)
+	if bindErr != nil {
+		fmt.Println("Bind Err: ", bindErr.Error())
+	}
 	id, err := rc.dbConn.GetUserId(user.Username)
 	if err != nil {
 		log.Println(err)

@@ -83,7 +83,7 @@ func CreateDatabaseConnection() DatabaseConnection {
 	// creates the connection with pgx
 	conn, err := pgxpool.Connect(context.Background(), dbConn.url)
 	if err != nil {
-		panic("couldn't create datbase connection: " + err.Error())
+		panic("couldn't create database connection: " + err.Error())
 	}
 	dbConn.conn = conn
 	return dbConn

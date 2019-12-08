@@ -19,7 +19,10 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		switch clientData.Action {
 		case "login":
 			fmt.Println("Logging in!")
-			rc.dbConn.ChangeUserStatus(clientData.Username, true)
+			userStatusErr := rc.dbConn.ChangeUserStatus(clientData.Username, true)
+			if userStatusErr != nil {
+				fmt.Println("Error changing user status: ", userStatusErr.Error())
+			}
 			state.LoggedIn = true
 			state.Username = clientData.Username
 
@@ -28,28 +31,37 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 			activeUsers, err := rc.dbConn.GetUsersByStatus(true)
 			if err != nil {
-				log.Println(err)
+				log.Println(err.Error())
 			}
 
 			chatrooms, err := rc.dbConn.GetAllChatrooms()
 			if err != nil {
-				log.Println(err)
+				log.Println(err.Error())
 			}
 
-			wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
+			writeErr := wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
+			if writeErr != nil {
+				fmt.Println("Error writing to JSON: ", writeErr.Error())
+			}
 
 		case "logout":
 			fmt.Println("Closing! " + clientData.Username)
-			rc.dbConn.ChangeUserStatus(clientData.Username, false)
+			userStatusErr := rc.dbConn.ChangeUserStatus(clientData.Username, false)
+			if userStatusErr != nil {
+				fmt.Println("Error changing user status: ", userStatusErr.Error())
+			}
 			state.LoggedIn = false
 			state.LoggedOut = true
-			wsConn.Close()
+			closeErr := wsConn.Close()
+			if closeErr != nil {
+				fmt.Println("Error closing: ", closeErr.Error())
+			}
 			return
 
 		case "add":
 			err = rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
 			if err != nil {
-				log.Println(err)
+				log.Println(err.Error())
 			}
 
 		case "delete":
@@ -59,10 +71,14 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		case "chatroom":
 			log.Println("changing chatroom")
 			state.Chatroom = clientData.Chatroom
-			wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
+			writeErr := wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
+			if writeErr != nil {
+				fmt.Println("Error writing to JSON: ", writeErr.Error())
+			}
 
 		default:
-			wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
+			writeErr := wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
+			fmt.Println("Error writing message: ", writeErr.Error())
 		}
 	}
 }

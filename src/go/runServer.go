@@ -11,6 +11,10 @@ import (
 func main() {
 	fmt.Println("Starting Server")
 	router := gin.Default()
+	// Setting Gin to Release Mode!
+	gin.SetMode(gin.ReleaseMode)
+
+	// Routes has collides with an imported package name, maybe rename this?
 	routes := routes.CreateRouteController()
 
 	// Routes
@@ -19,5 +23,7 @@ func main() {
 	router.POST("/verifyUser", routes.VerifyUser)
 	router.POST("/createUser", routes.CreateUser)
 	router.POST("/createRoom", routes.CreateChatroom)
+	// This allows TLS!
+	// Points to the CERT and KEY files.
 	log.Fatal(http.ListenAndServeTLS(":3000", "./cert.pem", "./key.pem", router))
 }

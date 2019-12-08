@@ -7,16 +7,16 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="180.0" prefWidth="275.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="180.0" prefWidth="300.0" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefWidth="306.0" VBox.vgrow="ALWAYS">
+    <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefWidth="300.0" VBox.vgrow="ALWAYS">
       <children>
             <Label layoutX="14.0" layoutY="28.0" text="Number of messages" />
             <TextField fx:id="messageNumberTxtField" layoutX="164.0" layoutY="23.0" prefHeight="26.0" prefWidth="90.0" />
             <Label layoutX="14.0" layoutY="63.0" text="Theme" />
-            <ChoiceBox fx:id="themeChoicesDropdown" layoutX="105.0" layoutY="58.0" prefWidth="150.0" />
+            <ChoiceBox fx:id="themeChoicesDropdown" layoutX="120.0" layoutY="58.0" prefHeight="26.0" prefWidth="134.0" />
             <Label alignment="CENTER" layoutX="14.0" layoutY="98.0" text="Password" />
-            <TextField fx:id="passwordTextField" layoutX="84.0" layoutY="93.0" prefWidth="171.0" />
+            <TextField fx:id="passwordTextField" layoutX="120.0" layoutY="93.0" prefHeight="26.0" prefWidth="134.0" />
             <Button fx:id="savePrefBtn" layoutX="204.0" layoutY="138.0" mnemonicParsing="false" onAction="#savePreferences" onKeyPressed="#savePreferences" text="Save" />
             <Button layoutX="17.0" layoutY="138.0" mnemonicParsing="false" onAction="#changePassword" text="Change Password" />
       </children>

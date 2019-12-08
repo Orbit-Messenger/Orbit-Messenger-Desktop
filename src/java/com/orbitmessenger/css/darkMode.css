@@ -25,6 +25,12 @@
     );
 }
 
+/*#usernameTextField, #passwordTextField, #serverTextField {*/
+/*    -fx-min-width: 300px;*/
+/*    -fx-max-width: 400px;*/
+
+/*}*/
+
 .mainAnchor {
     -fx-background-color: #4C4C4C;
 }
@@ -64,6 +70,10 @@
     -fx-color: white;
 }
 
-.loginLabels{
+#usernameLabel, #passwordLabel, #serverLabel {
+    -fx-font-size: 1.5em;
+}
+
+.loginLabels {
     -fx-font-size: 1.5em;
 }

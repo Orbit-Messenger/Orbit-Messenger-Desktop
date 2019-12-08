@@ -23,6 +23,10 @@
     -fx-background-size: cover;
 }
 
+/*#usernameLabel, #passwordLabel, #serverLabel {*/
+/*    -fx-font-size: 1.5em;*/
+/*}*/
+
 .loginLabels{
     -fx-font-size: 1.5em;
 }
@@ -43,6 +47,12 @@
     -fx-background-color: #279af1;
     -fx-text-fill: white;
 }
+
+#usernameTextField, #passwordTextField, #serverTextField {
+    -fx-width: 100px;
+
+}
+
 
 .loginInputBox{
     -fx-max-width: 300px;
