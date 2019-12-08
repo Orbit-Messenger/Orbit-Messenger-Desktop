@@ -24,9 +24,10 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		if len(messages.Messages) > 0 {
 			writeErr := wsConn.WriteJSON(messages)
 			if writeErr != nil {
-				fmt.Println("Error writing to JSON: ", writeErr.Error())
+				fmt.Println("1 Error writing to JSON: ", writeErr.Error())
 			}
 		}
+
 		if serverActionLen != rc.serverActions.ActionCount {
 			newestAction, err := rc.serverActions.GetNewestAction()
 			if err != nil {
@@ -34,7 +35,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			}
 			writeErr := wsConn.WriteJSON(newestAction)
 			if writeErr != nil {
-				fmt.Println("Error writing to JSON: ", writeErr.Error())
+				fmt.Println("2 Error writing to JSON: ", writeErr.Error())
 			}
 			serverActionLen = rc.serverActions.ActionCount
 		}

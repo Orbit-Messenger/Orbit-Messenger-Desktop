@@ -100,20 +100,22 @@ func (rc RouteController) CreateChatroom(c *gin.Context) {
 }
 
 func (rc RouteController) ChangePassword(c *gin.Context) {
+	log.Println("hit")
 	var user db.User
 	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
 		fmt.Println("Bind Err: ", bindErr.Error())
 	}
+
 	id, err := rc.dbConn.GetUserId(user.Username)
 	if err != nil {
-		log.Println(err)
+		log.Printf("database error couldn't get user id: %v", err)
 	}
 
 	err = rc.dbConn.ChangePassword(id, user.Password)
 	if err != nil {
-		log.Println(err)
+		log.Printf("database error couldn't change user password: %v", err)
 	}
 }
 

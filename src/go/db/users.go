@@ -51,7 +51,7 @@ func (dbConn DatabaseConnection) GetPasswordById(id int64) (string, error) {
 
 // changes the users password
 func (dbConn DatabaseConnection) ChangePassword(userId int64, password string) error {
-	_, err := dbConn.conn.Exec(context.Background(), CHANGE_PASSWORD, userId, password)
+	_, err := dbConn.conn.Exec(context.Background(), CHANGE_PASSWORD, password, userId)
 	return err
 }
 
