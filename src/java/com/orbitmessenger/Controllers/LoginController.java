@@ -1,6 +1,7 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.JsonObject;
+import impl.org.controlsfx.autocompletion.AutoCompletionTextFieldBinding;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -34,6 +35,7 @@ public class LoginController extends ControllerUtil {
     public void initialize() throws URISyntaxException {
         loadPreferences();
         setDarkMode();
+
     }
 
     @FXML

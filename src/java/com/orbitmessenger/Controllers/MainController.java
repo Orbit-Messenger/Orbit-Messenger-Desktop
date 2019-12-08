@@ -86,6 +86,7 @@ public class MainController extends ControllerUtil {
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
         updateHandler.start(); // Starts the update handler thread
+        pingThread.start(); // Starts the ping thread
         loadPreferences();
         sendProperties();
         setDarkMode();
@@ -135,7 +136,7 @@ public class MainController extends ControllerUtil {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if (serverMessage != null) {
-                        //System.out.println(serverMessage);
+                        System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -144,6 +145,21 @@ public class MainController extends ControllerUtil {
                         }
                     }
                     Thread.sleep(500); // Milliseconds
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    });
+
+    private Thread pingThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while(true) {
+                try {
+                    System.out.println("Sending Ping to Server!");
+                    wsClient.sendPing();
+                    Thread.sleep(15000); // 15 Seconds in Milliseconds
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
