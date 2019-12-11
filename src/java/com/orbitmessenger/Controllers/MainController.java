@@ -418,6 +418,14 @@ public class MainController extends ControllerUtil {
      */
     public void popupAboutDialog() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        DialogPane dialogPane = alert.getDialogPane();
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                dialogPane.getStylesheets().clear();
+                dialogPane.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
+            }
+        });
         alert.setTitle("Orbit Messenger");
         alert.setHeaderText(null);
         String line2 = ("Designed and built by Brody and Maxwell in Utah!" + "\n" + "https://github.com/MaxwellM/Orbit-Messenger");
