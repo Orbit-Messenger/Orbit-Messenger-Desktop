@@ -35,7 +35,12 @@
     -fx-background-color: #4C4C4C;
 }
 
-#roomLabelID:hover {
+.list-cell:hover {
+    -fx-background-color: derive(-fx-color, 50%);
+
+}
+
+#roomLabelID:hover, #roomListView:hover {
     -fx-cursor: hand;
 }
 

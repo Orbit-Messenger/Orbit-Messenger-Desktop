@@ -61,6 +61,9 @@ public class LoginController extends ControllerUtil {
                 mc.setUsername(username);
                 mc.setPassword(password);
                 mc.setServer(wssServerChange(serverPrefix));
+                // We do this so that when someone clicks the RED X it will call the closeProgram method.
+                // This is a roundabout way. You can thank Java for that.
+                mc.setClose((Stage) usernameTextField.getScene().getWindow());
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update

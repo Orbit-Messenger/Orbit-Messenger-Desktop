@@ -16,6 +16,11 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 	defer func() {
 		if r := recover(); r != nil {
 			wsConn.Close()
+			// This should log out a user if they get disconnected.
+			userStatusErr := rc.dbConn.ChangeUserStatus(state.Username, false)
+			if userStatusErr != nil {
+				fmt.Println("Error changing user status: ", userStatusErr.Error())
+			}
 			log.Println("closing connection")
 		}
 	}()
@@ -28,7 +33,6 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			// catches bad user input and counts it as a ping so the connection stays alive
 			continue
 		}
-
 		switch clientData.Action {
 		case "login":
 			fmt.Println("Logging in!")

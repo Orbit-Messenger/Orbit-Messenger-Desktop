@@ -64,6 +64,15 @@
     -fx-cursor: hand;
 }
 
+.list-cell:hover {
+    -fx-background-color: derive(-fx-color, 50%);
+
+}
+
+#roomLabelID:hover, #roomListView:hover {
+    -fx-cursor: hand;
+}
+
 .loginButton:hover, #cUsrBtn:hover, #loginBtn:hover {
     -fx-background-radius: 0;
     -fx-background-color: #4CAF50; /* Green */

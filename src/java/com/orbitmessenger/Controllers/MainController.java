@@ -33,7 +33,7 @@ public class MainController extends ControllerUtil {
     private ArrayList<Integer> messageIds = new ArrayList<>();
 
     @FXML
-    private VBox mainVBox;
+    private VBox mainVBox = new VBox();
     @FXML
     private ListView messagesListView;
     @FXML
@@ -49,7 +49,7 @@ public class MainController extends ControllerUtil {
     private TextArea messageTextArea;
     @FXML
     private Label roomLabel;
-
+    @FXML
     private ObservableList<String> users;
 
     // Server Configuration
@@ -71,6 +71,7 @@ public class MainController extends ControllerUtil {
         }
     });
 
+    @FXML
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
@@ -165,6 +166,12 @@ public class MainController extends ControllerUtil {
             }
         }
     });
+
+    public void setClose(Stage stage) {
+        // This will call the closeProgram() function in MainController so it closes correctly when
+        // clicking on the red X!
+        stage.setOnHidden(e -> closeProgram());
+    }
 
     /**
      * Gets the messages index from the json object passed to it
@@ -487,6 +494,19 @@ public class MainController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                // Closing the websocket by sending message we're on out way to the server!
+                JsonObject submitMessage = wsClient.createSubmitObject(
+                        "logout",
+                        null,
+                        "",
+                        getUsername(),
+                        null
+                );
+                wsClient.send(submitMessage.toString().trim());
+
+                // Need to stop the running threads!
+                pingThread.stop();
+                wsConnectionThread.stop();
                 // Closing the websocket
                 wsClient.close();
                 // Stop timer
@@ -503,8 +523,8 @@ public class MainController extends ControllerUtil {
      * Preferable when there are new messages.
      */
     private void scrollToBottom() {
-        messagesScrollPane.layout();
-        messagesScrollPane.setVvalue(messagesScrollPane.getVmax());
+        // This should move the list view to the last item in it's index...
+        messagesListView.scrollTo(messagesListView.getItems().size());
     }
 
     /**
