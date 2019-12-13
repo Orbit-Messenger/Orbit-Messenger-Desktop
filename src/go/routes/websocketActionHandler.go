@@ -56,6 +56,12 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 				log.Println(err.Error())
 			}
 
+			// Write user logged in!
+			err = rc.dbConn.AddMessage("User logged in: "+state.Username, "admin", state.Chatroom)
+			if err != nil {
+				log.Println(err.Error())
+			}
+
 			writeErr := wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
 			if writeErr != nil {
 				fmt.Println("Error writing to JSON: ", writeErr.Error())
@@ -72,6 +78,11 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			closeErr := wsConn.Close()
 			if closeErr != nil {
 				fmt.Println("Error closing: ", closeErr.Error())
+			}
+			// Write user logged out!
+			err = rc.dbConn.AddMessage("User logged out: "+state.Username, "admin", state.Chatroom)
+			if err != nil {
+				log.Println(err.Error())
 			}
 			return
 

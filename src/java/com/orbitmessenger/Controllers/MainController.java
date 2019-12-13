@@ -381,9 +381,13 @@ public class MainController extends ControllerUtil {
         VBox vbox = new VBox();
         HBox hBox = new HBox();
         // check if username == the current user or moves messages to the right
-        if (!username.equals(this.getUsername())) {
+        if ((!username.equals(this.getUsername())) && (!username.equals("admin"))) {
             vbox.setAlignment(Pos.CENTER_RIGHT);
             hBox.setAlignment(Pos.CENTER_RIGHT);
+        } else if (username.equals("admin")){
+            // must be admin, we want to center these messages
+            vbox.setAlignment(Pos.CENTER);
+            hBox.setAlignment(Pos.CENTER);
         }
         vbox.setStyle(".messageBox");
         vbox.getStyleClass().add("messageBox");
