@@ -11,7 +11,8 @@ const (
 	GET_PASSWORD_FROM_USERNAME = "SELECT password FROM users WHERE username = $1;"
 	GET_USERNAME_FROM_ID       = "SELECT username FROM users WHERE id = $1;"
 	UPDATE_USER_STATUS         = "UPDATE users SET status = $1 WHERE id = $2;"
-	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1;"
+	UPDATE_USER_ROOM           = "UPDATE users SET room = $1 WHERE id = $2;"
+	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1 AND room = $2;"
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
@@ -23,6 +24,7 @@ type User struct {
 	Password string `json:"password"`
 	Salt     string
 	Status   bool
+	Room     string `json:"room"`
 }
 
 type ActiveUsers struct {
@@ -85,6 +87,18 @@ func (dbConn DatabaseConnection) VerifyPasswordByUsername(username, password str
 	return realPassword == password
 }
 
+// Changes the users room
+func (dbConn DatabaseConnection) ChangeUserRoom(username string, room string) error {
+	userId, err := dbConn.GetUserId(username)
+	if userId == 0 || err != nil {
+		return fmt.Errorf("Couldn't find anyone with the username %v", username)
+	}
+
+	_, err = dbConn.conn.Exec(context.Background(), UPDATE_USER_ROOM, room, userId)
+	return err
+
+}
+
 // Changes the users status
 func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) error {
 	userId, err := dbConn.GetUserId(username)
@@ -98,9 +112,9 @@ func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) 
 }
 
 // Gets all the users by their status
-func (dbConn DatabaseConnection) GetUsersByStatus(status bool) (ActiveUsers, error) {
+func (dbConn DatabaseConnection) GetUsersByStatus(status bool, room string) (ActiveUsers, error) {
 	var usernames ActiveUsers
-	rows, err := dbConn.conn.Query(context.Background(), GET_USERNAMES_FROM_STATUS, status)
+	rows, err := dbConn.conn.Query(context.Background(), GET_USERNAMES_FROM_STATUS, status, room)
 	if err != nil {
 		return usernames, err
 	}

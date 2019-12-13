@@ -62,8 +62,8 @@ public class WSClient extends WebSocketClient {
        this.serverResponse = json;
     }
 
-    public void sendPing(){
-        send("ping");
+    public void ping(){
+        sendPing();
     }
 
     public JsonObject getServerResponse(){

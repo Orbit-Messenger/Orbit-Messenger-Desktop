@@ -134,6 +134,15 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 	}
 }
 
+func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
+	activeUsers, err := rc.dbConn.GetUsersByStatus(true, chatroom)
+	if err != nil {
+		log.Println(err)
+		return activeUsers
+	}
+	return activeUsers
+}
+
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
 	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
 	if err != nil {

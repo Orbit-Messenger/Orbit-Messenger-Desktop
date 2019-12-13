@@ -27,6 +27,13 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				fmt.Println("1 Error writing to JSON: ", writeErr.Error())
 			}
 		}
+		activeUsers := rc.getActiveUsersForClient(state.Chatroom)
+		if len(activeUsers.ActiveUsers) > 0 {
+			writeErr := wsConn.WriteJSON(activeUsers)
+			if writeErr != nil {
+				fmt.Println("2 Error writing to JSON: ", writeErr.Error())
+			}
+		}
 
 		if serverActionLen != rc.serverActions.ActionCount {
 			newestAction, err := rc.serverActions.GetNewestAction()
@@ -35,7 +42,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			}
 			writeErr := wsConn.WriteJSON(newestAction)
 			if writeErr != nil {
-				fmt.Println("2 Error writing to JSON: ", writeErr.Error())
+				fmt.Println("3 Error writing to JSON: ", writeErr.Error())
 			}
 			serverActionLen = rc.serverActions.ActionCount
 		}

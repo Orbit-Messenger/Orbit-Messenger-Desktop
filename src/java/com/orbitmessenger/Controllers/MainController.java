@@ -133,7 +133,6 @@ public class MainController extends ControllerUtil {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     if (serverMessage != null) {
-                        System.out.println(serverMessage);
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
                         updateRooms(getRoomsFromJsonObject(serverMessage));
@@ -156,7 +155,7 @@ public class MainController extends ControllerUtil {
         public void run() {
             while(true) {
                 try {
-                    wsClient.sendPing();
+                    wsClient.ping();
                     Thread.sleep(15000); // 15 Seconds in Milliseconds
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -514,7 +513,11 @@ public class MainController extends ControllerUtil {
                         getUsername(),
                         null
                 );
-                wsClient.send(submitMessage.toString().trim());
+                try {
+                    wsClient.send(submitMessage.toString().trim());
+                } catch (Exception e){
+                    System.out.println("Error sending logout message to the sever: " + e.toString());
+                }
 
                 // Need to stop the running threads!
                 pingThread.stop();
