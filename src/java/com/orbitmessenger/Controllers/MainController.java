@@ -135,11 +135,17 @@ public class MainController extends ControllerUtil {
                     JsonObject serverMessage = wsClient.getServerResponse();
                     System.out.println("Response: " + serverMessage);
                     if (serverMessage != null) {
-                        updateMessages(getMessagesFromJsonObject(serverMessage));
-                        updateUsers(getUsersFromJsonObject(serverMessage));
-                        updateRooms(getRoomsFromJsonObject(serverMessage));
+                        if (serverMessage.has("messages")) {
+                            updateMessages(getMessagesFromJsonObject(serverMessage));
+                        }
+                        if (serverMessage.has("activeUsers")) {
+                            updateUsers(getUsersFromJsonObject(serverMessage));
+                        }
+                        if (serverMessage.has("chatrooms")) {
+                            updateRooms(getRoomsFromJsonObject(serverMessage));
+                        }
                         if (serverMessage.has("action")) {
-                                deleteMessageLocally(serverMessage.get("messageId").getAsInt());
+                            deleteMessageLocally(serverMessage.get("messageId").getAsInt());
                         }
                     }
                     Thread.sleep(500); // Milliseconds
