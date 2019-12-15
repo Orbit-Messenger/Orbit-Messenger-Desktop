@@ -62,10 +62,28 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 				glog.Error("Error changing user room: ", userRoomErr.Error())
 			}
 
+			// sends all the messages, active users, and chatrooms to the client
+			messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom)
+
+			activeUsers, err := rc.dbConn.GetUsersByStatus(true, state.Chatroom)
+			if err != nil {
+				glog.Error(err.Error())
+			}
+
+			chatrooms, err := rc.dbConn.GetAllChatrooms()
+			if err != nil {
+				glog.Error(err.Error())
+			}
+
 			// Write user logged in!
 			err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
 			if err != nil {
 				glog.Error(err.Error())
+			}
+
+			writeErr := wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
+			if writeErr != nil {
+				glog.Error("Error writing to JSON: ", writeErr.Error())
 			}
 
 		case "logout":
@@ -121,6 +139,11 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 				glog.Error("Error changing user room: ", userRoomErr.Error())
 			}
 
+			writeErr := wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
+			if writeErr != nil {
+				glog.Error("Error writing to JSON: ", writeErr.Error())
+			}
+
 		default:
 			// pings by default
 			err := wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
@@ -143,5 +166,4 @@ func (rc RouteController) deleteMessageFromClient(clientData ClientData, usernam
 		rc.serverActions.AddDeleteAction(messageId)
 		err = rc.dbConn.DeleteMessageById(messageId)
 	}
-
 }
