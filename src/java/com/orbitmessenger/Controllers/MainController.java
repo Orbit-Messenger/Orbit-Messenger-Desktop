@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -132,6 +133,7 @@ public class MainController extends ControllerUtil {
             while (true) {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
+                    System.out.println("Response: " + serverMessage);
                     if (serverMessage != null) {
                         updateMessages(getMessagesFromJsonObject(serverMessage));
                         updateUsers(getUsersFromJsonObject(serverMessage));
@@ -333,6 +335,17 @@ public class MainController extends ControllerUtil {
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
                         switchRoom(label.getText());
+                    }
+                }
+            });
+
+            roomListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    if (event.getClickCount() == 2) {
+                        Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
+                        System.out.println("Room Index: " + roomIndex);
+                        switchRoom(roomLabels.get(roomIndex).getText());
                     }
                 }
             });
