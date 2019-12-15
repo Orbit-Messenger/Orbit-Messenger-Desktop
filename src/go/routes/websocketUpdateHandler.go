@@ -58,4 +58,5 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		totalExecutionTime := end.Sub(start)
 		time.Sleep(tick_speed - totalExecutionTime)
 	}
+
 }

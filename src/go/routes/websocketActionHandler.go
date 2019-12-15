@@ -143,4 +143,5 @@ func (rc RouteController) deleteMessageFromClient(clientData ClientData, usernam
 		rc.serverActions.AddDeleteAction(messageId)
 		err = rc.dbConn.DeleteMessageById(messageId)
 	}
+
 }
