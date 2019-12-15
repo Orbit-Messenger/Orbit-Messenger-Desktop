@@ -7,7 +7,7 @@ if len(sys.argv) > 1:
         os.system("go build -o ../runServer go/runServer.go")
         os.chdir("../")
         print(os.getcwd())
-        os.system("./runServer")
+        os.system("./runServer -logtostderr=true")
     if sys.argv[1] == "-b":
         os.system("go build -o ../runServer go/runServer.go")
 else:

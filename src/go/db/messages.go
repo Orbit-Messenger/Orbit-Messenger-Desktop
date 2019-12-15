@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/golang/glog"
 	"time"
 )
 
@@ -85,7 +85,7 @@ func (dbConn DatabaseConnection) GetMessageCount(chatroom string) int64 {
 	var count int64
 	err := dbConn.conn.QueryRow(context.Background(), GET_MESSAGE_COUNT, chatroom).Scan(&count)
 	if err != nil {
-		log.Println(err)
+		glog.Error(err)
 	}
 	return count
 }

@@ -3,8 +3,9 @@ CREATE TABLE IF NOT EXISTS users(
   username varchar(50) DEFAULT '',
   password TEXT DEFAULT '',
   salt TEXT DEFAULT '',
-  status boolean DEFAULT false
-);
+  status boolean DEFAULT false,
+  room VARCHAR(50) DEFAULT 'general'
+  );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test');
 INSERT INTO users VALUES(DEFAULT, 'brody', 'test', 'test');

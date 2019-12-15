@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"log"
+	"github.com/golang/glog"
 )
 
 const (
@@ -37,7 +37,7 @@ func (dbConn DatabaseConnection) GetIdFromChatroomName(name string) int64 {
 	var id int64
 	err := dbConn.conn.QueryRow(context.Background(), get_id_from_name, name).Scan(&id)
 	if err != nil {
-		log.Println(err)
+		glog.Error(err)
 	}
 	return id
 }

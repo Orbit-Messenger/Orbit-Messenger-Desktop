@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/jackc/pgx/pgxpool"
 	"io/ioutil"
 )
@@ -26,7 +27,7 @@ type DatabaseConnection struct {
 func (dbConn *DatabaseConnection) readOrCreateDatabaseSettingsFile() {
 	fileData, err := ioutil.ReadFile(DATABASE_SETTINGS_FILE)
 	if err != nil {
-		fmt.Println("Couldn't find database settings file! Creating a new one...")
+		glog.Error("Couldn't find database settings file! Creating a new one...")
 
 		// The user will enter in all the database settings data
 		dbConn.writeDatabaseSettingsFile()
@@ -36,7 +37,7 @@ func (dbConn *DatabaseConnection) readOrCreateDatabaseSettingsFile() {
 	// Reads the database file into the DatabaseConnection
 	err = json.Unmarshal(fileData, &dbConn)
 	if err != nil {
-		panic("couldn't parse json data: " + err.Error())
+		glog.Fatal("couldn't parse json data: " + err.Error())
 	}
 }
 
@@ -47,19 +48,18 @@ func (dbConn *DatabaseConnection) writeDatabaseSettingsFile() {
 	dbConn.Port = utils.GetUserInput("Please enter port: ")
 	dbConn.DatabaseName = utils.GetUserInput("Please enter database name: ")
 	dbConn.createDatabaseUrl()
-	fmt.Println(dbConn.url)
 
 	// Writes the jsonData to a file
 	jsonData, err := json.Marshal(dbConn)
 	if err != nil {
-		panic("Couldn't create json data for " + DATABASE_SETTINGS_FILE)
+		glog.Fatal("Couldn't create json data for " + DATABASE_SETTINGS_FILE)
 	}
 	err = ioutil.WriteFile(
 		DATABASE_SETTINGS_FILE,
 		jsonData,
 		0755)
 	if err != nil {
-		panic("couldn't write file: " + err.Error())
+		glog.Fatal("couldn't write file: " + err.Error())
 	}
 }
 
@@ -83,7 +83,7 @@ func CreateDatabaseConnection() DatabaseConnection {
 	// creates the connection with pgx
 	conn, err := pgxpool.Connect(context.Background(), dbConn.url)
 	if err != nil {
-		panic("couldn't create database connection: " + err.Error())
+		glog.Fatal("couldn't create database connection: " + err.Error())
 	}
 	dbConn.conn = conn
 	return dbConn

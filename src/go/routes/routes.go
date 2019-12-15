@@ -4,8 +4,8 @@ import (
 	"Orbit-Messenger/src/go/db"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
-	"log"
 	"time"
 )
 
@@ -67,12 +67,13 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 
 func (rc RouteController) VerifyUser(c *gin.Context) {
 	var user Auth
-	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
-		fmt.Println("Bind Err: ", bindErr.Error())
+		glog.Warning("Bind Err: ", bindErr.Error())
 	}
-	log.Println(user)
+
+	glog.Infof("Verifying user: %v", user)
+
 	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
 		c.Status(200)
 	} else {
@@ -82,10 +83,9 @@ func (rc RouteController) VerifyUser(c *gin.Context) {
 
 func (rc RouteController) CreateUser(c *gin.Context) {
 	var user Auth
-	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
-		fmt.Println("Bind Err: ", bindErr.Error())
+		glog.Warning("Bind Err: ", bindErr.Error())
 	}
 	if !rc.dbConn.CheckIfUserExists(user.Username) {
 		rc.dbConn.CreateUser(user.Username, user.Password)
@@ -102,7 +102,7 @@ func (rc RouteController) CreateChatroom(c *gin.Context) {
 	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&chatroom)
 	if bindErr != nil {
-		fmt.Println("Bind Err: ", bindErr.Error())
+		glog.Warning("Bind Err: ", bindErr.Error())
 	}
 	if !rc.dbConn.CheckIfChatroomExists(chatroom.Name) {
 		rc.dbConn.CreateChatroom(chatroom.Name)
@@ -115,29 +115,28 @@ func (rc RouteController) CreateChatroom(c *gin.Context) {
 }
 
 func (rc RouteController) ChangePassword(c *gin.Context) {
-	log.Println("hit")
 	var user db.User
 	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
-		fmt.Println("Bind Err: ", bindErr.Error())
+		glog.Warning("Bind Err: ", bindErr.Error())
 	}
 
 	id, err := rc.dbConn.GetUserId(user.Username)
 	if err != nil {
-		log.Printf("database error couldn't get user id: %v", err)
+		glog.Warning("database error couldn't get user id: %v", err)
 	}
 
 	err = rc.dbConn.ChangePassword(id, user.Password)
 	if err != nil {
-		log.Printf("database error couldn't change user password: %v", err)
+		glog.Warning("database error couldn't change user password: %v", err)
 	}
 }
 
 func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
 	activeUsers, err := rc.dbConn.GetUsersByStatus(true, chatroom)
 	if err != nil {
-		log.Println(err)
+		glog.Warning(err)
 		return activeUsers
 	}
 	return activeUsers
@@ -146,7 +145,7 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
 	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
 	if err != nil {
-		log.Println(err)
+		glog.Warning(err)
 		return messages
 	}
 
@@ -156,10 +155,10 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 
 // Gets all the messages for the client
 func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
-	log.Println("getting All Messages")
+	glog.Info("getting All Messages")
 	messages, err := rc.dbConn.GetAllMessages(*chatroom)
 	if err != nil {
-		log.Println(err)
+		glog.Warning(err)
 		return messages
 	}
 

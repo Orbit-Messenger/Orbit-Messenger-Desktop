@@ -2,14 +2,15 @@ package main
 
 import (
 	"Orbit-Messenger/src/go/routes"
-	"fmt"
+	"flag"
 	"github.com/gin-gonic/gin"
-	"log"
+	"github.com/golang/glog"
 	"net/http"
 )
 
 func main() {
-	fmt.Println("Starting Server")
+	flag.Parse()
+	glog.Info("Starting Server")
 	router := gin.Default()
 	// Setting Gin to Release Mode!
 	gin.SetMode(gin.ReleaseMode)
@@ -25,5 +26,5 @@ func main() {
 	router.POST("/createRoom", routes.CreateChatroom)
 	// This allows TLS!
 	// Points to the CERT and KEY files.
-	log.Fatal(http.ListenAndServeTLS(":3000", "./cert.pem", "./key.pem", router))
+	glog.Fatal(http.ListenAndServeTLS(":3000", "./cert.pem", "./key.pem", router))
 }
