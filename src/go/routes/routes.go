@@ -136,7 +136,7 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
 	activeUsers, err := rc.dbConn.GetUsersByStatus(true, chatroom)
 	if err != nil {
-		glog.Warning(err)
+		glog.Error(err)
 		return activeUsers
 	}
 	return activeUsers
@@ -145,7 +145,7 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
 	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
 	if err != nil {
-		glog.Warning(err)
+		glog.Error(err)
 		return messages
 	}
 
@@ -158,7 +158,7 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 	glog.Info("getting All Messages")
 	messages, err := rc.dbConn.GetAllMessages(*chatroom)
 	if err != nil {
-		glog.Warning(err)
+		glog.Error(err)
 		return messages
 	}
 

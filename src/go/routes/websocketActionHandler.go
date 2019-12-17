@@ -48,18 +48,25 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 		switch clientData.Action {
 		case "login":
-			glog.Info("Logging in!")
+			glog.Infof("Logging in: %v", clientData.Username)
+
+			// changes the users online status to logged in
 			userStatusErr := rc.dbConn.ChangeUserStatus(clientData.Username, true)
 			if userStatusErr != nil {
 				glog.Error("Error changing user status: ", userStatusErr.Error())
 			}
-			state.LoggedIn = true
 			state.Username = clientData.Username
 
 			// Update the new room in the DB
-			userRoomErr := rc.dbConn.ChangeUserRoom(clientData.Username, "general")
+			userRoomErr := rc.dbConn.ChangeUserRoom(clientData.Username, state.Chatroom)
 			if userRoomErr != nil {
 				glog.Error("Error changing user room: ", userRoomErr.Error())
+			}
+
+			// Write user logged in!
+			err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
+			if err != nil {
+				glog.Error(err.Error())
 			}
 
 			// sends all the messages, active users, and chatrooms to the client
@@ -75,16 +82,11 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 				glog.Error(err.Error())
 			}
 
-			// Write user logged in!
-			err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
-			if err != nil {
-				glog.Error(err.Error())
-			}
-
 			writeErr := wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
 			if writeErr != nil {
 				glog.Error("Error writing to JSON: ", writeErr.Error())
 			}
+			state.LoggedIn = true
 
 		case "logout":
 			glog.Infof("user logged out: %v ", clientData.Username)
@@ -92,8 +94,6 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			if userStatusErr != nil {
 				fmt.Println("Error changing user status: ", userStatusErr.Error())
 			}
-			state.LoggedIn = false
-			state.LoggedOut = true
 
 			// Write user logged out!
 			err = rc.dbConn.AddMessage("User left room: "+state.Username, "admin", state.Chatroom)
@@ -105,6 +105,8 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			if closeErr != nil {
 				glog.Error("Error closing: ", closeErr.Error())
 			}
+			state.LoggedIn = false
+			state.LoggedOut = true
 			return
 
 		case "add":

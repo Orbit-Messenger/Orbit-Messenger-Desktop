@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -18,12 +17,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainController extends ControllerUtil {
 
@@ -133,8 +135,8 @@ public class MainController extends ControllerUtil {
             while (true) {
                 try {
                     JsonObject serverMessage = wsClient.getServerResponse();
-                    System.out.println("Response: " + serverMessage);
                     if (serverMessage != null) {
+                        System.out.println("Response: " + serverMessage);
                         if (serverMessage.has("messages")) {
                             updateMessages(getMessagesFromJsonObject(serverMessage));
                         }
