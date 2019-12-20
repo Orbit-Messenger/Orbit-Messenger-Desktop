@@ -41,6 +41,7 @@ type State struct {
 	Chatroom      string
 	LoggedIn      bool
 	LoggedOut     bool
+	ActiveUsers   []string
 }
 
 // CreateRouteController will create a database connection and return a RouteController

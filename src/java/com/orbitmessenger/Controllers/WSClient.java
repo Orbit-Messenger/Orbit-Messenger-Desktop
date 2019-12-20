@@ -47,6 +47,18 @@ public class WSClient extends WebSocketClient {
         setServerResponse(message);
     }
 
+//    @Override
+//    public void onWebsocketPong(WebSocket conn, Framedata f) {
+//        super.onWebsocketPong(conn, f);
+//        System.out.println("PONG: " + conn.getResourceDescriptor().);
+//    }
+
+//    @Override
+//    public void onWebsocketPing(WebSocket conn, Framedata f) {
+//        super.onWebsocketPing(conn, f);
+//        System.out.println("PING: " + conn.toString());
+//    }
+
     @Override
     public void onMessage(ByteBuffer message) {
         System.out.println("received ByteBuffer");

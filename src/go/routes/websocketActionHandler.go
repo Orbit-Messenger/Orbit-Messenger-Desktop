@@ -11,7 +11,6 @@ import (
 
 // handles all the actions from the requesting client
 func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
-
 	// makes sure the connection closes smoothly
 	defer func() {
 		if r := recover(); r != nil {
@@ -28,10 +27,10 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 	for {
 		var clientData ClientData
 		wsConn.SetReadDeadline(time.Now().Add(60 * time.Second))
-		// This handles receiving a PING by sending a PONG back to the client to keep the connection open.
-		wsConn.SetPingHandler(func(string) error {
+		// When the client sends us a pong, we reset the timer!
+		wsConn.SetPongHandler(func(string) error {
 			wsConn.SetReadDeadline(time.Now().Add(60 * time.Second))
-			return wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
+			return nil
 		})
 		err := wsConn.ReadJSON(&clientData)
 		if err != nil {
@@ -141,17 +140,12 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 				glog.Error("Error changing user room: ", userRoomErr.Error())
 			}
 
-			writeErr := wsConn.WriteJSON(rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom))
-			if writeErr != nil {
-				glog.Error("Error writing to JSON: ", writeErr.Error())
-			}
+			// Set the lastMessageId to 0 so on next update it will get all the messages.
+			state.LastMessageId = 0
 
 		default:
-			// pings by default
-			err := wsConn.WriteMessage(websocket.PongMessage, []byte("pong"))
-			if err != nil {
-				glog.Error("Error writing message: ", err.Error())
-			}
+			// No need to ping here since pings are being handled via Update Handler.
+			fmt.Println("Didn't recognize it.")
 		}
 	}
 }

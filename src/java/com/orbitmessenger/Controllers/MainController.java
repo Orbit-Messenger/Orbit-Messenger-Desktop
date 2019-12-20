@@ -78,7 +78,7 @@ public class MainController extends ControllerUtil {
     public void initialize() throws URISyntaxException {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
-        wsClient.setConnectionLostTimeout( 30 );
+        wsClient.setConnectionLostTimeout( 60 );
 
         wsConnectionThread.start();
         try {
@@ -90,7 +90,7 @@ public class MainController extends ControllerUtil {
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
         updateHandler.start(); // Starts the update handler thread
-        pingThread.start(); // Starts the ping thread
+        //pingThread.start(); // Starts the ping thread
         loadPreferences();
         sendProperties();
         setDarkMode();
@@ -160,21 +160,21 @@ public class MainController extends ControllerUtil {
         }
     });
 
-    private Thread pingThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            while(true) {
-                try {
-                    wsClient.ping();
-                    Thread.sleep(15000); // 15 Seconds in Milliseconds
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    switchToLogin();
-                    return;
-                }
-            }
-        }
-    });
+//    private Thread pingThread = new Thread(new Runnable() {
+//        @Override
+//        public void run() {
+//            while(true) {
+//                try {
+//                    wsClient.ping();
+//                    Thread.sleep(15000); // 15 Seconds in Milliseconds
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    switchToLogin();
+//                    return;
+//                }
+//            }
+//        }
+//    });
 
     public void setClose(Stage stage) {
         // This will call the closeProgram() function in MainController so it closes correctly when
@@ -541,7 +541,7 @@ public class MainController extends ControllerUtil {
                 }
 
                 // Need to stop the running threads!
-                pingThread.stop();
+                //pingThread.stop();
                 wsConnectionThread.stop();
                 // Closing the websocket
                 wsClient.close();
