@@ -43,6 +43,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	}
 
 	for {
+		start := time.Now()
 		// updates the client with the current users in that chatroom
 		activeUsers = rc.getActiveUsersForClient(state.Chatroom)
 		if !StringArrayEquals(activeUsers.ActiveUsers, state.ActiveUsers) {
@@ -84,7 +85,9 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		default:
 			//fmt.Println("Not ready!", ticker.C)
 		}
+		end := time.Now()
+		totalExecutionTime := end.Sub(start)
 		// SMALL SLEEP SO THE CPU WON'T MELT.
-		time.Sleep(tick_speed)
+		time.Sleep(tick_speed - totalExecutionTime)
 	}
 }
