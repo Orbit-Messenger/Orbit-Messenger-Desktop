@@ -13,6 +13,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        // https://stackoverflow.com/questions/38426695/sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find-valid
+        System.setProperty ("javax.net.ssl.trustStore", "././keystore.jks");
+        System.setProperty ("javax.net.ssl.trustStorePassword", "password");
+
         //DEBUG Use this to skip logging in and comment out other FXML code!
 //        FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/mainView.fxml"));
 //        MainController mainController = new MainController();
@@ -20,10 +24,6 @@ public class Main extends Application {
 //        mainController.setPassword("test");
 //        mainController.setServer("wss://localhost:3000/");
 //        loader.setController(mainController);
-
-        // https://stackoverflow.com/questions/38426695/sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find-valid
-        System.setProperty ("javax.net.ssl.trustStore", "././keystore.jks");
-        System.setProperty ("javax.net.ssl.trustStorePassword", "password");
 
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("./FXML/loginView.fxml"));

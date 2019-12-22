@@ -12,7 +12,8 @@ import java.nio.ByteBuffer;
 
 public class WSClient extends WebSocketClient {
 
-    private JsonObject serverResponse;
+    public final Object monitor = new Object();
+    public JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
 
@@ -44,7 +45,15 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        setServerResponse(message);
+        synchronized (monitor) {
+            setServerResponse(message);
+            // This tells the update thread in MainController that yo, its time for an update.
+            monitor.notify();
+        }
+    }
+
+    public int size() {
+        return serverResponse.size();
     }
 
 //    @Override
@@ -80,7 +89,7 @@ public class WSClient extends WebSocketClient {
 
     public JsonObject getServerResponse(){
         JsonObject response = this.serverResponse;
-        this.serverResponse = null;
+        this.serverResponse = new JsonObject();
         return response;
     }
 

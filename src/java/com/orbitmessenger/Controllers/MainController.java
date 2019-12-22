@@ -132,49 +132,46 @@ public class MainController extends ControllerUtil {
     private Thread updateHandler = new Thread(new Runnable() {
         @Override
         public void run() {
-            while (true) {
-                try {
-                    JsonObject serverMessage = wsClient.getServerResponse();
-                    if (serverMessage != null) {
-                        System.out.println("Response: " + serverMessage);
-                        if (serverMessage.has("messages")) {
-                            updateMessages(getMessagesFromJsonObject(serverMessage));
-                        }
-                        if (serverMessage.has("activeUsers")) {
-                            updateUsers(getUsersFromJsonObject(serverMessage));
-                        }
-                        if (serverMessage.has("chatrooms")) {
-                            updateRooms(getRoomsFromJsonObject(serverMessage));
-                        }
-                        if (serverMessage.has("action")) {
-                            deleteMessageLocally(serverMessage.get("messageId").getAsInt());
+            // Synchronized will wait for serverResponse in WSClient to be released.
+            // It gets released when onMessage returns.
+            // This allows us to dynamically update when onMessage returns. This way we won't need to
+            // continuously loop and check. When .wait() is called this thread will BLOCK until .notfiy() is called.
+            synchronized (wsClient.monitor) {
+                while (true) {
+                    while (wsClient.size() == 0) {
+                        try {
+                            // This means to wait for serverResponse to be filled via onMessage.
+                            wsClient.monitor.wait();
+                        } catch (InterruptedException e) {
+                            System.out.println("Error: " + e.toString());
                         }
                     }
-                    Thread.sleep(500); // Milliseconds
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    switchToLogin();
-                    return;
+                    try {
+                        JsonObject serverMessage = wsClient.getServerResponse();
+                        if (serverMessage != null) {
+                            System.out.println("Response: " + serverMessage);
+                            if (serverMessage.has("messages")) {
+                                updateMessages(getMessagesFromJsonObject(serverMessage));
+                            }
+                            if (serverMessage.has("activeUsers")) {
+                                updateUsers(getUsersFromJsonObject(serverMessage));
+                            }
+                            if (serverMessage.has("chatrooms")) {
+                                updateRooms(getRoomsFromJsonObject(serverMessage));
+                            }
+                            if (serverMessage.has("action")) {
+                                deleteMessageLocally(serverMessage.get("messageId").getAsInt());
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        switchToLogin();
+                        return;
+                    }
                 }
             }
         }
     });
-
-//    private Thread pingThread = new Thread(new Runnable() {
-//        @Override
-//        public void run() {
-//            while(true) {
-//                try {
-//                    wsClient.ping();
-//                    Thread.sleep(15000); // 15 Seconds in Milliseconds
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    switchToLogin();
-//                    return;
-//                }
-//            }
-//        }
-//    });
 
     public void setClose(Stage stage) {
         // This will call the closeProgram() function in MainController so it closes correctly when
