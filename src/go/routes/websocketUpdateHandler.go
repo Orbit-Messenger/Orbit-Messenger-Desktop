@@ -52,7 +52,6 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
-			//time.Sleep(tick_speed)
 		}
 
 		if serverActionLen != rc.serverActions.ActionCount {
@@ -65,7 +64,6 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				glog.Error(writeErr.Error())
 			}
 			serverActionLen = rc.serverActions.ActionCount
-			//time.Sleep(tick_speed)
 		}
 
 		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom)
@@ -76,18 +74,17 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				//TODO FIX ANNOYING TLS MESSAGE
 				//glog.Error(writeErr.Error())
 			}
-			//time.Sleep(tick_speed)
 		}
 
 		select {
 		case <-ticker.C:
-			//fmt.Println("SENDING PING TO CLIENT: ", state.Username)
 			if err := wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second)); err != nil {
 				log.Println("ping:", err)
 			}
 		default:
 			//fmt.Println("Not ready!", ticker.C)
 		}
+		// SMALL SLEEP SO THE CPU WON'T MELT.
 		time.Sleep(tick_speed)
 	}
 }

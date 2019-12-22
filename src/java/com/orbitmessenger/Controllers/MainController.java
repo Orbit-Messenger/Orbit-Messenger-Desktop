@@ -90,7 +90,6 @@ public class MainController extends ControllerUtil {
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
         updateHandler.start(); // Starts the update handler thread
-        //pingThread.start(); // Starts the ping thread
         loadPreferences();
         sendProperties();
         setDarkMode();
