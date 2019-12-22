@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	tick_speed = 500 * time.Millisecond
+	tick_speed = 50 * time.Millisecond
 )
 
 func StringArrayEquals(a []string, b []string) bool {
@@ -43,18 +43,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	}
 
 	for {
-		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom)
-		if len(messages.Messages) > 0 {
-			writeErr := wsConn.WriteJSON(messages)
-			glog.Infof("sending: %v", messages)
-			if writeErr != nil {
-				//TODO FIX ANNOYING TLS MESSAGE
-				//glog.Error(writeErr.Error())
-			}
-			time.Sleep(tick_speed)
-		}
-
-		//// updates the client with the current users in that chatroom
+		// updates the client with the current users in that chatroom
 		activeUsers = rc.getActiveUsersForClient(state.Chatroom)
 		if !StringArrayEquals(activeUsers.ActiveUsers, state.ActiveUsers) {
 			fmt.Println("Users different: ", activeUsers)
@@ -63,7 +52,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
-			time.Sleep(tick_speed)
+			//time.Sleep(tick_speed)
 		}
 
 		if serverActionLen != rc.serverActions.ActionCount {
@@ -76,7 +65,18 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				glog.Error(writeErr.Error())
 			}
 			serverActionLen = rc.serverActions.ActionCount
-			time.Sleep(tick_speed)
+			//time.Sleep(tick_speed)
+		}
+
+		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom)
+		if len(messages.Messages) > 0 {
+			writeErr := wsConn.WriteJSON(messages)
+			glog.Infof("sending: %v", messages)
+			if writeErr != nil {
+				//TODO FIX ANNOYING TLS MESSAGE
+				//glog.Error(writeErr.Error())
+			}
+			//time.Sleep(tick_speed)
 		}
 
 		select {

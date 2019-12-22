@@ -85,6 +85,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			if writeErr != nil {
 				glog.Error("Error writing to JSON: ", writeErr.Error())
 			}
+			state.ActiveUsers = activeUsers.ActiveUsers
 			state.LoggedIn = true
 
 		case "logout":
