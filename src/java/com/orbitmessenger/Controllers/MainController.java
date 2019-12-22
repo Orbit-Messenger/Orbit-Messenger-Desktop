@@ -29,7 +29,7 @@ import java.util.Locale;
 
 public class MainController extends ControllerUtil {
 
-    private String username, password, server;
+    private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
     private Boolean ssl;
     private JsonObject properties;
@@ -94,6 +94,7 @@ public class MainController extends ControllerUtil {
         sendProperties();
         setDarkMode();
         roomLabel.setText("general");
+        currentRoom = roomLabel.getText();
     }
 
     private String getUsername() {
@@ -338,7 +339,12 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        switchRoom(label.getText());
+                        if (label.getText() != currentRoom) {
+                            switchRoom(label.getText());
+                            currentRoom = label.getText();
+                        } else {
+                            System.out.println("Not switching room since you chose the same room");
+                        }
                     }
                 }
             });
@@ -349,10 +355,26 @@ public class MainController extends ControllerUtil {
                     if (event.getClickCount() == 2) {
                         Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
                         System.out.println("Room Index: " + roomIndex);
-                        switchRoom(roomLabels.get(roomIndex).getText());
+                        if (roomLabels.get(roomIndex).getText() != currentRoom) {
+                            switchRoom(roomLabels.get(roomIndex).getText());
+                            currentRoom = roomLabels.get(roomIndex).getText();
+                        } else {
+                            System.out.println("Not switching rooms, you chose the same room.");
+                        }
                     }
                 }
             });
+
+//            roomListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+//                @Override
+//                public void handle(MouseEvent event) {
+//                    if (event.getClickCount() == 2) {
+//                        Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
+//                        System.out.println("Room Index: " + roomIndex);
+//                        switchRoom(roomLabels.get(roomIndex).getText());
+//                    }
+//                }
+//            });
 
             label.setText(trimUsers(obj.get("name").toString()));
             roomLabels.add(label);
