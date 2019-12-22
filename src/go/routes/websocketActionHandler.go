@@ -19,6 +19,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			if userStatusErr != nil {
 				glog.Error("Error changing user status: ", userStatusErr.Error())
 			}
+			state.LoggedIn = false
 			wsConn.Close()
 			glog.Info("closing connection")
 		}

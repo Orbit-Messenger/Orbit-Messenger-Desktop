@@ -42,7 +42,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		time.Sleep(tick_speed)
 	}
 
-	for {
+	for state.LoggedIn {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
 		activeUsers = rc.getActiveUsersForClient(state.Chatroom)
@@ -90,4 +90,5 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		// SMALL SLEEP SO THE CPU WON'T MELT.
 		time.Sleep(tick_speed - totalExecutionTime)
 	}
+	glog.Info("out of update handler")
 }
