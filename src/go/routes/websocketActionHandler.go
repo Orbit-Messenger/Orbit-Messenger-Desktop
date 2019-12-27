@@ -50,6 +50,9 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 		case "login":
 			glog.Infof("Logging in: %v", clientData.Username)
 
+			// Sets our message limit!
+			state.MessageLimit = int64(clientData.Properties["messageNumber"].(float64))
+
 			// changes the users online status to logged in
 			userStatusErr := rc.dbConn.ChangeUserStatus(clientData.Username, true)
 			if userStatusErr != nil {
@@ -70,7 +73,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			}
 
 			// sends all the messages, active users, and chatrooms to the client
-			messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom)
+			messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.MessageLimit)
 
 			activeUsers, err := rc.dbConn.GetUsersByStatus(true, state.Chatroom)
 			if err != nil {
@@ -143,6 +146,13 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 			}
 
 			// Set the lastMessageId to 0 so on next update it will get all the messages.
+			state.LastMessageId = 0
+
+		case "properties":
+			glog.Info("changing properties")
+			// Update message limit
+			state.MessageLimit = int64(clientData.Properties["messageNumber"].(float64))
+
 			state.LastMessageId = 0
 
 		default:

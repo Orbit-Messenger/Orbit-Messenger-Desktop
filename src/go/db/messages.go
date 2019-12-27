@@ -9,8 +9,8 @@ import (
 
 const (
 	ADD_MESSAGE                  = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3);"
-	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1;"
-	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 and name = $2;"
+	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1 ORDER BY id DESC LIMIT $2;"
+	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 and name = $2 ORDER BY id DESC LIMIT $3;"
 	GET_MESSAGE_COUNT            = "SELECT count(id) FROM full_messages WHERE name = $1;"
 	GET_USERNAME_FROM_MESSAGE_ID = "SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;"
 	DELETE_MESSAGE               = "DELETE FROM messages WHERE id = $1;"
@@ -42,9 +42,10 @@ func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName stri
 }
 
 // GetAllMessages returns an array of Message types containing all the messages from the database
-func (dbConn DatabaseConnection) GetAllMessages(chatroom string) (Messages, error) {
+func (dbConn DatabaseConnection) GetAllMessages(chatroom string, messageLimit int64) (Messages, error) {
 	var messages Messages
-	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_MESSAGES, chatroom)
+	var count int
+	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_MESSAGES, chatroom, messageLimit)
 	if err != nil {
 		return messages, err
 	}
@@ -57,13 +58,17 @@ func (dbConn DatabaseConnection) GetAllMessages(chatroom string) (Messages, erro
 			return messages, err
 		}
 		messages.Messages = append(messages.Messages, message)
+		count++
 	}
+
+	fmt.Println("COUNT: ", count)
+
 	return messages, nil
 }
 
-func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64, chatroom string) (Messages, error) {
+func (dbConn DatabaseConnection) GetNewestMessagesFrom(messageId int64, chatroom string, messageLimit int64) (Messages, error) {
 	var messages Messages
-	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_MESSAGES, messageId, chatroom)
+	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_MESSAGES, messageId, chatroom, messageLimit)
 	if err != nil {
 		return messages, err
 	}

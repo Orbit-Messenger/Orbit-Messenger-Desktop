@@ -67,7 +67,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			serverActionLen = rc.serverActions.ActionCount
 		}
 
-		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom)
+		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.MessageLimit)
 		if len(messages.Messages) > 0 {
 			writeErr := wsConn.WriteJSON(messages)
 			glog.Infof("sending: %v", messages)

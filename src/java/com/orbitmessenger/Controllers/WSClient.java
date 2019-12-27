@@ -1,5 +1,6 @@
 package com.orbitmessenger.Controllers;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.java_websocket.WebSocketServerFactory;
@@ -7,6 +8,10 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.DefaultWebSocketServerFactory;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
@@ -16,6 +21,9 @@ public class WSClient extends WebSocketClient {
     public JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
+    public JsonObject PreferencesObject;
+
+    final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
 
     private WebSocketServerFactory wsf = new DefaultWebSocketServerFactory();
 
@@ -95,6 +103,7 @@ public class WSClient extends WebSocketClient {
         submitObject = new JsonObject();
         submitObject.addProperty("action", "login");
         submitObject.addProperty("username", username);
+        submitObject.add("properties", getPreferences());
         return submitObject;
     }
 
@@ -116,5 +125,25 @@ public class WSClient extends WebSocketClient {
         submitObject.addProperty("username", username);
         submitObject.add("properties", properties);
         return submitObject;
+    }
+
+    public JsonObject getPreferences() {
+        Object returnedPreferences = readPreferencesFile();
+        PreferencesObject = (JsonObject) new JsonParser().parse(returnedPreferences.toString());
+        return PreferencesObject;
+    }
+
+    private Object readPreferencesFile() {
+        BufferedReader bufferedReader = null;
+        try {
+            bufferedReader = new BufferedReader(new FileReader(this.PREF_LOC));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Gson gson = new Gson();
+        Object json = gson.fromJson(bufferedReader, Object.class);
+
+        return json;
     }
 }

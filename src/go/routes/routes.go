@@ -41,6 +41,7 @@ type State struct {
 	Chatroom      string
 	LoggedIn      bool
 	LoggedOut     bool
+	MessageLimit  int64
 	ActiveUsers   []string
 }
 
@@ -143,26 +144,24 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 	return activeUsers
 }
 
-func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
-	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom)
+func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, messageLimit *int64) db.Messages {
+	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
 	if err != nil {
 		glog.Error(err)
 		return messages
 	}
-
 	updateLastMessageId(messages.Messages, lastMessageId)
 	return messages
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string) db.Messages {
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, messageLimit *int64) db.Messages {
 	glog.Info("getting All Messages")
-	messages, err := rc.dbConn.GetAllMessages(*chatroom)
+	messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
 	if err != nil {
 		glog.Error(err)
 		return messages
 	}
-
 	updateLastMessageId(messages.Messages, lastMessageId)
 	return messages
 }
@@ -171,5 +170,6 @@ func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
 	if len(messages) < 1 {
 		return
 	}
-	*lastMessageId = messages[len(messages)-1].MessageId
+	*lastMessageId = messages[0].MessageId
+	//*lastMessageId = messages[len(messages)-1].MessageId
 }

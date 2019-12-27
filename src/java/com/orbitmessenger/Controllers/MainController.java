@@ -91,7 +91,7 @@ public class MainController extends ControllerUtil {
 
         updateHandler.start(); // Starts the update handler thread
         loadPreferences();
-        sendProperties();
+        //sendProperties();
         setDarkMode();
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
@@ -248,8 +248,8 @@ public class MainController extends ControllerUtil {
      */
     public void sendProperties() {
         JsonObject propertiesMessage = wsClient.createSubmitObject(
-                null,
-                null,
+                "properties",
+                currentRoom,
                 null,
                 getUsername(),
                 getPreferences()
@@ -268,10 +268,10 @@ public class MainController extends ControllerUtil {
 
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "add",
-                null,
+                currentRoom,
                 userText,
                 getUsername(),
-                null
+                properties
         );
         wsClient.send(submitMessage.toString().trim());
         messageTextArea.setText("");
@@ -279,10 +279,14 @@ public class MainController extends ControllerUtil {
     }
 
     private String convertTime(String time) {
-        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        // Time comes in like this: "2019-12-27T15:08:06.016632Z"
+        // Since milliseconds come in with trailing 0's trimmed, let just remove them..
+        int lastIndex = time.lastIndexOf('.');
+        String trimmedTime = time.substring(0, lastIndex);
+        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         Date date = null;
         try {
-            date = sdf.parse(time);
+            date = sdf.parse(trimmedTime);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -307,7 +311,8 @@ public class MainController extends ControllerUtil {
             // we'll use for the delete function.
             messageIds.add(m.get("messageId").getAsInt());
 
-            messageBoxes.add(
+            // the 0, reverses the order so the latest message is on the bottom. Like a chat should be...
+            messageBoxes.add(0,
                     createMessageBox(
                             m.get("username").toString().replace("\"", ""),
                             m.get("timestamp").toString(),
@@ -316,8 +321,19 @@ public class MainController extends ControllerUtil {
         }
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
+            trimMessagesToMessageLimit();
             scrollToBottom();
         });
+    }
+
+    // Message Limit set in Preferences will determine how many messages we'll see on the screen
+    public void trimMessagesToMessageLimit() {
+        int listSize = messagesListView.getItems().size();
+        int messageLimit = getPreferences().get("messageNumber").getAsInt();
+        if (listSize == 0) {
+            return;
+        }
+        messagesListView.getItems().remove(0, listSize-messageLimit);
     }
 
     public String trimUsers(String user) {
@@ -364,17 +380,6 @@ public class MainController extends ControllerUtil {
                     }
                 }
             });
-
-//            roomListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-//                @Override
-//                public void handle(MouseEvent event) {
-//                    if (event.getClickCount() == 2) {
-//                        Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
-//                        System.out.println("Room Index: " + roomIndex);
-//                        switchRoom(roomLabels.get(roomIndex).getText());
-//                    }
-//                }
-//            });
 
             label.setText(trimUsers(obj.get("name").toString()));
             roomLabels.add(label);
