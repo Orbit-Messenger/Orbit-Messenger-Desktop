@@ -12,6 +12,7 @@ const (
 	ADD_DIRECT_MESSAGE           = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3, $4);"
 	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1 ORDER BY id DESC LIMIT $2;"
 	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 and name = $2 ORDER BY id DESC LIMIT $3;"
+	GET_NEWEST_DIRECT_MESSAGES   = "SELECT * FROM full_messages WHERE id > $1 and name = direct_messages and user_id = $2 and received_user_id = $3 ORDER BY id DESC LIMIT $4"
 	GET_MESSAGE_COUNT            = "SELECT count(id) FROM full_messages WHERE name = $1;"
 	GET_USERNAME_FROM_MESSAGE_ID = "SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;"
 	DELETE_MESSAGE               = "DELETE FROM messages WHERE id = $1;"
@@ -78,6 +79,28 @@ func (dbConn DatabaseConnection) GetAllMessages(chatroom string, messageLimit in
 
 	fmt.Println("COUNT: ", count)
 
+	return messages, nil
+}
+
+func (dbConn DatabaseConnection) GetNewestDirectMessagesFrom(messageId int64, users []string, messageLimit int64) (Messages, error) {
+	userId, err := dbConn.GetUserId(users[0])
+	receivedUserId, err := dbConn.GetUserId(users[1])
+
+	var messages Messages
+	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_DIRECT_MESSAGES, messageId, userId, receivedUserId, messageLimit)
+	if err != nil {
+		return messages, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var message Message
+		err = rows.Scan(&message.MessageId, &message.Username, &message.Chatroom, &message.Message, &message.Timestamp)
+		if err != nil {
+			return messages, err
+		}
+		messages.Messages = append(messages.Messages, message)
+	}
 	return messages, nil
 }
 
