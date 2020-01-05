@@ -24,6 +24,7 @@ type ClientData struct {
 	Message       string                 `json:"message"`
 	Chatroom      string                 `json:"chatroom"`
 	Username      string                 `json:"username"`
+	Users         []string               `json:"users"`
 	Action        string                 `json:"action"`
 	LastMessageId int64                  `json:"lastMessageId"`
 	Properties    map[string]interface{} `json:"properties"`
@@ -38,6 +39,7 @@ type FullData struct {
 type State struct {
 	LastMessageId int64
 	Username      string
+	Users         []string
 	Chatroom      string
 	LoggedIn      bool
 	LoggedOut     bool
