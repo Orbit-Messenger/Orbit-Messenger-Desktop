@@ -19,7 +19,7 @@
                   <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
                      <children>
                         <Label text="Number of messages" />
-                        <TextField fx:id="messageNumberTxtField" prefHeight="26.0" prefWidth="90.0">
+                        <TextField fx:id="messageNumberTxtField" onKeyTyped="#getInt" prefHeight="26.0" prefWidth="90.0">
                            <opaqueInsets>
                               <Insets />
                            </opaqueInsets>

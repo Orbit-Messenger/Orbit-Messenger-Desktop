@@ -100,6 +100,25 @@ public class PreferencesController extends ControllerUtil {
         stage.close();
     }
 
+    @FXML
+    public void getInt() {
+        // Lets get the absolute value of the number and make sure it is within a certain bounds
+        int absoluteValue = 250;
+        try {
+            absoluteValue = Math.abs(convertToInteger(messageNumberTxtField.getText().trim()));
+        } catch (Exception e) {
+            System.out.println("Error converting to Int, setting to a default value." + e.toString());
+            messageNumberTxtField.setText(String.valueOf(absoluteValue));
+        }
+        if (absoluteValue > 1000) {
+            messageNumberTxtField.setText("1000");
+        } else if (absoluteValue < 1) {
+            messageNumberTxtField.setText("1");
+        } else {
+            // Nothing! Its good!
+        }
+    }
+
     private boolean checkField(String messageNumTxt) {
         try {
             Integer.parseInt(messageNumTxt);
