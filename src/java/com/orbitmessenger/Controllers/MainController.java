@@ -23,9 +23,7 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class MainController extends ControllerUtil {
 
@@ -405,7 +403,36 @@ public class MainController extends ControllerUtil {
             label.setId("userLabelID");
             label.setText(trimUsers(user.toString()));
             userLabels.add(label);
+
+            // In case you select the label within the list
+            label.setOnMouseClicked(new EventHandler<MouseEvent>(){
+                @Override
+                public void handle(MouseEvent event){
+                    if (event.getClickCount() == 2) {
+                        if (label.getText() != currentRoom) {
+                            switchToDirectMessage(label.getText());
+                            currentRoom = label.getText();
+                        } else {
+                            System.out.println("Not switching room since you chose the same room");
+                        }
+                    }
+                }
+            });
         }
+
+        // In case you select the row, but not the label in the list
+        userListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    Integer userIndex = userListView.getFocusModel().focusedIndexProperty().getValue();
+                    System.out.println("User Index: " + userLabels.get(userIndex).getText());
+                    switchToDirectMessage(userLabels.get(userIndex).getText());
+                    currentRoom = userLabels.get(userIndex).getText();
+                }
+            }
+        });
+
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -672,6 +699,26 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Switches to a DIRECT MESSAGE room
+     */
+    public void switchToDirectMessage(String user) {
+        JsonArray usersList = new JsonArray();
+        usersList.add(getUsername());
+        usersList.add(user);
+        JsonObject submitMessage = new JsonObject();
+        submitMessage.addProperty("action", "chatroom");
+        submitMessage.addProperty("chatroom", "direct_message");
+        submitMessage.add("users", usersList);
+
+        System.out.println("Message: " + submitMessage.toString().trim());
+
+        wsClient.send(submitMessage.toString().trim());
+        messagesListView.getItems().clear();
+        messageIds.clear();
+        roomLabel.setText("Direct Message: " + user);
+    }
+
+    /**
      * Switches room!
      */
     public void switchRoom(String room) {
@@ -679,7 +726,7 @@ public class MainController extends ControllerUtil {
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "chatroom",
                 room,
-                "",
+                null,
                 getUsername(),
                 properties);
         wsClient.send(submitMessage.toString().trim());
