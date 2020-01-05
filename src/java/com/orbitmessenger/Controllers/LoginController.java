@@ -1,6 +1,9 @@
 package com.orbitmessenger.Controllers;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -9,7 +12,13 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import kong.unirest.Unirest;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class LoginController extends ControllerUtil {
 
@@ -27,21 +36,25 @@ public class LoginController extends ControllerUtil {
     @FXML
     TextField passwordTextField;
     @FXML
-    TextField serverTextField;
+    ComboBox serverComboBox;
 
     private JsonObject properties;
+
+    final String SERVER_LIST ="src/java/com/orbitmessenger/preferences/servers.json";
+
+    ArrayList<String> serverList = new ArrayList<>();
 
     public void initialize() throws URISyntaxException {
         loadPreferences();
         setDarkMode();
-
+        addServersToComboBox();
     }
 
     @FXML
     public void login() {
         String username = this.getTextFieldText(usernameTextField).trim();
         String password = this.getTextFieldText(passwordTextField).trim();
-        String server = this.getTextFieldText(serverTextField).trim();
+        String server = serverComboBox.getSelectionModel().getSelectedItem().toString().trim();
         String serverPrefix = httpServerTxtCheck(server);
         if (!checkInput(username, password, server)) {
             JsonObject loginInfo = new JsonObject();
@@ -50,13 +63,13 @@ public class LoginController extends ControllerUtil {
             //loginInfo.addProperty("cert", cert);
             int statusCode;
             try{
-                System.out.println("Server: " + serverPrefix);
                 statusCode = Unirest.post(serverPrefix + "/verifyUser").body(loginInfo).asString().getStatus();
             } catch (Exception e){
                 sendStatusBarError("Couldn't connect to server: " + e.toString());
                 return;
             }
             if (statusCode == 200) {
+                addServerToServerListIfNotExists(server);
                 MainController mc = new MainController();
                 mc.setUsername(username);
                 mc.setPassword(password);
@@ -74,30 +87,51 @@ public class LoginController extends ControllerUtil {
         }
     }
 
-    @FXML
-    public void createUser() {
-        String username = this.getTextFieldText(usernameTextField).trim();
-        String password = this.getTextFieldText(passwordTextField).trim();
-        String server = this.getTextFieldText(serverTextField).trim();
-        String serverPrefix = httpServerTxtCheck(server);
-        if (!checkInput(username, password, server)) {
-            JsonObject loginInfo = new JsonObject();
-            loginInfo.addProperty("username", username);
-            loginInfo.addProperty("password", password);
-            int statusCode = Unirest.post(serverPrefix + "/createUser")
-                    .body(loginInfo).asString().getStatus();
-            if (statusCode == 200) {
-                MainController mc = new MainController();
-                mc.setUsername(username);
-                mc.setPassword(password);
-                mc.setServer(wssServerChange(serverPrefix));
-                changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
-            } else {
-                // change to a status update
-                System.out.println("Couldn't login");
+    // adds the servers from the server_list to the combo box on the UI
+    private void addServersToComboBox(){
+        try {
+            // creates a buffer for all the file data and converts the data to a string
+            BufferedReader br = new BufferedReader(new FileReader(SERVER_LIST));
+            String jsonFileData = "";
+            String placeHolder;
+            while((placeHolder = br.readLine()) != null){
+                jsonFileData += placeHolder;
             }
-        } else {
-            popupMissingFieldDialog();
+            br.close();
+            // creates a json parser to parse the string into a jsonObject and then converts that into a jsonArray
+            JsonParser parser = new JsonParser();
+            JsonArray listOfServers = parser.parse(jsonFileData).getAsJsonObject().get("servers").getAsJsonArray();
+
+            // adds each server to the combo box
+            for(JsonElement server : listOfServers){
+                serverList.add(server.toString().replace("\"", ""));
+            }
+            serverComboBox.getItems().addAll(serverList);
+            // sets the combo box to the first element
+            serverComboBox.getSelectionModel().select(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // adds a new server to the server.json file from the serverList ArrayList
+    private void addServerToServerListIfNotExists(String server){
+        if(!serverList.contains(server)){
+            serverList.add(server);
+        }
+        JsonArray servers = new JsonArray();
+        for (String s: serverList){
+            servers.add(s);
+        }
+        JsonObject serverListJson = new JsonObject();
+        serverListJson.add("servers", servers);
+        try {
+            FileWriter writer = new FileWriter(SERVER_LIST);
+            writer.write(serverListJson.toString());
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -115,7 +149,6 @@ public class LoginController extends ControllerUtil {
     }
 
     public String wssServerChange(String server) {
-        System.out.println("WSS: " + server.replaceFirst("https", "wss"));
         return server.replaceFirst("https", "wss");
     }
 
@@ -164,5 +197,32 @@ public class LoginController extends ControllerUtil {
     private void sendStatusBarError(String message){
         statusBarLabel.setText(message);
         statusBarLabel.setStyle("-fx-background-color: red;");
+    }
+
+    @FXML
+    public void createUser() {
+        String username = this.getTextFieldText(usernameTextField).trim();
+        String password = this.getTextFieldText(passwordTextField).trim();
+        String server = serverComboBox.getSelectionModel().getSelectedItem().toString().trim();
+        String serverPrefix = httpServerTxtCheck(server);
+        if (!checkInput(username, password, server)) {
+            JsonObject loginInfo = new JsonObject();
+            loginInfo.addProperty("username", username);
+            loginInfo.addProperty("password", password);
+            int statusCode = Unirest.post(serverPrefix + "/createUser")
+                    .body(loginInfo).asString().getStatus();
+            if (statusCode == 200) {
+                MainController mc = new MainController();
+                mc.setUsername(username);
+                mc.setPassword(password);
+                mc.setServer(wssServerChange(serverPrefix));
+                changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
+            } else {
+                // change to a status update
+                System.out.println("Couldn't login");
+            }
+        } else {
+            popupMissingFieldDialog();
+        }
     }
 }
