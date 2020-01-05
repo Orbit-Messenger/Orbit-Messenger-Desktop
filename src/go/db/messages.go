@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	ADD_MESSAGE                  = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3);"
+	ADD_MESSAGE                  = "INSERT INTO messages VALUES(DEFAULT, $1, null, $2, $3);"
+	ADD_DIRECT_MESSAGE           = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3, $4);"
 	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1 ORDER BY id DESC LIMIT $2;"
 	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 and name = $2 ORDER BY id DESC LIMIT $3;"
 	GET_MESSAGE_COUNT            = "SELECT count(id) FROM full_messages WHERE name = $1;"
@@ -18,11 +19,12 @@ const (
 
 // Message holds all the data for a message from the database
 type Message struct {
-	MessageId int64     `json:"messageId"`
-	Username  string    `json:"username"`
-	Chatroom  string    `json:"chatroom"`
-	Message   string    `json:"message"`
-	Timestamp time.Time `json:"timestamp"`
+	MessageId         int64     `json:"messageId"`
+	Username          string    `json:"username"`
+	Received_username string    `json:"receivedUsername"`
+	Chatroom          string    `json:"chatroom"`
+	Message           string    `json:"message"`
+	Timestamp         time.Time `json:"timestamp"`
 }
 
 type Messages struct {
@@ -38,6 +40,19 @@ func (dbConn DatabaseConnection) AddMessage(message, username, chatroomName stri
 	}
 
 	_, err = dbConn.conn.Exec(context.Background(), ADD_MESSAGE, userId, chatroomId, message)
+	return err
+}
+
+// adds a message to the database under the username provided for direct messenging
+func (dbConn DatabaseConnection) AddDirectMessage(message, username, receivedUsername, chatroomName string) error {
+	userId, err := dbConn.GetUserId(username)
+	receivedUserId, err := dbConn.GetUserId(receivedUsername)
+	chatroomId := dbConn.GetIdFromChatroomName(chatroomName)
+	if userId == 0 || err != nil {
+		return fmt.Errorf("Couldn't find anyone with the username %v", username)
+	}
+
+	_, err = dbConn.conn.Exec(context.Background(), ADD_DIRECT_MESSAGE, userId, receivedUserId, chatroomId, message)
 	return err
 }
 
