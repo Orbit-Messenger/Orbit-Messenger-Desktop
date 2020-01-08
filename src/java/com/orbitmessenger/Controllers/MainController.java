@@ -15,6 +15,7 @@ import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -50,6 +51,10 @@ public class MainController extends ControllerUtil {
     private TextArea messageTextArea;
     @FXML
     private Label roomLabel;
+    @FXML
+    private Text connectionInformation;
+    @FXML
+    private VBox bottomVBox;
     @FXML
     private ObservableList<String> users;
 
@@ -88,9 +93,11 @@ public class MainController extends ControllerUtil {
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
         updateHandler.start(); // Starts the update handler thread
+        connectionInformationThread.start(); // Starts the connection information thread
         loadPreferences();
         //sendProperties();
         setDarkMode();
+        setupConnectionInformation();
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -170,6 +177,25 @@ public class MainController extends ControllerUtil {
             }
         }
     });
+
+    private Thread connectionInformationThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    setConnectionInformation();
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    });
+
+    public void setConnectionInformation() {
+        wsClient.sendAPing();
+        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " Latency: " + wsClient.latency + "ms");
+    }
 
     public void setClose(Stage stage) {
         // This will call the closeProgram() function in MainController so it closes correctly when
@@ -593,6 +619,7 @@ public class MainController extends ControllerUtil {
                 // Need to stop the running threads!
                 //pingThread.stop();
                 wsConnectionThread.stop();
+                connectionInformationThread.stop();
                 // Closing the websocket
                 wsClient.close();
                 // Stop timer
@@ -733,5 +760,37 @@ public class MainController extends ControllerUtil {
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
+    }
+
+    /**
+     * Sets the stage for the connection information bar
+     */
+    public void setupConnectionInformation() {
+        connectionInformation.setVisible(false);
+        connectionInformation.setManaged(false);
+    }
+
+    /**
+     * Toggle displaying the Connection Info banner
+     */
+    @FXML
+    public void toggleConnInfo() {
+        if (connectionInformation.isVisible()) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    connectionInformation.setVisible(false);
+                    connectionInformation.setManaged(false);
+                }
+            });
+        } else {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    connectionInformation.setVisible(true);
+                    connectionInformation.setManaged(true);
+                }
+            });
+        }
     }
 }

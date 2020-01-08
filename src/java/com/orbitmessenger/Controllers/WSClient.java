@@ -3,9 +3,11 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketServerFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
+import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.DefaultWebSocketServerFactory;
 
@@ -22,6 +24,9 @@ public class WSClient extends WebSocketClient {
     public JsonObject submitObject;
     private String username;
     public JsonObject PreferencesObject;
+    public long receivedMillis = System.currentTimeMillis();
+    public long sentMillis = System.currentTimeMillis();
+    public long latency = 0;
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
 
@@ -64,15 +69,18 @@ public class WSClient extends WebSocketClient {
         return serverResponse.size();
     }
 
-//    @Override
-//    public void onWebsocketPong(WebSocket conn, Framedata f) {
-//        super.onWebsocketPong(conn, f);
-//    }
+    @Override
+    public void onWebsocketPong(WebSocket conn, Framedata f) {
+        super.onWebsocketPong(conn, f);
+        receivedMillis = System.currentTimeMillis();
+        latency = receivedMillis - sentMillis;
+    }
 
-//    @Override
-//    public void onWebsocketPing(WebSocket conn, Framedata f) {
-//        super.onWebsocketPing(conn, f);
-//    }
+    @Override
+    public void onWebsocketPing(WebSocket conn, Framedata f) {
+        super.onWebsocketPing(conn, f);
+
+    }
 
     @Override
     public void onMessage(ByteBuffer message) {
@@ -89,7 +97,8 @@ public class WSClient extends WebSocketClient {
        this.serverResponse = json;
     }
 
-    public void ping(){
+    public void sendAPing() {
+        sentMillis = System.currentTimeMillis();
         sendPing();
     }
 
