@@ -74,7 +74,6 @@ public class WSClient extends WebSocketClient {
     public void onWebsocketPong(WebSocket conn, Framedata f) {
         synchronized (latencyMonitor) {
             super.onWebsocketPong(conn, f);
-            System.out.println("Incoming Pong");
             receivedMillis = System.currentTimeMillis();
             latency = receivedMillis - sentMillis;
             latencyMonitor.notify();
@@ -84,7 +83,6 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onWebsocketPing(WebSocket conn, Framedata f) {
         super.onWebsocketPing(conn, f);
-        System.out.println("Incoming Ping");
 
     }
 
@@ -105,7 +103,6 @@ public class WSClient extends WebSocketClient {
 
     public void sendAPing() {
         sentMillis = System.currentTimeMillis();
-        System.out.println("SENDING PING");
         sendPing();
     }
 

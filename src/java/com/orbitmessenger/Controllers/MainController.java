@@ -197,7 +197,6 @@ public class MainController extends ControllerUtil {
                             try {
                                 wsClient.sendAPing();
                                 // This means to wait for latency to be calculated via onPong.
-                                System.out.println("Waiting");
                                 wsClient.latencyMonitor.wait();
                             } catch (InterruptedException e) {
                                 System.out.println("Error: " + e.toString());
@@ -205,7 +204,6 @@ public class MainController extends ControllerUtil {
                         }
                         try {
                             if (wsClient.latency < 1000) {
-                                System.out.println("Hasn't been a second. Waiting: " + (1000-wsClient.latency));
                                 Thread.sleep(1000 - wsClient.latency);
                             }
                             setConnectionInformation();
@@ -216,10 +214,12 @@ public class MainController extends ControllerUtil {
                     try {
                         // Setting it back to 0, ready for it to be calculated again when the user toggles the connection
                         // information bar again.
-                        if (wsClient.latency > 0) {
-                            wsClient.latency = 0;
+                       if (wsClient.latency > 0) {
+                            wsClient.getLatency();
                         }
-                        // Sleep so we don't melt our CPU.
+                        // We set this to wait so that the onPong can be called again. Otherwise we'll disconnect because
+                        // the Java Websocket will not get the pong response to reset the lostConnectionTimer.
+                        wsClient.latencyMonitor.wait();
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -826,6 +826,7 @@ public class MainController extends ControllerUtil {
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
+                    wsClient.sendAPing();
                     connectionInformation.setVisible(true);
                     connectionInformation.setManaged(true);
                 }
