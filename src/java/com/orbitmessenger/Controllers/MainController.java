@@ -241,7 +241,7 @@ public class MainController extends ControllerUtil {
         } else if (wsClient.latency > 1000) {
             latencyCircle.setFill(Color.RED);
         }
-        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " Latency: " + wsClient.getLatency() + "ms");
+        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " - Latency: " + wsClient.getLatency() + "ms");
     }
 
     public void setClose(Stage stage) {
