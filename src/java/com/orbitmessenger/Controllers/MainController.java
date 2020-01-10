@@ -14,6 +14,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -58,6 +60,8 @@ public class MainController extends ControllerUtil {
     private VBox bottomVBox;
     @FXML
     private ObservableList<String> users;
+    @FXML
+    private Circle latencyCircle;
 
     // Server Configuration
     private boolean connected;
@@ -192,7 +196,6 @@ public class MainController extends ControllerUtil {
             synchronized (wsClient.latencyMonitor) {
                 while(true) {
                     while (connectionInformation.isVisible()) {
-                        System.out.println("Starting Loop: " + connectionInformation.isVisible());
                         while (wsClient.latency == 0) {
                             try {
                                 wsClient.sendAPing();
@@ -230,10 +233,15 @@ public class MainController extends ControllerUtil {
     });
 
     public void setConnectionInformation() {
-        System.out.println("Starting Pass #: " + pass);
-        pass++;
+        // If latency is less than 500ms, circle will be green.
+        if (wsClient.latency <= 500) {
+            latencyCircle.setFill(Color.GREEN);
+        } else if (wsClient.latency > 500 && wsClient.latency <= 1000) {
+            latencyCircle.setFill(Color.YELLOW);
+        } else if (wsClient.latency > 1000) {
+            latencyCircle.setFill(Color.RED);
+        }
         connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " Latency: " + wsClient.getLatency() + "ms");
-        System.out.println("Finished Pass");
     }
 
     public void setClose(Stage stage) {
@@ -807,6 +815,8 @@ public class MainController extends ControllerUtil {
     public void setupConnectionInformation() {
         connectionInformation.setVisible(false);
         connectionInformation.setManaged(false);
+        latencyCircle.setVisible(false);
+        latencyCircle.setManaged(false);
     }
 
     /**
@@ -820,6 +830,8 @@ public class MainController extends ControllerUtil {
                 public void run() {
                     connectionInformation.setVisible(false);
                     connectionInformation.setManaged(false);
+                    latencyCircle.setVisible(false);
+                    latencyCircle.setManaged(false);
                 }
             });
         } else {
@@ -829,6 +841,8 @@ public class MainController extends ControllerUtil {
                     wsClient.sendAPing();
                     connectionInformation.setVisible(true);
                     connectionInformation.setManaged(true);
+                    latencyCircle.setVisible(true);
+                    latencyCircle.setManaged(true);
                 }
             });
         }
