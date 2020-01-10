@@ -33,6 +33,7 @@ public class MainController extends ControllerUtil {
     private Boolean ssl;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
+    private long pass = 0;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -82,6 +83,8 @@ public class MainController extends ControllerUtil {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
         wsClient.setConnectionLostTimeout( 60 );
+        wsClient.setTcpNoDelay(true);
+        wsClient.setReuseAddr(true);
 
         wsConnectionThread.start();
         try {
@@ -92,12 +95,13 @@ public class MainController extends ControllerUtil {
 
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
+        setupConnectionInformation();
+
         updateHandler.start(); // Starts the update handler thread
         connectionInformationThread.start(); // Starts the connection information thread
         loadPreferences();
         //sendProperties();
         setDarkMode();
-        setupConnectionInformation();
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -178,23 +182,58 @@ public class MainController extends ControllerUtil {
         }
     });
 
+    // What we want is this. We want the latency to be calculated ONLY when the connection information bar is visible.
+    // We want it to send a ping once a second, calculating the latency. If the latency is over a second, it should
+    // not have to wait and send another ping. If it is under a second, we'll subtract the latency from a second
+    // and fire again, meaning it should send about once a second unless it is longer than a second. Yeah?
     private Thread connectionInformationThread = new Thread(new Runnable() {
         @Override
         public void run() {
-            while (true) {
-                try {
-                    setConnectionInformation();
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            synchronized (wsClient.latencyMonitor) {
+                while(true) {
+                    while (connectionInformation.isVisible()) {
+                        System.out.println("Starting Loop: " + connectionInformation.isVisible());
+                        while (wsClient.latency == 0) {
+                            try {
+                                wsClient.sendAPing();
+                                // This means to wait for latency to be calculated via onPong.
+                                System.out.println("Waiting");
+                                wsClient.latencyMonitor.wait();
+                            } catch (InterruptedException e) {
+                                System.out.println("Error: " + e.toString());
+                            }
+                        }
+                        try {
+                            if (wsClient.latency < 1000) {
+                                System.out.println("Hasn't been a second. Waiting: " + (1000-wsClient.latency));
+                                Thread.sleep(1000 - wsClient.latency);
+                            }
+                            setConnectionInformation();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        // Setting it back to 0, ready for it to be calculated again when the user toggles the connection
+                        // information bar again.
+                        if (wsClient.latency > 0) {
+                            wsClient.latency = 0;
+                        }
+                        // Sleep so we don't melt our CPU.
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
     });
 
     public void setConnectionInformation() {
-        wsClient.sendAPing();
-        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " Latency: " + wsClient.latency + "ms");
+        System.out.println("Starting Pass #: " + pass);
+        pass++;
+        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " Latency: " + wsClient.getLatency() + "ms");
+        System.out.println("Finished Pass");
     }
 
     public void setClose(Stage stage) {

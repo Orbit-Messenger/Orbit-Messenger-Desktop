@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 public class WSClient extends WebSocketClient {
 
     public final Object monitor = new Object();
+    public final Object latencyMonitor = new Object();
     public JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
@@ -71,14 +72,19 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onWebsocketPong(WebSocket conn, Framedata f) {
-        super.onWebsocketPong(conn, f);
-        receivedMillis = System.currentTimeMillis();
-        latency = receivedMillis - sentMillis;
+        synchronized (latencyMonitor) {
+            super.onWebsocketPong(conn, f);
+            System.out.println("Incoming Pong");
+            receivedMillis = System.currentTimeMillis();
+            latency = receivedMillis - sentMillis;
+            latencyMonitor.notify();
+        }
     }
 
     @Override
     public void onWebsocketPing(WebSocket conn, Framedata f) {
         super.onWebsocketPing(conn, f);
+        System.out.println("Incoming Ping");
 
     }
 
@@ -89,7 +95,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        System.err.println("an error occurred:" + ex);
+        System.out.println("an error occurred:" + ex);
     }
 
     private void setServerResponse(String message){
@@ -99,7 +105,14 @@ public class WSClient extends WebSocketClient {
 
     public void sendAPing() {
         sentMillis = System.currentTimeMillis();
+        System.out.println("SENDING PING");
         sendPing();
+    }
+
+    public long getLatency() {
+        long localLatency = this.latency;
+        this.latency = 0;
+        return localLatency;
     }
 
     public JsonObject getServerResponse(){

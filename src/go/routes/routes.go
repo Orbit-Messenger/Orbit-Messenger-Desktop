@@ -60,7 +60,7 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 	var state State
 	state.Chatroom = "general"
