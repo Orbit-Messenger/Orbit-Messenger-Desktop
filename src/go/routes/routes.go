@@ -24,25 +24,27 @@ type ClientData struct {
 	Message       string                 `json:"message"`
 	Chatroom      string                 `json:"chatroom"`
 	Username      string                 `json:"username"`
+	Users         []string               `json:"users"`
 	Action        string                 `json:"action"`
 	LastMessageId int64                  `json:"lastMessageId"`
 	Properties    map[string]interface{} `json:"properties"`
 }
 
 type FullData struct {
-	Messages    []db.Message  `json:"messages"`
-	ActiveUsers []string      `json:"activeUsers"`
-	Chatrooms   []db.Chatroom `json:"chatrooms"`
+	Messages  []db.Message  `json:"messages"`
+	AllUsers  []db.User     `json:"allUsers"`
+	Chatrooms []db.Chatroom `json:"chatrooms"`
 }
 
 type State struct {
 	LastMessageId int64
 	Username      string
+	Users         []string
 	Chatroom      string
 	LoggedIn      bool
 	LoggedOut     bool
 	MessageLimit  int64
-	ActiveUsers   []string
+	AllUsers   	  []db.User
 }
 
 // CreateRouteController will create a database connection and return a RouteController
@@ -58,7 +60,7 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 	var state State
 	state.Chatroom = "general"
@@ -135,6 +137,15 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 	}
 }
 
+func (rc RouteController) getAllUsers() db.AllUsers {
+	users, err := rc.dbConn.GetAllUsers()
+	if err != nil {
+		glog.Error(err)
+		return users
+	}
+	return users
+}
+
 func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
 	activeUsers, err := rc.dbConn.GetUsersByStatus(true, chatroom)
 	if err != nil {
@@ -144,26 +155,50 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 	return activeUsers
 }
 
-func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, messageLimit *int64) db.Messages {
-	messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
-	if err != nil {
-		glog.Error(err)
+func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
+	// If Chatroom direct message, get those messages, else get the regular room messages.
+	if *chatroom == "direct_messages" {
+		messages, err := rc.dbConn.GetNewestDirectMessagesFrom(*lastMessageId, *users, *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
+		return messages
+	} else {
+		messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
 	}
-	updateLastMessageId(messages.Messages, lastMessageId)
-	return messages
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, messageLimit *int64) db.Messages {
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users []string, messageLimit *int64) db.Messages {
 	glog.Info("getting All Messages")
-	messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
-	if err != nil {
-		glog.Error(err)
+	glog.Info(*chatroom)
+	if *chatroom == "direct_messages" {
+		glog.Info("hit")
+		messages, err := rc.dbConn.GetAllDirectMessages(users[0], users[1], *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
+	} else {
+		messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
+		return messages
+
 	}
-	updateLastMessageId(messages.Messages, lastMessageId)
-	return messages
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {

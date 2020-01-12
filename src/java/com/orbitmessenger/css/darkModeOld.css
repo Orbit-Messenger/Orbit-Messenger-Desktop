@@ -40,7 +40,7 @@
 
 }
 
-#roomLabelID:hover, #roomListView:hover {
+#roomLabelID:hover, #roomListView:hover, #userListView:hover {
     -fx-cursor: hand;
 }
 

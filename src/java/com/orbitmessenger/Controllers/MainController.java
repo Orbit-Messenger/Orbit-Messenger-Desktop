@@ -14,7 +14,10 @@ import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -23,9 +26,7 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class MainController extends ControllerUtil {
 
@@ -34,6 +35,7 @@ public class MainController extends ControllerUtil {
     private Boolean ssl;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
+    private long pass = 0;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -53,7 +55,13 @@ public class MainController extends ControllerUtil {
     @FXML
     private Label roomLabel;
     @FXML
+    private Text connectionInformation;
+    @FXML
+    private VBox bottomVBox;
+    @FXML
     private ObservableList<String> users;
+    @FXML
+    private Circle latencyCircle;
 
     // Server Configuration
     private boolean connected;
@@ -79,6 +87,8 @@ public class MainController extends ControllerUtil {
         wsClient = new WSClient(new URI(this.getServer()), getUsername());
 
         wsClient.setConnectionLostTimeout( 60 );
+        wsClient.setTcpNoDelay(true);
+        wsClient.setReuseAddr(true);
 
         wsConnectionThread.start();
         try {
@@ -89,7 +99,10 @@ public class MainController extends ControllerUtil {
 
         System.out.println("Server Settings: " + wsClient.getConnection().toString());
 
+        setupConnectionInformation();
+
         updateHandler.start(); // Starts the update handler thread
+        connectionInformationThread.start(); // Starts the connection information thread
         loadPreferences();
         //sendProperties();
         setDarkMode();
@@ -153,7 +166,7 @@ public class MainController extends ControllerUtil {
                             if (serverMessage.has("messages")) {
                                 updateMessages(getMessagesFromJsonObject(serverMessage));
                             }
-                            if (serverMessage.has("activeUsers")) {
+                            if (serverMessage.has("allUsers")) {
                                 updateUsers(getUsersFromJsonObject(serverMessage));
                             }
                             if (serverMessage.has("chatrooms")) {
@@ -173,6 +186,64 @@ public class MainController extends ControllerUtil {
         }
     });
 
+    // What we want is this. We want the latency to be calculated ONLY when the connection information bar is visible.
+    // We want it to send a ping once a second, calculating the latency. If the latency is over a second, it should
+    // not have to wait and send another ping. If it is under a second, we'll subtract the latency from a second
+    // and fire again, meaning it should send about once a second unless it is longer than a second. Yeah?
+    private Thread connectionInformationThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            synchronized (wsClient.latencyMonitor) {
+                while(true) {
+                    while (connectionInformation.isVisible()) {
+                        while (wsClient.latency == 0) {
+                            try {
+                                wsClient.sendAPing();
+                                // This means to wait for latency to be calculated via onPong.
+                                wsClient.latencyMonitor.wait();
+                            } catch (InterruptedException e) {
+                                System.out.println("Error: " + e.toString());
+                            }
+                        }
+                        try {
+                            if (wsClient.latency < 1000) {
+                                Thread.sleep(1000 - wsClient.latency);
+                            }
+                            setConnectionInformation();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        // Setting it back to 0, ready for it to be calculated again when the user toggles the connection
+                        // information bar again.
+                       if (wsClient.latency > 0) {
+                            wsClient.getLatency();
+                        }
+                        // We set this to wait so that the onPong can be called again. Otherwise we'll disconnect because
+                        // the Java Websocket will not get the pong response to reset the lostConnectionTimer.
+                        wsClient.latencyMonitor.wait();
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    });
+
+    public void setConnectionInformation() {
+        // If latency is less than 500ms, circle will be green.
+        if (wsClient.latency <= 500) {
+            latencyCircle.setFill(Color.LAWNGREEN);
+        } else if (wsClient.latency > 500 && wsClient.latency <= 1000) {
+            latencyCircle.setFill(Color.YELLOW);
+        } else if (wsClient.latency > 1000) {
+            latencyCircle.setFill(Color.INDIANRED);
+        }
+        connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " - Latency: " + wsClient.getLatency() + "ms");
+    }
+
     public void setClose(Stage stage) {
         // This will call the closeProgram() function in MainController so it closes correctly when
         // clicking on the red X!
@@ -183,8 +254,14 @@ public class MainController extends ControllerUtil {
      * Gets the messages index from the json object passed to it
      */
     private JsonArray getMessagesFromJsonObject(JsonObject serverResponse) {
-        if (serverResponse.has("messages")) {
-            return serverResponse.getAsJsonArray("messages");
+        String jsonkey = "messages";
+        if (serverResponse.has(jsonkey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonkey);
+            } catch (Exception e) {
+                System.out.println("Error getting messages from JsonObject");
+                return null;
+            }
         }
         return null;
     }
@@ -198,6 +275,7 @@ public class MainController extends ControllerUtil {
             try {
                 return serverResponse.getAsJsonArray(jsonKey);
             } catch (Exception e) {
+                System.out.println("Erorr getting rooms from JsonObject");
                 return null;
             }
         }
@@ -208,11 +286,12 @@ public class MainController extends ControllerUtil {
      * Gets the activeUser index from the json object passed to it
      */
     private JsonArray getUsersFromJsonObject(JsonObject serverResponse) {
-        String jsonKey = "activeUsers";
+        String jsonKey = "allUsers";
         if (serverResponse.has(jsonKey)) {
             try {
                 return serverResponse.getAsJsonArray(jsonKey);
             } catch (Exception e) {
+                System.out.println("Error getting users from JsonObject");
                 return null;
             }
         }
@@ -397,20 +476,70 @@ public class MainController extends ControllerUtil {
         if (users == null) {
             return;
         }
-        ArrayList<Label> userLabels = new ArrayList<>();
-        for (Object user : users) {
+        ArrayList<HBox> userHBox = new ArrayList<>();
+        for (JsonElement user : users) {
+            JsonObject userObject = new JsonObject();
+            if (user.isJsonObject()) {
+                userObject = user.getAsJsonObject();
+            }
+            HBox hBox = new HBox();
+            Circle circle = new Circle();
             Label label = new Label();
+
+            circle.setRadius(7);
+
+            // If the user is active, set Circle to GREEN, RED otherwise.
+            if (userObject.get("Status").getAsBoolean()) {
+                circle.setFill(Color.LAWNGREEN);
+            } else if (!userObject.get("Status").getAsBoolean()) {
+                circle.setFill(Color.INDIANRED);
+            }
+
             label.getStyleClass().add("font-color");
             label.setAlignment(Pos.CENTER);
             label.setId("userLabelID");
-            label.setText(trimUsers(user.toString()));
-            userLabels.add(label);
+            label.setText(trimUsers(userObject.get("username").toString()));
+            label.setStyle("-fx-padding: 0 0 0 10;");
+
+            hBox.getChildren().addAll(circle, label);
+            userHBox.add(hBox);
+
+            // In case you select the label within the list
+            label.setOnMouseClicked(new EventHandler<MouseEvent>(){
+                @Override
+                public void handle(MouseEvent event){
+                    if (event.getClickCount() == 2) {
+                        if (label.getText() != currentRoom) {
+                            switchToDirectMessage(label.getText());
+                            currentRoom = label.getText();
+                        } else {
+                            System.out.println("Not switching room since you chose the same room");
+                        }
+                    }
+                }
+            });
         }
+
+        // In case you select the row, but not the label in the list
+        userListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    Integer userIndex = userListView.getFocusModel().focusedIndexProperty().getValue();
+                    Label label = new Label();
+                    // The second element, that is the one that has the label.
+                    label = (Label) userHBox.get(userIndex).getChildren().get(1);
+                    switchToDirectMessage(label.getText());
+                    currentRoom = label.getText();
+                }
+            }
+        });
+
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 userListView.getItems().clear();
-                userListView.getItems().addAll(userLabels);
+                userListView.getItems().addAll(userHBox);
             }
         });
     }
@@ -566,6 +695,7 @@ public class MainController extends ControllerUtil {
                 // Need to stop the running threads!
                 //pingThread.stop();
                 wsConnectionThread.stop();
+                connectionInformationThread.stop();
                 // Closing the websocket
                 wsClient.close();
                 // Stop timer
@@ -672,6 +802,24 @@ public class MainController extends ControllerUtil {
     }
 
     /**
+     * Switches to a DIRECT MESSAGE room
+     */
+    public void switchToDirectMessage(String user) {
+        JsonArray usersList = new JsonArray();
+        usersList.add(getUsername());
+        usersList.add(user);
+        JsonObject submitMessage = new JsonObject();
+        submitMessage.addProperty("action", "chatroom");
+        submitMessage.addProperty("chatroom", "direct_messages");
+        submitMessage.add("users", usersList);
+
+        wsClient.send(submitMessage.toString().trim());
+        messagesListView.getItems().clear();
+        messageIds.clear();
+        roomLabel.setText("Direct Message: " + user);
+    }
+
+    /**
      * Switches room!
      */
     public void switchRoom(String room) {
@@ -679,12 +827,51 @@ public class MainController extends ControllerUtil {
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "chatroom",
                 room,
-                "",
+                null,
                 getUsername(),
                 properties);
         wsClient.send(submitMessage.toString().trim());
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
+    }
+
+    /**
+     * Sets the stage for the connection information bar
+     */
+    public void setupConnectionInformation() {
+        connectionInformation.setVisible(false);
+        connectionInformation.setManaged(false);
+        latencyCircle.setVisible(false);
+        latencyCircle.setManaged(false);
+    }
+
+    /**
+     * Toggle displaying the Connection Info banner
+     */
+    @FXML
+    public void toggleConnInfo() {
+        if (connectionInformation.isVisible()) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    connectionInformation.setVisible(false);
+                    connectionInformation.setManaged(false);
+                    latencyCircle.setVisible(false);
+                    latencyCircle.setManaged(false);
+                }
+            });
+        } else {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    wsClient.sendAPing();
+                    connectionInformation.setVisible(true);
+                    connectionInformation.setManaged(true);
+                    latencyCircle.setVisible(true);
+                    latencyCircle.setManaged(true);
+                }
+            });
+        }
     }
 }

@@ -20,30 +20,49 @@ CREATE TABLE IF NOT EXISTS chatrooms(
 INSERT INTO chatrooms VALUES(DEFAULT, 'general');
 INSERT INTO chatrooms VALUES(DEFAULT, 'programming');
 INSERT INTO chatrooms VALUES(DEFAULT, 'stuff');
+INSERT INTO chatrooms VALUES(DEFAULT, 'direct_messages');
 
 CREATE TABLE IF NOT EXISTS messages(
   id SERIAL PRIMARY KEY,
-  user_id INT REFERENCES users(id),
-  chatroom_id INT REFERENCES chatrooms(id),
-  message TEXT,
-  time_stamp timestamp DEFAULT NOW()
+  user_id INT REFERENCES users(id) NOT NULL,
+  received_user_id INT REFERENCES users(id) DEFAULT null,
+  chatroom_id INT REFERENCES chatrooms(id) NOT NULL,
+  message TEXT NOT NULL,
+  time_stamp timestamp DEFAULT NOW() NOT NULL
 );
 
-INSERT INTO messages VALUES(DEFAULT, 1, 1, 'general 1');
-INSERT INTO messages VALUES(DEFAULT, 2, 1, 'general 2');
-INSERT INTO messages VALUES(DEFAULT, 3, 1, 'general 3');
-INSERT INTO messages VALUES(DEFAULT, 4, 1, 'general 4');
+INSERT INTO messages VALUES(DEFAULT, 1, null, 1, 'general 1');
+INSERT INTO messages VALUES(DEFAULT, 2, null, 1, 'general 2');
+INSERT INTO messages VALUES(DEFAULT, 3, null, 1, 'general 3');
+INSERT INTO messages VALUES(DEFAULT, 4, null, 1, 'general 4');
 
-INSERT INTO messages VALUES(DEFAULT, 1, 2, 'programming 1');
-INSERT INTO messages VALUES(DEFAULT, 2, 2, 'programming 2');
-INSERT INTO messages VALUES(DEFAULT, 3, 2, 'programming 3');
-INSERT INTO messages VALUES(DEFAULT, 4, 2, 'programming 4');
+INSERT INTO messages VALUES(DEFAULT, 1, null, 2, 'programming 1');
+INSERT INTO messages VALUES(DEFAULT, 2, null, 2, 'programming 2');
+INSERT INTO messages VALUES(DEFAULT, 3, null, 2, 'programming 3');
+INSERT INTO messages VALUES(DEFAULT, 4, null, 2, 'programming 4');
 
-INSERT INTO messages VALUES(DEFAULT, 1, 3, 'stuff 1');
-INSERT INTO messages VALUES(DEFAULT, 2, 3, 'stuff 2');
-INSERT INTO messages VALUES(DEFAULT, 3, 3, 'stuff 3');
-INSERT INTO messages VALUES(DEFAULT, 4, 3, 'stuff 4');
+INSERT INTO messages VALUES(DEFAULT, 1, null, 3, 'stuff 1');
+INSERT INTO messages VALUES(DEFAULT, 2, null, 3, 'stuff 2');
+INSERT INTO messages VALUES(DEFAULT, 3, null, 3, 'stuff 3');
+INSERT INTO messages VALUES(DEFAULT, 4, null, 3, 'stuff 4');
 
-CREATE VIEW full_messages AS SELECT messages.id, users.username, chatrooms.name, messages.message, messages.time_stamp FROM messages INNER JOIN users ON users.id = messages.user_id INNER JOIN chatrooms ON chatrooms.id = messages.chatroom_id ORDER BY messages.id ASC;
+INSERT INTO messages VALUES(DEFAULT, 1, 2, 4, 'direct message 1');
+INSERT INTO messages VALUES(DEFAULT, 2, 1, 4, 'direct message 2');
+INSERT INTO messages VALUES(DEFAULT, 3, 4, 4, 'direct message 3');
+INSERT INTO messages VALUES(DEFAULT, 4, 3, 4, 'direct message 4');
+
+CREATE VIEW full_messages AS 
+SELECT messages.id, users.username, chatrooms.name, messages.message, messages.time_stamp 
+FROM messages 
+INNER JOIN users ON users.id = messages.user_id 
+INNER JOIN chatrooms ON chatrooms.id = messages.chatroom_id ORDER BY messages.id ASC;
 
 
+CREATE VIEW full_direct_messages AS 
+SELECT messages.id, u1.username AS sender, u2.username AS receiver, chatrooms.name, messages.message, messages.time_stamp 
+FROM messages 
+INNER JOIN users u1 ON u1.id = messages.user_id 
+LEFT JOIN users u2 ON u2.id = messages.received_user_id
+INNER JOIN chatrooms ON chatrooms.id = messages.chatroom_id 
+WHERE chatrooms.name ='direct_messages'
+ORDER BY messages.id ASC;

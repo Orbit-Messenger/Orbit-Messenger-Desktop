@@ -2,6 +2,7 @@
 
 <?import java.lang.String?>
 <?import java.net.URL?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -16,9 +17,11 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="541.0" prefWidth="1000.0" styleClass="background" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="541.0" prefWidth="1000.0" styleClass="background" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <MenuBar>
             <menus>
@@ -40,6 +43,11 @@
                         <MenuItem mnemonicParsing="false" onAction="#selectMessageToDelete" text="Delete" />
                     </items>
                 </Menu>
+            <Menu mnemonicParsing="false" text="View">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#toggleConnInfo" text="Toggle Conn Info" />
+              </items>
+            </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#popupAboutDialog" text="About Orbit Messenger" />
@@ -59,7 +67,7 @@
                </font></Label>
          </top>
          <left>
-                <TitledPane fx:id="userPane" alignment="CENTER" collapsible="false" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" prefHeight="407.0" prefWidth="150.0" styleClass="anchor-pane-background" text="Users" BorderPane.alignment="CENTER">
+                <TitledPane fx:id="userPane" alignment="CENTER" collapsible="false" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" styleClass="anchor-pane-background" text="Users" BorderPane.alignment="CENTER">
                     <content>
                         <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="150.0" styleClass="anchor-pane-background">
                             <children>
@@ -70,7 +78,7 @@
                 </TitledPane>
          </left>
          <right>
-            <TitledPane fx:id="roomPane" alignment="CENTER" collapsible="false" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" prefHeight="407.0" prefWidth="150.0" styleClass="anchor-pane-background" text="Rooms" BorderPane.alignment="CENTER">
+            <TitledPane fx:id="roomPane" alignment="CENTER" collapsible="false" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" styleClass="anchor-pane-background" text="Rooms" BorderPane.alignment="CENTER">
                <content>
                   <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="150.0" styleClass="anchor-pane-background">
                      <children>
@@ -96,21 +104,37 @@
             </ScrollPane>
          </center>
          <bottom>
-            <HBox prefHeight="50.0" prefWidth="200.0" styleClass="background" BorderPane.alignment="CENTER">
+            <VBox fx:id="bottomVBox" BorderPane.alignment="CENTER">
                <children>
-                      <TextArea fx:id="messageTextArea" maxWidth="1.7976931348623157E308" onKeyPressed="#handleEnterPressed" prefHeight="50.0" prefWidth="855.0" promptText="Type your Message here..." wrapText="true" HBox.hgrow="ALWAYS">
-                     <styleClass>
-                        <String fx:value="textInput" />
-                        <String fx:value="text-input" />
-                        <String fx:value="font-color" />
-                     </styleClass></TextArea>
-                      <Button fx:id="btnSend" defaultButton="true" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="50.0" prefWidth="151.0" text="Send">
-                     <styleClass>
-                        <String fx:value="font-color" />
-                        <String fx:value="button-color" />
-                     </styleClass></Button>
+                  <HBox>
+                     <children>
+                        <Text fx:id="connectionInformation" strokeType="OUTSIDE" strokeWidth="0.0" />
+                        <Circle fx:id="latencyCircle" fill="lawngreen" radius="8.0" stroke="BLACK" strokeType="INSIDE">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </Circle>
+                     </children>
+                  </HBox>
+                  <HBox prefHeight="50.0" prefWidth="200.0" styleClass="background">
+                     <children>
+                            <TextArea fx:id="messageTextArea" maxWidth="1.7976931348623157E308" onKeyPressed="#handleEnterPressed" prefHeight="50.0" prefWidth="855.0" promptText="Type your Message here..." wrapText="true" HBox.hgrow="ALWAYS">
+                           <styleClass>
+                              <String fx:value="textInput" />
+                              <String fx:value="text-input" />
+                              <String fx:value="font-color" />
+                           </styleClass>
+                        </TextArea>
+                            <Button fx:id="btnSend" defaultButton="true" mnemonicParsing="false" onAction="#sendMessage" onKeyPressed="#sendMessage" prefHeight="50.0" prefWidth="151.0" text="Send">
+                           <styleClass>
+                              <String fx:value="font-color" />
+                              <String fx:value="button-color" />
+                           </styleClass>
+                        </Button>
+                     </children>
+                  </HBox>
                </children>
-            </HBox>
+            </VBox>
          </bottom>
       </BorderPane>
     </children>

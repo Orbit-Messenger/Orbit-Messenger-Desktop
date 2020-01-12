@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"fmt"
+	"Orbit-Messenger/src/go/db"
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
 	"log"
@@ -13,12 +13,16 @@ const (
 	tick_speed = 50 * time.Millisecond
 )
 
-func StringArrayEquals(a []string, b []string) bool {
+func UserInterfaceEquals(a []db.User, b []db.User) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	sort.Strings(a)
-	sort.Strings(b)
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].Username < a[j].Username
+	})
+	sort.Slice(b, func(i, j int) bool {
+		return b[i].Username < b[j].Username
+	})
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false
@@ -34,8 +38,8 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 
 	serverActionLen := rc.serverActions.ActionCount
 
-	// used to keep the client updated with how many users are in the current chatroom
-	activeUsers := rc.getActiveUsersForClient(state.Chatroom)
+	// used to keep the client updated with all the users and their status.
+	allUsers := rc.getAllUsers()
 
 	// waits for the user to login
 	for !state.LoggedIn {
@@ -45,11 +49,10 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	for state.LoggedIn {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
-		activeUsers = rc.getActiveUsersForClient(state.Chatroom)
-		if !StringArrayEquals(activeUsers.ActiveUsers, state.ActiveUsers) {
-			fmt.Println("Users different: ", activeUsers)
-			state.ActiveUsers = rc.getActiveUsersForClient(state.Chatroom).ActiveUsers
-			writeErr := wsConn.WriteJSON(activeUsers)
+		allUsers = rc.getAllUsers()
+		if !UserInterfaceEquals(allUsers.AllUsers, state.AllUsers) {
+			state.AllUsers = rc.getAllUsers().AllUsers
+			writeErr := wsConn.WriteJSON(allUsers)
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
@@ -67,7 +70,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			serverActionLen = rc.serverActions.ActionCount
 		}
 
-		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.MessageLimit)
+		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
 		if len(messages.Messages) > 0 {
 			writeErr := wsConn.WriteJSON(messages)
 			glog.Infof("sending: %v", messages)

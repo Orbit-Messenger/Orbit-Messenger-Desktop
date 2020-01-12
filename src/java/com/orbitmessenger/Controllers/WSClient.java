@@ -3,9 +3,11 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketServerFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
+import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.DefaultWebSocketServerFactory;
 
@@ -18,10 +20,14 @@ import java.nio.ByteBuffer;
 public class WSClient extends WebSocketClient {
 
     public final Object monitor = new Object();
+    public final Object latencyMonitor = new Object();
     public JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
     public JsonObject PreferencesObject;
+    public long receivedMillis = System.currentTimeMillis();
+    public long sentMillis = System.currentTimeMillis();
+    public long latency = 0;
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
 
@@ -64,15 +70,21 @@ public class WSClient extends WebSocketClient {
         return serverResponse.size();
     }
 
-//    @Override
-//    public void onWebsocketPong(WebSocket conn, Framedata f) {
-//        super.onWebsocketPong(conn, f);
-//    }
+    @Override
+    public void onWebsocketPong(WebSocket conn, Framedata f) {
+        synchronized (latencyMonitor) {
+            super.onWebsocketPong(conn, f);
+            receivedMillis = System.currentTimeMillis();
+            latency = receivedMillis - sentMillis;
+            latencyMonitor.notify();
+        }
+    }
 
-//    @Override
-//    public void onWebsocketPing(WebSocket conn, Framedata f) {
-//        super.onWebsocketPing(conn, f);
-//    }
+    @Override
+    public void onWebsocketPing(WebSocket conn, Framedata f) {
+        super.onWebsocketPing(conn, f);
+
+    }
 
     @Override
     public void onMessage(ByteBuffer message) {
@@ -81,7 +93,7 @@ public class WSClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        System.err.println("an error occurred:" + ex);
+        System.out.println("an error occurred:" + ex);
     }
 
     private void setServerResponse(String message){
@@ -89,8 +101,15 @@ public class WSClient extends WebSocketClient {
        this.serverResponse = json;
     }
 
-    public void ping(){
+    public void sendAPing() {
+        sentMillis = System.currentTimeMillis();
         sendPing();
+    }
+
+    public long getLatency() {
+        long localLatency = this.latency;
+        this.latency = 0;
+        return localLatency;
     }
 
     public JsonObject getServerResponse(){
