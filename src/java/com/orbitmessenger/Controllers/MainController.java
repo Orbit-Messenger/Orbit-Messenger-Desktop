@@ -162,11 +162,11 @@ public class MainController extends ControllerUtil {
                     try {
                         JsonObject serverMessage = wsClient.getServerResponse();
                         if (serverMessage != null) {
-                            System.out.println("Response: " + serverMessage);
+                            //System.out.println("Response: " + serverMessage);
                             if (serverMessage.has("messages")) {
                                 updateMessages(getMessagesFromJsonObject(serverMessage));
                             }
-                            if (serverMessage.has("activeUsers")) {
+                            if (serverMessage.has("allUsers")) {
                                 updateUsers(getUsersFromJsonObject(serverMessage));
                             }
                             if (serverMessage.has("chatrooms")) {
@@ -235,11 +235,11 @@ public class MainController extends ControllerUtil {
     public void setConnectionInformation() {
         // If latency is less than 500ms, circle will be green.
         if (wsClient.latency <= 500) {
-            latencyCircle.setFill(Color.GREEN);
+            latencyCircle.setFill(Color.LAWNGREEN);
         } else if (wsClient.latency > 500 && wsClient.latency <= 1000) {
             latencyCircle.setFill(Color.YELLOW);
         } else if (wsClient.latency > 1000) {
-            latencyCircle.setFill(Color.RED);
+            latencyCircle.setFill(Color.INDIANRED);
         }
         connectionInformation.setText("Remote Server: " + wsClient.getConnection().getRemoteSocketAddress() + " - Latency: " + wsClient.getLatency() + "ms");
     }
@@ -279,7 +279,7 @@ public class MainController extends ControllerUtil {
      * Gets the activeUser index from the json object passed to it
      */
     private JsonArray getUsersFromJsonObject(JsonObject serverResponse) {
-        String jsonKey = "activeUsers";
+        String jsonKey = "allUsers";
         if (serverResponse.has(jsonKey)) {
             try {
                 return serverResponse.getAsJsonArray(jsonKey);
@@ -468,14 +468,32 @@ public class MainController extends ControllerUtil {
         if (users == null) {
             return;
         }
+        System.out.println("USERS: " + users);
         ArrayList<Label> userLabels = new ArrayList<>();
-        for (Object user : users) {
+        ArrayList<HBox> userHBox = new ArrayList<>();
+        for (JsonElement user : users) {
+            JsonObject userObject = user.getAsJsonObject();
+            HBox hBox = new HBox();
+            Circle circle = new Circle();
             Label label = new Label();
+
+            circle.setRadius(7);
+
+            // If the user is active, set Circle to GREEN, RED otherwise.
+            if (userObject.get("Status").getAsBoolean()) {
+                circle.setFill(Color.LAWNGREEN);
+            } else if (!userObject.get("Status").getAsBoolean()) {
+                circle.setFill(Color.INDIANRED);
+            }
+
             label.getStyleClass().add("font-color");
             label.setAlignment(Pos.CENTER);
             label.setId("userLabelID");
-            label.setText(trimUsers(user.toString()));
-            userLabels.add(label);
+            label.setText(trimUsers(userObject.get("username").toString()));
+            label.setStyle("-fx-padding: 0 0 0 10;");
+
+            hBox.getChildren().addAll(circle, label);
+            userHBox.add(hBox);
 
             // In case you select the label within the list
             label.setOnMouseClicked(new EventHandler<MouseEvent>(){
@@ -499,9 +517,11 @@ public class MainController extends ControllerUtil {
             public void handle(MouseEvent event) {
                 if (event.getClickCount() == 2) {
                     Integer userIndex = userListView.getFocusModel().focusedIndexProperty().getValue();
-                    System.out.println("User Index: " + userLabels.get(userIndex).getText());
-                    switchToDirectMessage(userLabels.get(userIndex).getText());
-                    currentRoom = userLabels.get(userIndex).getText();
+                    Label label = new Label();
+                    // The second element, that is the one that has the label.
+                    label = (Label) userHBox.get(userIndex).getChildren().get(1);
+                    switchToDirectMessage(label.getText());
+                    currentRoom = label.getText();
                 }
             }
         });
@@ -510,7 +530,7 @@ public class MainController extends ControllerUtil {
             @Override
             public void run() {
                 userListView.getItems().clear();
-                userListView.getItems().addAll(userLabels);
+                userListView.getItems().addAll(userHBox);
             }
         });
     }
@@ -783,8 +803,6 @@ public class MainController extends ControllerUtil {
         submitMessage.addProperty("action", "chatroom");
         submitMessage.addProperty("chatroom", "direct_messages");
         submitMessage.add("users", usersList);
-
-        System.out.println("Message: " + submitMessage.toString().trim());
 
         wsClient.send(submitMessage.toString().trim());
         messagesListView.getItems().clear();

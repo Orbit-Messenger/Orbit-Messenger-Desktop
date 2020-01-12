@@ -31,9 +31,9 @@ type ClientData struct {
 }
 
 type FullData struct {
-	Messages    []db.Message  `json:"messages"`
-	ActiveUsers []string      `json:"activeUsers"`
-	Chatrooms   []db.Chatroom `json:"chatrooms"`
+	Messages  []db.Message  `json:"messages"`
+	AllUsers  []db.User     `json:"allUsers"`
+	Chatrooms []db.Chatroom `json:"chatrooms"`
 }
 
 type State struct {
@@ -44,7 +44,7 @@ type State struct {
 	LoggedIn      bool
 	LoggedOut     bool
 	MessageLimit  int64
-	ActiveUsers   []string
+	AllUsers   	  []db.User
 }
 
 // CreateRouteController will create a database connection and return a RouteController
@@ -135,6 +135,15 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 	if err != nil {
 		glog.Warning("database error couldn't change user password: %v", err)
 	}
+}
+
+func (rc RouteController) getAllUsers() []db.User {
+	users, err := rc.dbConn.GetAllUsers()
+	if err != nil {
+		glog.Error(err)
+		return users
+	}
+	return users
 }
 
 func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {

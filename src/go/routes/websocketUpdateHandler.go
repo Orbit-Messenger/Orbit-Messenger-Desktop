@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"Orbit-Messenger/src/go/db"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
 	"log"
-	"sort"
 	"time"
 )
 
@@ -13,12 +13,12 @@ const (
 	tick_speed = 50 * time.Millisecond
 )
 
-func StringArrayEquals(a []string, b []string) bool {
+func StringArrayEquals(a []db.User, b []db.User) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	sort.Strings(a)
-	sort.Strings(b)
+	//sort.Strings(a)
+	//sort.Strings(b)
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
 			return false
@@ -34,8 +34,8 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 
 	serverActionLen := rc.serverActions.ActionCount
 
-	// used to keep the client updated with how many users are in the current chatroom
-	activeUsers := rc.getActiveUsersForClient(state.Chatroom)
+	// used to keep the client updated with all the users and their status.
+	allUsers := rc.getAllUsers()
 
 	// waits for the user to login
 	for !state.LoggedIn {
@@ -45,11 +45,11 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	for state.LoggedIn {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
-		activeUsers = rc.getActiveUsersForClient(state.Chatroom)
-		if !StringArrayEquals(activeUsers.ActiveUsers, state.ActiveUsers) {
-			fmt.Println("Users different: ", activeUsers)
-			state.ActiveUsers = rc.getActiveUsersForClient(state.Chatroom).ActiveUsers
-			writeErr := wsConn.WriteJSON(activeUsers)
+		allUsers = rc.getAllUsers()
+		if !StringArrayEquals(allUsers, state.AllUsers) {
+			fmt.Println("Users different: ", allUsers)
+			state.AllUsers = rc.getAllUsers()
+			writeErr := wsConn.WriteJSON(allUsers)
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}

@@ -107,9 +107,9 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 	}
 
 	// sends all the messages, active users, and chatrooms to the client
-	messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.MessageLimit)
+	messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
 
-	activeUsers, err := rc.dbConn.GetUsersByStatus(true, state.Chatroom)
+	allUsers, err := rc.dbConn.GetAllUsers()
 	if err != nil {
 		glog.Error(err.Error())
 	}
@@ -119,11 +119,11 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 		glog.Error(err.Error())
 	}
 
-	writeErr := wsConn.WriteJSON(FullData{messages.Messages, activeUsers.ActiveUsers, chatrooms.Chatrooms})
+	writeErr := wsConn.WriteJSON(FullData{messages.Messages, allUsers, chatrooms.Chatrooms})
 	if writeErr != nil {
 		glog.Error("Error writing to JSON: ", writeErr.Error())
 	}
-	state.ActiveUsers = activeUsers.ActiveUsers
+	state.AllUsers = allUsers
 	state.LoggedIn = true
 
 }

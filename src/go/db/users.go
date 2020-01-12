@@ -13,6 +13,7 @@ const (
 	UPDATE_USER_STATUS         = "UPDATE users SET status = $1 WHERE id = $2;"
 	UPDATE_USER_ROOM           = "UPDATE users SET room = $1 WHERE id = $2;"
 	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1 AND room = $2;"
+	GET_ALL_USERS              = "SELECT username, status, room FROM USERS;"
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
@@ -109,6 +110,34 @@ func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) 
 	_, err = dbConn.conn.Exec(context.Background(), UPDATE_USER_STATUS, status, userId)
 	return err
 
+}
+
+// Gets all the users in the USER DB and their status
+func (dbConn DatabaseConnection) GetAllUsers() ([]User, error) {
+	var user []User
+	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_USERS)
+	if err != nil {
+		return user, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var username string
+		var status bool
+		var room string
+		err = rows.Scan(&username, &status, &room)
+		if err != nil {
+			return user, err
+		}
+
+		user = append(user, User{
+			Username: username,
+			Status:   status,
+			Room:     room,
+		})
+	}
+
+	return user, nil
 }
 
 // Gets all the users by their status
