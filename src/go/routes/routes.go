@@ -157,7 +157,7 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
 	// If Chatroom direct message, get those messages, else get the regular room messages.
-	if *chatroom == "direct_message" {
+	if *chatroom == "direct_messages" {
 		messages, err := rc.dbConn.GetNewestDirectMessagesFrom(*lastMessageId, *users, *messageLimit)
 		if err != nil {
 			glog.Error(err)
@@ -177,15 +177,28 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users []string, messageLimit *int64) db.Messages {
 	glog.Info("getting All Messages")
-	messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
-	if err != nil {
-		glog.Error(err)
+	glog.Info(*chatroom)
+	if *chatroom == "direct_messages" {
+		glog.Info("hit")
+		messages, err := rc.dbConn.GetAllDirectMessages(users[0], users[1], *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
+	} else {
+		messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
+		if err != nil {
+			glog.Error(err)
+			return messages
+		}
+		updateLastMessageId(messages.Messages, lastMessageId)
+		return messages
+
 	}
-	updateLastMessageId(messages.Messages, lastMessageId)
-	return messages
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {

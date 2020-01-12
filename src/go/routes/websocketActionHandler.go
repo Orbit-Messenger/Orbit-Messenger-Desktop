@@ -16,8 +16,6 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 	for {
 		clientData := rc.handleReadDeadlineAndRead(state, wsConn)
-		glog.Info(clientData)
-
 		switch clientData.Action {
 		case "login":
 			rc.loginAction(clientData, state, wsConn)
@@ -107,7 +105,7 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 	}
 
 	// sends all the messages, active users, and chatrooms to the client
-	messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
+	messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, state.Users, &state.MessageLimit)
 
 	allUsers, err := rc.dbConn.GetAllUsers()
 	if err != nil {
@@ -209,7 +207,6 @@ func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 			glog.Error(err.Error())
 		}
 	}
-	glog.Infof("worked: state is: %v", state.Chatroom)
 }
 
 // Gets all the messages for the client
