@@ -137,7 +137,7 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 	}
 }
 
-func (rc RouteController) getAllUsers() []db.User {
+func (rc RouteController) getAllUsers() db.AllUsers {
 	users, err := rc.dbConn.GetAllUsers()
 	if err != nil {
 		glog.Error(err)

@@ -117,11 +117,11 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 		glog.Error(err.Error())
 	}
 
-	writeErr := wsConn.WriteJSON(FullData{messages.Messages, allUsers, chatrooms.Chatrooms})
+	writeErr := wsConn.WriteJSON(FullData{messages.Messages, allUsers.AllUsers, chatrooms.Chatrooms})
 	if writeErr != nil {
 		glog.Error("Error writing to JSON: ", writeErr.Error())
 	}
-	state.AllUsers = allUsers
+	state.AllUsers = allUsers.AllUsers
 	state.LoggedIn = true
 
 }

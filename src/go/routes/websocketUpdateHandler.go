@@ -53,14 +53,19 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
 		allUsers = rc.getAllUsers()
-		if !UserInterfaceEquals(allUsers, state.AllUsers) {
+		if !UserInterfaceEquals(allUsers.AllUsers, state.AllUsers) {
 			fmt.Println("Users different: ", allUsers)
-			state.AllUsers = rc.getAllUsers()
+			state.AllUsers = rc.getAllUsers().AllUsers
 			writeErr := wsConn.WriteJSON(allUsers)
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
 		}
+		//fmt.Println("AllUsers: ", allUsers)
+		//writeErr := wsConn.WriteJSON(allUsers)
+		//if writeErr != nil {
+		//	glog.Error(writeErr.Error())
+		//}
 
 		if serverActionLen != rc.serverActions.ActionCount {
 			newestAction, err := rc.serverActions.GetNewestAction()

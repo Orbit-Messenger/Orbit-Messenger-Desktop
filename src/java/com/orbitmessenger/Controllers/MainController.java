@@ -476,7 +476,6 @@ public class MainController extends ControllerUtil {
         if (users == null) {
             return;
         }
-        System.out.println("USERS: " + users);
         ArrayList<HBox> userHBox = new ArrayList<>();
         for (JsonElement user : users) {
             JsonObject userObject = new JsonObject();

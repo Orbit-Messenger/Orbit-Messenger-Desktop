@@ -28,6 +28,10 @@ type User struct {
 	Room     string `json:"room"`
 }
 
+type AllUsers struct {
+	AllUsers []User `json:"allUsers"`
+}
+
 type ActiveUsers struct {
 	ActiveUsers []string `json:"activeUsers"`
 }
@@ -113,8 +117,8 @@ func (dbConn DatabaseConnection) ChangeUserStatus(username string, status bool) 
 }
 
 // Gets all the users in the USER DB and their status
-func (dbConn DatabaseConnection) GetAllUsers() ([]User, error) {
-	var user []User
+func (dbConn DatabaseConnection) GetAllUsers() (AllUsers, error) {
+	var user AllUsers
 	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_USERS)
 	if err != nil {
 		return user, err
@@ -130,7 +134,7 @@ func (dbConn DatabaseConnection) GetAllUsers() ([]User, error) {
 			return user, err
 		}
 
-		user = append(user, User{
+		user.AllUsers = append(user.AllUsers, User{
 			Username: username,
 			Status:   status,
 			Room:     room,
