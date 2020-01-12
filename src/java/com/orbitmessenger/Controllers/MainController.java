@@ -162,7 +162,7 @@ public class MainController extends ControllerUtil {
                     try {
                         JsonObject serverMessage = wsClient.getServerResponse();
                         if (serverMessage != null) {
-                            //System.out.println("Response: " + serverMessage);
+                            System.out.println("Response: " + serverMessage);
                             if (serverMessage.has("messages")) {
                                 updateMessages(getMessagesFromJsonObject(serverMessage));
                             }
@@ -254,8 +254,14 @@ public class MainController extends ControllerUtil {
      * Gets the messages index from the json object passed to it
      */
     private JsonArray getMessagesFromJsonObject(JsonObject serverResponse) {
-        if (serverResponse.has("messages")) {
-            return serverResponse.getAsJsonArray("messages");
+        String jsonkey = "messages";
+        if (serverResponse.has(jsonkey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonkey);
+            } catch (Exception e) {
+                System.out.println("Error getting messages from JsonObject");
+                return null;
+            }
         }
         return null;
     }
@@ -269,6 +275,7 @@ public class MainController extends ControllerUtil {
             try {
                 return serverResponse.getAsJsonArray(jsonKey);
             } catch (Exception e) {
+                System.out.println("Erorr getting rooms from JsonObject");
                 return null;
             }
         }
@@ -284,6 +291,7 @@ public class MainController extends ControllerUtil {
             try {
                 return serverResponse.getAsJsonArray(jsonKey);
             } catch (Exception e) {
+                System.out.println("Error getting users from JsonObject");
                 return null;
             }
         }
@@ -469,10 +477,12 @@ public class MainController extends ControllerUtil {
             return;
         }
         System.out.println("USERS: " + users);
-        ArrayList<Label> userLabels = new ArrayList<>();
         ArrayList<HBox> userHBox = new ArrayList<>();
         for (JsonElement user : users) {
-            JsonObject userObject = user.getAsJsonObject();
+            JsonObject userObject = new JsonObject();
+            if (user.isJsonObject()) {
+                userObject = user.getAsJsonObject();
+            }
             HBox hBox = new HBox();
             Circle circle = new Circle();
             Label label = new Label();
