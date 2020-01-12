@@ -109,7 +109,7 @@
                   <HBox>
                      <children>
                         <Text fx:id="connectionInformation" strokeType="OUTSIDE" strokeWidth="0.0" />
-                        <Circle fx:id="latencyCircle" fill="green" radius="8.0" stroke="BLACK" strokeType="INSIDE">
+                        <Circle fx:id="latencyCircle" fill="lawngreen" radius="8.0" stroke="BLACK" strokeType="INSIDE">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
