@@ -2,7 +2,6 @@ package routes
 
 import (
 	"Orbit-Messenger/src/go/db"
-	"fmt"
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
 	"log"
@@ -26,8 +25,6 @@ func UserInterfaceEquals(a []db.User, b []db.User) bool {
 	})
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
-			fmt.Println("a[i]: ", a[i])
-			fmt.Println("b[i]: ", b[i])
 			return false
 		}
 	}
@@ -54,7 +51,6 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		// updates the client with the current users in that chatroom
 		allUsers = rc.getAllUsers()
 		if !UserInterfaceEquals(allUsers.AllUsers, state.AllUsers) {
-			fmt.Println("Users different: ", allUsers)
 			state.AllUsers = rc.getAllUsers().AllUsers
 			writeErr := wsConn.WriteJSON(allUsers)
 			if writeErr != nil {
