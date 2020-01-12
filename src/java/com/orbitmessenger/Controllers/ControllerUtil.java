@@ -8,6 +8,8 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,11 +21,13 @@ class FxUtil{
     final public String CROOM_FXML = PATH_TO_FXML + "createRoom.fxml";
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
+    final public String VERSION_LOC = "version.txt";
 
 
     public Integer messageNumber;
     public String theme;
     public JsonObject PreferencesObject;
+    public String version;
 
     //+++++++++ Stage functions ++++++++++
 
@@ -75,6 +79,22 @@ class FxUtil{
     public void loadPreferences() {
         Object returnedPreferences = readPreferencesFile();
         PreferencesObject = (JsonObject) new JsonParser().parse(returnedPreferences.toString());
+    }
+
+    public void loadVersion() {
+        String localVersion = readVersionFile();
+        version = localVersion.trim();
+    }
+
+    private String readVersionFile() {
+        String content = "";
+        try {
+            content = new String (Files.readAllBytes(Paths.get(this.VERSION_LOC)));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
     }
 
     private Object readPreferencesFile() {

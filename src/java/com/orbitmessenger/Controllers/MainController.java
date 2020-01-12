@@ -62,6 +62,8 @@ public class MainController extends ControllerUtil {
     private ObservableList<String> users;
     @FXML
     private Circle latencyCircle;
+    @FXML
+    private Label versionLabel;
 
     // Server Configuration
     private boolean connected;
@@ -104,8 +106,9 @@ public class MainController extends ControllerUtil {
         updateHandler.start(); // Starts the update handler thread
         connectionInformationThread.start(); // Starts the connection information thread
         loadPreferences();
-        //sendProperties();
+        loadVersion();
         setDarkMode();
+        setVersion();
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -248,6 +251,14 @@ public class MainController extends ControllerUtil {
         // This will call the closeProgram() function in MainController so it closes correctly when
         // clicking on the red X!
         stage.setOnHidden(e -> closeProgram());
+    }
+
+    /**
+     * Sets the version number in the Client
+     */
+    public void setVersion() {
+        System.out.println("VERSION: " + version);
+        versionLabel.setText(version);
     }
 
     /**
@@ -497,9 +508,16 @@ public class MainController extends ControllerUtil {
 
             label.getStyleClass().add("font-color");
             label.setAlignment(Pos.CENTER);
-            label.setId("userLabelID");
             label.setText(trimUsers(userObject.get("username").toString()));
             label.setStyle("-fx-padding: 0 0 0 10;");
+
+            // We want to change the logged in user to a special color.
+            if (trimUsers(userObject.get("username").toString()).equals(getUsername())) {
+                System.out.println("MATCH: " + trimUsers(userObject.get("username").toString()) + " " + getUsername());
+                label.setTextFill(Color.ROYALBLUE);
+            } else {
+                label.setId("userLabelID");
+            }
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);

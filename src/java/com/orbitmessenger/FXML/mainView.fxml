@@ -16,6 +16,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
@@ -23,42 +24,50 @@
 
 <VBox fx:id="mainVBox" alignment="CENTER" prefHeight="541.0" prefWidth="1000.0" styleClass="background" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <MenuBar>
-            <menus>
-                <Menu mnemonicParsing="false" text="File">
+      <StackPane>
+         <children>
+              <MenuBar>
+                  <menus>
+                      <Menu mnemonicParsing="false" text="File">
+                          <items>
+                              <MenuItem mnemonicParsing="false" onAction="#switchToLogin" text="Log Off" />
+                              <SeparatorMenuItem mnemonicParsing="false" />
+                              <MenuItem mnemonicParsing="false" onAction="#openPreferences" text="Preferences…" />
+                              <SeparatorMenuItem mnemonicParsing="false" />
+                              <MenuItem mnemonicParsing="false" onAction="#openCreateRoom" text="Create Room" />
+                              <SeparatorMenuItem mnemonicParsing="false" />
+                              <MenuItem mnemonicParsing="false" onAction="#closeProgram" text="Quit" />
+                          </items>
+                      </Menu>
+                      <Menu mnemonicParsing="false" text="Edit">
+                          <items>
+                              <MenuItem mnemonicParsing="false" onAction="#copy" text="Copy" />
+                              <MenuItem mnemonicParsing="false" onAction="#paste" text="Paste" />
+                              <MenuItem mnemonicParsing="false" onAction="#selectMessageToDelete" text="Delete" />
+                          </items>
+                      </Menu>
+                  <Menu mnemonicParsing="false" text="View">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#switchToLogin" text="Log Off" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#openPreferences" text="Preferences…" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#openCreateRoom" text="Create Room" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#closeProgram" text="Quit" />
+                      <MenuItem mnemonicParsing="false" onAction="#toggleConnInfo" text="Toggle Conn Info" />
                     </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                    <items>
-                        <MenuItem mnemonicParsing="false" onAction="#copy" text="Copy" />
-                        <MenuItem mnemonicParsing="false" onAction="#paste" text="Paste" />
-                        <MenuItem mnemonicParsing="false" onAction="#selectMessageToDelete" text="Delete" />
-                    </items>
-                </Menu>
-            <Menu mnemonicParsing="false" text="View">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#toggleConnInfo" text="Toggle Conn Info" />
-              </items>
-            </Menu>
-                <Menu mnemonicParsing="false" text="Help">
-                    <items>
-                        <MenuItem mnemonicParsing="false" onAction="#popupAboutDialog" text="About Orbit Messenger" />
-                    </items>
-                </Menu>
-            </menus>
-         <styleClass>
-            <String fx:value="tool-bar" />
-            <String fx:value="font-color" />
-         </styleClass>
-        </MenuBar>
+                  </Menu>
+                      <Menu mnemonicParsing="false" text="Help">
+                          <items>
+                              <MenuItem mnemonicParsing="false" onAction="#popupAboutDialog" text="About Orbit Messenger" />
+                          </items>
+                      </Menu>
+                  </menus>
+               <styleClass>
+                  <String fx:value="tool-bar" />
+                  <String fx:value="font-color" />
+               </styleClass>
+              </MenuBar>
+            <Label fx:id="versionLabel" alignment="CENTER_RIGHT" contentDisplay="CENTER" StackPane.alignment="CENTER_RIGHT">
+               <StackPane.margin>
+                  <Insets right="5.0" />
+               </StackPane.margin></Label>
+         </children>
+      </StackPane>
       <BorderPane styleClass="background" VBox.vgrow="ALWAYS">
          <top>
             <Label fx:id="roomLabel" styleClass="font-color" text="General" BorderPane.alignment="CENTER">
