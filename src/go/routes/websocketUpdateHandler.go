@@ -61,11 +61,6 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 				glog.Error(writeErr.Error())
 			}
 		}
-		//fmt.Println("AllUsers: ", allUsers)
-		//writeErr := wsConn.WriteJSON(allUsers)
-		//if writeErr != nil {
-		//	glog.Error(writeErr.Error())
-		//}
 
 		if serverActionLen != rc.serverActions.ActionCount {
 			newestAction, err := rc.serverActions.GetNewestAction()

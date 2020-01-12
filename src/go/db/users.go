@@ -13,7 +13,7 @@ const (
 	UPDATE_USER_STATUS         = "UPDATE users SET status = $1 WHERE id = $2;"
 	UPDATE_USER_ROOM           = "UPDATE users SET room = $1 WHERE id = $2;"
 	GET_USERNAMES_FROM_STATUS  = "SELECT username FROM users WHERE status = $1 AND room = $2;"
-	GET_ALL_USERS              = "SELECT username, status, room FROM users WHERE username != 'admin';"
+	GET_ALL_USERS              = "SELECT username, status, room FROM users WHERE username != 'admin' ORDER BY username ASC;"
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
