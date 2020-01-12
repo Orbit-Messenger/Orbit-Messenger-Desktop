@@ -781,7 +781,7 @@ public class MainController extends ControllerUtil {
         usersList.add(user);
         JsonObject submitMessage = new JsonObject();
         submitMessage.addProperty("action", "chatroom");
-        submitMessage.addProperty("chatroom", "direct_message");
+        submitMessage.addProperty("chatroom", "direct_messages");
         submitMessage.add("users", usersList);
 
         System.out.println("Message: " + submitMessage.toString().trim());

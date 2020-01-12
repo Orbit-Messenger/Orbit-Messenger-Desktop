@@ -168,7 +168,7 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, messageLimit *int64) db.Messages {
+func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
 	glog.Info("getting All Messages")
 	messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
 	if err != nil {

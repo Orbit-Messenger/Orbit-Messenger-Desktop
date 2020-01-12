@@ -79,7 +79,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 
 		select {
 		case <-ticker.C:
-			if err := wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10 * time.Second)); err != nil {
+			if err := wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second)); err != nil {
 				log.Println("ping:", err)
 			}
 		default:

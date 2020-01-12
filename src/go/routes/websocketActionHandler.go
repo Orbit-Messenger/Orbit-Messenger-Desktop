@@ -16,6 +16,7 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 
 	for {
 		clientData := rc.handleReadDeadlineAndRead(state, wsConn)
+		glog.Info(clientData)
 
 		switch clientData.Action {
 		case "login":
@@ -152,9 +153,16 @@ func (rc RouteController) logoutAction(clientData ClientData, state *State, wsCo
 
 func (rc RouteController) addAction(clientData ClientData, state *State) {
 	glog.Info("adding message")
-	err := rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
-	if err != nil {
-		glog.Error(err.Error())
+	if state.Chatroom == "direct_messages" {
+		err := rc.dbConn.AddDirectMessage(clientData.Message, state.Username, state.Users[1], state.Chatroom)
+		if err != nil {
+			glog.Error(err.Error())
+		}
+	} else {
+		err := rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
+		if err != nil {
+			glog.Error(err.Error())
+		}
 	}
 }
 
@@ -173,28 +181,35 @@ func (rc RouteController) propertiesAction(clientData ClientData, state *State) 
 
 func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 	glog.Info("changing chatroom")
-	// Write user left room!
-	err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", state.Chatroom)
-	if err != nil {
-		glog.Error(err.Error())
-	}
 	// Update state to the new room
+	oldRoom := state.Chatroom
 	state.Chatroom = clientData.Chatroom
-	// Write user joined room!
-	err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
-	if err != nil {
-		glog.Error(err.Error())
-	}
 
 	// Update the new room in the DB
-	userRoomErr := rc.dbConn.ChangeUserRoom(clientData.Username, state.Chatroom)
+	userRoomErr := rc.dbConn.ChangeUserRoom(state.Username, state.Chatroom)
+
 	if userRoomErr != nil {
 		glog.Error("Error changing user room: ", userRoomErr.Error())
+		return
 	}
 
 	// Set the lastMessageId to 0 so on next update it will get all the messages.
 	state.LastMessageId = 0
+	state.Users = clientData.Users
 
+	if state.Chatroom != "direct_messages" {
+		// Write user left room!
+		err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", oldRoom)
+		if err != nil {
+			glog.Error(err.Error())
+		}
+		// Write user joined room!
+		err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
+		if err != nil {
+			glog.Error(err.Error())
+		}
+	}
+	glog.Infof("worked: state is: %v", state.Chatroom)
 }
 
 // Gets all the messages for the client
