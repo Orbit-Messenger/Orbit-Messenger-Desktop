@@ -6,6 +6,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
 	"log"
+	"sort"
 	"time"
 )
 
@@ -13,14 +14,20 @@ const (
 	tick_speed = 50 * time.Millisecond
 )
 
-func StringArrayEquals(a []db.User, b []db.User) bool {
+func UserInterfaceEquals(a []db.User, b []db.User) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	//sort.Strings(a)
-	//sort.Strings(b)
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].Username < a[j].Username
+	})
+	sort.Slice(b, func(i, j int) bool {
+		return b[i].Username < b[j].Username
+	})
 	for i := 0; i < len(a); i++ {
 		if a[i] != b[i] {
+			fmt.Println("a[i]: ", a[i])
+			fmt.Println("b[i]: ", b[i])
 			return false
 		}
 	}
@@ -46,7 +53,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
 		allUsers = rc.getAllUsers()
-		if !StringArrayEquals(allUsers, state.AllUsers) {
+		if !UserInterfaceEquals(allUsers, state.AllUsers) {
 			fmt.Println("Users different: ", allUsers)
 			state.AllUsers = rc.getAllUsers()
 			writeErr := wsConn.WriteJSON(allUsers)
