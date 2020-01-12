@@ -257,7 +257,6 @@ public class MainController extends ControllerUtil {
      * Sets the version number in the Client
      */
     public void setVersion() {
-        System.out.println("VERSION: " + version);
         versionLabel.setText(version);
     }
 
@@ -513,7 +512,6 @@ public class MainController extends ControllerUtil {
 
             // We want to change the logged in user to a special color.
             if (trimUsers(userObject.get("username").toString()).equals(getUsername())) {
-                System.out.println("MATCH: " + trimUsers(userObject.get("username").toString()) + " " + getUsername());
                 label.setTextFill(Color.ROYALBLUE);
             } else {
                 label.setId("userLabelID");
