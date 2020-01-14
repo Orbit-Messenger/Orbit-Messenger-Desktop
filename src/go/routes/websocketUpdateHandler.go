@@ -73,7 +73,7 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
 		if len(messages.Messages) > 0 {
 			writeErr := wsConn.WriteJSON(messages)
-			glog.Infof("sending: %v", messages)
+			//glog.Infof("sending: %v", messages)
 			if writeErr != nil {
 				//TODO FIX ANNOYING TLS MESSAGE
 				//glog.Error(writeErr.Error())

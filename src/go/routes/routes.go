@@ -44,7 +44,7 @@ type State struct {
 	LoggedIn      bool
 	LoggedOut     bool
 	MessageLimit  int64
-	AllUsers   	  []db.User
+	AllUsers      []db.User
 }
 
 // CreateRouteController will create a database connection and return a RouteController
@@ -158,13 +158,14 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
 	// If Chatroom direct message, get those messages, else get the regular room messages.
 	if *chatroom == "direct_messages" {
-		messages, err := rc.dbConn.GetNewestDirectMessagesFrom(*lastMessageId, *users, *messageLimit)
+		messages, err := rc.dbConn.GetNewestDirectMessages(*lastMessageId, *users, *messageLimit)
 		if err != nil {
 			glog.Error(err)
 			return messages
 		}
 		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
+
 	} else {
 		messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
 		if err != nil {
@@ -178,10 +179,7 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 
 // Gets all the messages for the client
 func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users []string, messageLimit *int64) db.Messages {
-	glog.Info("getting All Messages")
-	glog.Info(*chatroom)
 	if *chatroom == "direct_messages" {
-		glog.Info("hit")
 		messages, err := rc.dbConn.GetAllDirectMessages(users[0], users[1], *messageLimit)
 		if err != nil {
 			glog.Error(err)
@@ -205,6 +203,7 @@ func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
 	if len(messages) < 1 {
 		return
 	}
-	*lastMessageId = messages[0].MessageId
-	//*lastMessageId = messages[len(messages)-1].MessageId
+	if *lastMessageId < messages[0].MessageId {
+		*lastMessageId = messages[0].MessageId
+	}
 }

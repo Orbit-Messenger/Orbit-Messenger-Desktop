@@ -12,8 +12,8 @@ const (
 	ADD_DIRECT_MESSAGE           = "INSERT INTO messages VALUES(DEFAULT, $1, $2, $3, $4);"
 	GET_ALL_MESSAGES             = "SELECT * FROM full_messages WHERE name = $1 ORDER BY id DESC LIMIT $2;"
 	GET_NEWEST_MESSAGES          = "SELECT * FROM full_messages WHERE id > $1 AND name = $2 ORDER BY id DESC LIMIT $3;"
-	GET_ALL_DIRECT_MESSAGES      = "SELECT * FROM full_direct_messages WHERE sender = $1 AND receiver = $2 ORDER BY id DESC LIMIT $2;"
-	GET_NEWEST_DIRECT_MESSAGES   = "SELECT * FROM full_direct_messages WHERE id > $1 AND sender = $2 AND receiver = $3 ORDER BY id DESC LIMIT $4"
+	GET_ALL_DIRECT_MESSAGES      = "SELECT * FROM full_direct_messages WHERE sender = $1 AND receiver = $2 OR sender = $3 AND receiver = $4 ORDER BY id DESC LIMIT $5;"
+	GET_NEWEST_DIRECT_MESSAGES   = "SELECT * FROM full_direct_messages WHERE id > $1 AND sender = $2 AND receiver = $3 OR id > $1 AND sender = $4 AND receiver = $5 ORDER BY id DESC LIMIT $6"
 	GET_MESSAGE_COUNT            = "SELECT count(id) FROM full_messages WHERE name = $1;"
 	GET_USERNAME_FROM_MESSAGE_ID = "SELECT users.username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE messages.id = $1;"
 	DELETE_MESSAGE               = "DELETE FROM messages WHERE id = $1;"
@@ -85,7 +85,7 @@ func (dbConn DatabaseConnection) GetAllDirectMessages(sender string, receiver st
 	var messages Messages
 	var count int
 	glog.Infof("sender: %v  recevier: %v", sender, receiver)
-	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_DIRECT_MESSAGES, sender, receiver, messageLimit)
+	rows, err := dbConn.conn.Query(context.Background(), GET_ALL_DIRECT_MESSAGES, sender, receiver, receiver, sender, messageLimit)
 	if err != nil {
 		return messages, err
 	}
@@ -103,10 +103,10 @@ func (dbConn DatabaseConnection) GetAllDirectMessages(sender string, receiver st
 	return messages, nil
 }
 
-func (dbConn DatabaseConnection) GetNewestDirectMessagesFrom(messageId int64, users []string, messageLimit int64) (Messages, error) {
+func (dbConn DatabaseConnection) GetNewestDirectMessages(messageId int64, users []string, messageLimit int64) (Messages, error) {
 
 	var messages Messages
-	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_DIRECT_MESSAGES, messageId, users[0], users[1], messageLimit)
+	rows, err := dbConn.conn.Query(context.Background(), GET_NEWEST_DIRECT_MESSAGES, messageId, users[0], users[1], users[1], users[0], messageLimit)
 	if err != nil {
 		return messages, err
 	}

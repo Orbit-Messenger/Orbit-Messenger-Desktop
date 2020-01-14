@@ -151,16 +151,17 @@ func (rc RouteController) logoutAction(clientData ClientData, state *State, wsCo
 
 func (rc RouteController) addAction(clientData ClientData, state *State) {
 	glog.Info("adding message")
+	var err error
+	// handles adding all direct messages
 	if state.Chatroom == "direct_messages" {
-		err := rc.dbConn.AddDirectMessage(clientData.Message, state.Username, state.Users[1], state.Chatroom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		err = rc.dbConn.AddDirectMessage(clientData.Message, state.Username, state.Users[1], state.Chatroom)
+
+		// handles normal messages
 	} else {
-		err := rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		err = rc.dbConn.AddMessage(clientData.Message, state.Username, state.Chatroom)
+	}
+	if err != nil {
+		glog.Error(err.Error())
 	}
 }
 
