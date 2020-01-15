@@ -1,6 +1,7 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.java_websocket.WebSocket;
@@ -24,6 +25,7 @@ public class WSClient extends WebSocketClient {
     public JsonObject serverResponse;
     public JsonObject submitObject;
     private String username;
+    private String password;
     public JsonObject PreferencesObject;
     public long receivedMillis = System.currentTimeMillis();
     public long sentMillis = System.currentTimeMillis();
@@ -33,21 +35,23 @@ public class WSClient extends WebSocketClient {
 
     private WebSocketServerFactory wsf = new DefaultWebSocketServerFactory();
 
-    public WSClient(URI serverUri, String username, Draft draft) {
+    public WSClient(URI serverUri, String username, String password, Draft draft) {
         super(serverUri, draft);
         this.username = username;
+        this.password = password;
     }
 
-    public WSClient(URI serverURI, String username) {
+    public WSClient(URI serverURI, String username, String password) {
         super(serverURI);
         this.username = username;
+        this.password = password;
         this.connect();
         System.out.println("past wsClient");
     }
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
-        send(createLoginObject(this.username).toString());
+        send(createLoginObject(this.username, this.password).toString());
         System.out.println("new connection opened");
     }
 
@@ -83,7 +87,6 @@ public class WSClient extends WebSocketClient {
     @Override
     public void onWebsocketPing(WebSocket conn, Framedata f) {
         super.onWebsocketPing(conn, f);
-
     }
 
     @Override
@@ -118,10 +121,11 @@ public class WSClient extends WebSocketClient {
         return response;
     }
 
-    private JsonObject createLoginObject(String username){
+    private JsonObject createLoginObject(String username, String password){
         submitObject = new JsonObject();
         submitObject.addProperty("action", "login");
         submitObject.addProperty("username", username);
+        submitObject.addProperty("password", password);
         submitObject.add("properties", getPreferences());
         return submitObject;
     }
@@ -165,4 +169,57 @@ public class WSClient extends WebSocketClient {
 
         return json;
     }
+
+
+    public JsonArray getMessagesFromJsonObject(JsonObject serverResponse) {
+        String jsonkey = "messages";
+        if (serverResponse.has(jsonkey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonkey);
+            } catch (Exception e) {
+                System.out.println("Error getting messages from JsonObject");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the activeRoom index from the json object passed to it
+     */
+    public JsonArray getRoomsFromJsonObject(JsonObject serverResponse) {
+        String jsonKey = "chatrooms";
+        if (serverResponse.has(jsonKey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonKey);
+            } catch (Exception e) {
+                System.out.println("Erorr getting rooms from JsonObject");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the activeUser index from the json object passed to it
+     */
+    public JsonArray getUsersFromJsonObject(JsonObject serverResponse) {
+        String jsonKey = "allUsers";
+        if (serverResponse.has(jsonKey)) {
+            try {
+                return serverResponse.getAsJsonArray(jsonKey);
+            } catch (Exception e) {
+                System.out.println("Error getting users from JsonObject");
+                return null;
+            }
+        }
+        return null;
+    }
+
+
+
+
+
+
+
 }

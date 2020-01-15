@@ -24,6 +24,7 @@ type ClientData struct {
 	Message       string                 `json:"message"`
 	Chatroom      string                 `json:"chatroom"`
 	Username      string                 `json:"username"`
+	Password      string                 `json:"password"`
 	Users         []string               `json:"users"`
 	Action        string                 `json:"action"`
 	LastMessageId int64                  `json:"lastMessageId"`

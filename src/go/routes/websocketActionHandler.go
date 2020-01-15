@@ -82,6 +82,10 @@ func (rc RouteController) handleReadDeadlineAndRead(state *State, wsConn *websoc
 func (rc RouteController) loginAction(clientData ClientData, state *State, wsConn *websocket.Conn) {
 	glog.Infof("Logging in: %v", clientData.Username)
 
+	if !rc.dbConn.VerifyPasswordByUsername(clientData.Username, clientData.Password) {
+		return
+	}
+
 	// Sets our message limit!
 	state.MessageLimit = int64(clientData.Properties["messageNumber"].(float64))
 
