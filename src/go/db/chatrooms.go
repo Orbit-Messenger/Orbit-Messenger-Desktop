@@ -7,7 +7,7 @@ import (
 
 const (
 	create_chatroom   = "INSERT INTO chatrooms VALUES(DEFAULT, $1);"
-	get_all_chatrooms = "SELECT * FROM chatrooms ORDER BY name ASC;"
+	get_all_chatrooms = "SELECT * FROM chatrooms WHERE name != 'direct_messages' ORDER BY name ASC;"
 	chatroom_exists   = "SELECT EXISTS(SELECT name FROM chatrooms WHERE name = $1);"
 	get_name_from_id  = "SELECT name FROM chatrooms WHERE id = $1;"
 	get_id_from_name  = "SELECT id FROM chatrooms WHERE name = $1;"
