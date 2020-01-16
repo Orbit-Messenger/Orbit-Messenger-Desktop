@@ -98,7 +98,6 @@ public class MainController extends ControllerUtil {
         loadPreferences();
         loadVersion();
         setDarkMode();
-        setVersion();
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -336,17 +335,6 @@ public class MainController extends ControllerUtil {
         messageTextArea.setText("");
         messageTextArea.requestFocus();
     }
-
-    /**
-     * Sets the version number in the Client
-     */
-    public void setVersion() {
-        versionLabel.setText(version);
-    }
-
-    /**
-     * Gets the messages index from the json object passed to it
-     */
 
     /**
      * Sends a request to the server to delete a message by sending the messageId.
@@ -729,7 +717,7 @@ public class MainController extends ControllerUtil {
         });
         alert.setTitle("Orbit Messenger");
         alert.setHeaderText(null);
-        String line2 = ("Designed and built by Brody and Maxwell in Utah!" + "\n" + "https://github.com/MaxwellM/Orbit-Messenger");
+        String line2 = ("Designed and built by Brody and Maxwell in Utah!" + "\n" + "https://github.com/MaxwellM/Orbit-Messenger" + "\n\n" + "Version: " + version);
         // create a hyperlink
         Hyperlink hyperlink = new Hyperlink("hyperlink");
         alert.setContentText(line2);
