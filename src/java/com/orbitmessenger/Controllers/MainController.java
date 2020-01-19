@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -425,18 +426,15 @@ public class MainController extends ControllerUtil {
             //HBox localHBox = (HBox) localObject.getChildren().get(0);
             Label localLabel = (Label) localObject.getChildren().get(0);
             lastUser = localLabel.getText();
-            System.out.println("Last Message Object 1: " + lastUser);
         } else {
             // Now, we want the previous JsonObject in our iteration, else grab this one.
             if (0 <= i && i < newMessages.size() -1) {
                 lastMessage = newMessages.get(i+1).getAsJsonObject();
                 lastUser = lastMessage.get("username").toString().replace("\"", "");
-                System.out.println("Last Message Object 2: " + lastUser);
             } else {
                 lastMessage = newMessages.get(i).getAsJsonObject();
                 lastUser = lastMessage.get("username").toString().replace("\"", "");
                 lastUser = "";
-                System.out.println("Last Message Object 3: " + lastUser);
             }
         }
         return lastUser;
@@ -465,8 +463,6 @@ public class MainController extends ControllerUtil {
             currentUser = m.get("username").toString().replace("\"", "");
 
             sameUser = currentUser.equals(lastUser);
-            System.out.println("Current User: " + currentUser + "\nLast User: " + lastUser);
-            System.out.println("Same User: " + sameUser + "\n");
 
             messageBoxes.add(
                     createMessageBox(
@@ -711,20 +707,33 @@ public class MainController extends ControllerUtil {
     private VBox createMessageBox(String username, String timestamp, String message, Boolean sameUser) {
         String shortTime = convertTime(timestamp.replace("\"", ""));
 
-        VBox vbox = new VBox();
-        HBox hBox = new HBox();
+
         Label hiddenUsername = new Label();
+        VBox individualMessageVBox = new VBox();
+        VBox individualMessageContainer = new VBox();
+        HBox hBox = new HBox();
         // check if username == the current user or moves messages to the right
         if ((!username.equals(this.getUsername())) && (!username.equals("admin"))) {
-            vbox.setAlignment(Pos.CENTER_RIGHT);
+            individualMessageVBox.setAlignment(Pos.CENTER_RIGHT);
             hBox.setAlignment(Pos.CENTER_RIGHT);
+            individualMessageVBox.getStyleClass().add("otherMessageBox");
+            individualMessageContainer.setId("otherMessageBox");
         } else if (username.equals("admin")){
             // must be admin, we want to center these messages
-            vbox.setAlignment(Pos.CENTER);
+            individualMessageVBox.setAlignment(Pos.CENTER);
             hBox.setAlignment(Pos.CENTER);
+            individualMessageVBox.getStyleClass().add("adminMessageBox");
+            individualMessageContainer.setId("adminMessageBox");
+        } else {
+            // Must be the user!
+            individualMessageVBox.setAlignment(Pos.CENTER_LEFT);
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            individualMessageVBox.getStyleClass().add("userMessageBox");
+            individualMessageContainer.setId("userMessageBox");
         }
-        vbox.setStyle(".messageBox");
-        vbox.getStyleClass().add("messageBox");
+        // Not sure what this does. Commenting out for now.
+        // individualMessageVBox.setStyle(".messageBox");
+        individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
         Label usernameLabel = new Label();
         Label timeStampLabel = new Label();
         Label messageLabel = new Label();
@@ -752,15 +761,16 @@ public class MainController extends ControllerUtil {
             hiddenUsername.setManaged(false);
         }
 
-        vbox.getChildren().add(hiddenUsername);
-        vbox.getChildren().add(hBox);
-        vbox.getChildren().add(messageLabel);
+        individualMessageContainer.getChildren().addAll(hBox, messageLabel);
+
+        individualMessageVBox.getChildren().add(hiddenUsername);
+        individualMessageVBox.getChildren().add(individualMessageContainer);
 
         // Set timestamp font size
         timeStampLabel.setFont(new Font("Arial", 10));
         timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
 
-        return vbox;
+        return individualMessageVBox;
     }
 
     /**
