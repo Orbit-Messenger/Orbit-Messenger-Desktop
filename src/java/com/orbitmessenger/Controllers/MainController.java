@@ -1,8 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,7 +41,7 @@ public class MainController extends ControllerUtil {
     @FXML
     private VBox mainVBox = new VBox();
     @FXML
-    private ListView messagesListView;
+    private ListView messagesListView = new ListView();
     @FXML
     private ScrollPane messagesScrollPane;
 
@@ -409,6 +407,41 @@ public class MainController extends ControllerUtil {
         stage.setOnHidden(e -> closeProgram());
     }
 
+    /**
+     * This will get the user of the last message. This only works because the way we have structured our messages.
+     */
+    private String getPreviousUser(JsonArray newMessages, int i) {
+        // We need to get the last message. To do that there are multiple ways. When changing rooms or logging in
+        // the first time you'll get all the messages, and messagesListView will be empty. So we'll need to scan
+        // there to get it.
+        // Next, if messagesListView is filled, we'll grab the last of that.
+        // Lets get the last message in messagesListView
+
+        JsonObject lastMessage;
+        String lastUser;
+
+        if (messagesListView.getItems().size() > 0) {
+            VBox localObject = (VBox) messagesListView.getItems().get(messagesListView.getItems().size() - 1);
+            //HBox localHBox = (HBox) localObject.getChildren().get(0);
+            Label localLabel = (Label) localObject.getChildren().get(0);
+            lastUser = localLabel.getText();
+            System.out.println("Last Message Object 1: " + lastUser);
+        } else {
+            // Now, we want the previous JsonObject in our iteration, else grab this one.
+            if (0 <= i && i < newMessages.size() -1) {
+                lastMessage = newMessages.get(i+1).getAsJsonObject();
+                lastUser = lastMessage.get("username").toString().replace("\"", "");
+                System.out.println("Last Message Object 2: " + lastUser);
+            } else {
+                lastMessage = newMessages.get(i).getAsJsonObject();
+                lastUser = lastMessage.get("username").toString().replace("\"", "");
+                lastUser = "";
+                System.out.println("Last Message Object 3: " + lastUser);
+            }
+        }
+        return lastUser;
+    }
+
 
     // +++++++++++++++++++++++ UPDATER FUNCTIONS ++++++++++++++++++++++++++
     /**
@@ -419,20 +452,34 @@ public class MainController extends ControllerUtil {
             return;
         }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (Object message : newMessages) {
-            JsonObject m = (JsonObject) message;
+        for (int i = newMessages.size() -1; i >= 0; i--) {
+            JsonObject m = (JsonObject) newMessages.get(i);
+            JsonObject lastMessage = new JsonObject();
+            String lastUser = "";
+            String currentUser = "";
+            Boolean sameUser;
+
+            lastUser = getPreviousUser(newMessages, i);
+
+            // Lets get the current user
+            currentUser = m.get("username").toString().replace("\"", "");
+
+            sameUser = currentUser.equals(lastUser);
+            System.out.println("Current User: " + currentUser + "\nLast User: " + lastUser);
+            System.out.println("Same User: " + sameUser + "\n");
+
+            messageBoxes.add(
+                    createMessageBox(
+                            m.get("username").toString().replace("\"", ""),
+                            m.get("timestamp").toString(),
+                            m.get("message").toString().replace("\"", ""),
+                            sameUser)
+            );
+
 
             // Takes the messageId from the server and assigns it to the global messageIds
             // we'll use for the delete function.
             messageIds.add(m.get("messageId").getAsInt());
-
-            // the 0, reverses the order so the latest message is on the bottom. Like a chat should be...
-            messageBoxes.add(0,
-                    createMessageBox(
-                            m.get("username").toString().replace("\"", ""),
-                            m.get("timestamp").toString(),
-                            m.get("message").toString().replace("\"", ""))
-            );
         }
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
@@ -661,11 +708,12 @@ public class MainController extends ControllerUtil {
     /**
      * Creates a message box with proper formatting
      */
-    private VBox createMessageBox(String username, String timestamp, String message) {
+    private VBox createMessageBox(String username, String timestamp, String message, Boolean sameUser) {
         String shortTime = convertTime(timestamp.replace("\"", ""));
 
         VBox vbox = new VBox();
         HBox hBox = new HBox();
+        Label hiddenUsername = new Label();
         // check if username == the current user or moves messages to the right
         if ((!username.equals(this.getUsername())) && (!username.equals("admin"))) {
             vbox.setAlignment(Pos.CENTER_RIGHT);
@@ -689,9 +737,22 @@ public class MainController extends ControllerUtil {
         timeStampLabel.setText(shortTime);
         messageLabel.setText(message);
 
-        vbox.getChildren().add(usernameLabel);
-        vbox.getChildren().add(timeStampLabel);
-        hBox.getChildren().addAll(usernameLabel, timeStampLabel);
+        // Here we hide the user if the previous message if from the same user.
+        // Furthermore, we will always set the user to a hidden label so we can grab it.
+        // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
+        if (sameUser) {
+            hBox.getChildren().addAll(timeStampLabel);
+            hiddenUsername.setText(username);
+            hiddenUsername.setVisible(false);
+            hiddenUsername.setManaged(false);
+        } else {
+            hBox.getChildren().addAll(usernameLabel, timeStampLabel);
+            hiddenUsername.setText(username);
+            hiddenUsername.setVisible(false);
+            hiddenUsername.setManaged(false);
+        }
+
+        vbox.getChildren().add(hiddenUsername);
         vbox.getChildren().add(hBox);
         vbox.getChildren().add(messageLabel);
 
