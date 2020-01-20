@@ -21,6 +21,7 @@ class FxUtil{
     final public String CROOM_FXML = PATH_TO_FXML + "createRoom.fxml";
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
+    final public String PROFILE_PIC_LOC = "/com/orbitmessenger/images/profilePics/";
     final public String VERSION_LOC = "version.txt";
 
 

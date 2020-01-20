@@ -9,6 +9,8 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -20,6 +22,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -316,6 +322,7 @@ public class MainController extends ControllerUtil {
                 getUsername(),
                 getPreferences()
         );
+        System.out.println("Actual ID: " + messageIds.get(index));
         wsClient.send(submitMessage.toString().trim());
     }
 
@@ -359,6 +366,7 @@ public class MainController extends ControllerUtil {
      */
     public void selectMessageToDelete() {
         int selectedIndex = messagesListView.getSelectionModel().getSelectedIndex();
+        System.out.println("Selected Message ID: " + selectedIndex);
         deleteMessage(selectedIndex);
     }
 
@@ -523,9 +531,10 @@ public class MainController extends ControllerUtil {
             VBox currentMessageVBox = (VBox) messagesListView.getItems().get(i);
             Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
             Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
-            VBox currentMessageHBox = (VBox) currentMessageVBox.getChildren().get(2);
-            Label currentMessageLabel = (Label) currentMessageHBox.getChildren().get(1);
-            HBox currentTimeStampHBox = (HBox) currentMessageHBox.getChildren().get(0);
+            HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
+            VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
+            Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
+            HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
             Label currentTimeStampLabel = new Label();
             // We do this because if you're switching from group to ungroup, can vise-versa, sometimes there won't be
             // A second label, only one.
@@ -562,7 +571,7 @@ public class MainController extends ControllerUtil {
 
             // Takes the messageId from the server and assigns it to the global messageIds
             // we'll use for the delete function.
-            messageIds.add(Integer.valueOf(currentMessageId));
+            // messageIds.add(Integer.valueOf(currentMessageId));
         }
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
@@ -792,6 +801,8 @@ public class MainController extends ControllerUtil {
      * Creates a message box with proper formatting
      */
     private VBox createMessageBox(String username, String timestamp, String message, Integer messageId, Boolean sameUser) {
+        // We're doing this because if you toggle between grouping messages and not, you'll be passing in a timestamp
+        // that is formatted differently.
         String shortTime = "";
         try {
             shortTime = convertTime(timestamp.replace("\"", ""));
@@ -800,27 +811,40 @@ public class MainController extends ControllerUtil {
         }
 
 
+        //Loading image from URL
+        ImageView imv = new ImageView();
+        try {
+            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
+            imv.setImage(image);
+        } catch (Exception e) {
+            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            imv.setImage(image);
+        }
+
+        imv.setId("profilePic");
+
 
         Label hiddenUsername = new Label();
         Label hiddenMessageId = new Label();
         VBox individualMessageVBox = new VBox();
         VBox individualMessageContainer = new VBox();
         HBox hBox = new HBox();
+        HBox hBox1 = new HBox();
         // check if username == the current user or moves messages to the right
-        if ((!username.equals(this.getUsername())) && (!username.equals("admin"))) {
-            individualMessageVBox.setAlignment(Pos.CENTER_RIGHT);
+        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
+            hBox1.setAlignment(Pos.CENTER_RIGHT);
             hBox.setAlignment(Pos.CENTER_RIGHT);
             individualMessageVBox.getStyleClass().add("otherMessageBox");
             individualMessageContainer.setId("otherMessageBox");
         } else if (username.equals("admin")){
             // must be admin, we want to center these messages
-            individualMessageVBox.setAlignment(Pos.CENTER);
+            hBox1.setAlignment(Pos.CENTER);
             hBox.setAlignment(Pos.CENTER);
             individualMessageVBox.getStyleClass().add("adminMessageBox");
             individualMessageContainer.setId("adminMessageBox");
         } else {
             // Must be the user!
-            individualMessageVBox.setAlignment(Pos.CENTER_LEFT);
+            hBox1.setAlignment(Pos.CENTER_LEFT);
             hBox.setAlignment(Pos.CENTER_LEFT);
             individualMessageVBox.getStyleClass().add("userMessageBox");
             individualMessageContainer.setId("userMessageBox");
@@ -857,10 +881,14 @@ public class MainController extends ControllerUtil {
         hiddenMessageId.setManaged(false);
 
         individualMessageContainer.getChildren().addAll(hBox, messageLabel);
+        hBox1.getChildren().add(imv);
+        hBox1.getChildren().add(individualMessageContainer);
+
 
         individualMessageVBox.getChildren().add(hiddenUsername);
         individualMessageVBox.getChildren().add(hiddenMessageId);
-        individualMessageVBox.getChildren().add(individualMessageContainer);
+        //individualMessageVBox.getChildren().add(imv);
+        individualMessageVBox.getChildren().add(hBox1);
 
         // Set timestamp font size
         timeStampLabel.setFont(new Font("Arial", 10));
