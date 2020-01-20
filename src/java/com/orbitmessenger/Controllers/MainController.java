@@ -25,9 +25,7 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class MainController extends ControllerUtil {
@@ -490,13 +488,81 @@ public class MainController extends ControllerUtil {
                             m.get("username").toString().replace("\"", ""),
                             m.get("timestamp").toString(),
                             m.get("message").toString().replace("\"", ""),
-                            sameUser)
+                            m.get("messageId").getAsInt(),
+                            false)
             );
-
 
             // Takes the messageId from the server and assigns it to the global messageIds
             // we'll use for the delete function.
             messageIds.add(m.get("messageId").getAsInt());
+        }
+
+        Platform.runLater(() -> {
+            messagesListView.getItems().addAll(messageBoxes);
+            // If we want to group our messages, we'll do it now.
+            if (PreferencesObject.get("groupMessages").getAsBoolean()) {
+                groupMessages();
+            }
+            trimMessagesToMessageLimit();
+            scrollToBottom();
+        });
+
+    }
+
+    // Now, if we have groupMessages true, we'll go through and combine them.
+    public void groupMessages() {
+        ArrayList<VBox> messageBoxes = new ArrayList<>();
+        for (int i = 0; i < messagesListView.getItems().size(); i++) {
+            String lastUser = "";
+            String currentUser = "";
+            String currentTimestamp = "";
+            String currentMessage = "";
+            Integer currentMessageId = 0;
+            Boolean sameUser;
+
+            VBox currentMessageVBox = (VBox) messagesListView.getItems().get(i);
+            Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
+            Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
+            VBox currentMessageHBox = (VBox) currentMessageVBox.getChildren().get(2);
+            Label currentMessageLabel = (Label) currentMessageHBox.getChildren().get(1);
+            HBox currentTimeStampHBox = (HBox) currentMessageHBox.getChildren().get(0);
+            Label currentTimeStampLabel = new Label();
+            // We do this because if you're switching from group to ungroup, can vise-versa, sometimes there won't be
+            // A second label, only one.
+            try {
+                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
+            } catch (Exception e) {
+                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
+            }
+            currentUser = currentUserLabel.getText();
+            currentTimestamp = currentTimeStampLabel.getText();
+            currentMessage = currentMessageLabel.getText();
+            currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+
+
+            if (i > 0) {
+                VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
+                Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
+                lastUser = previousUserLabel.getText();
+            } else {
+                lastUser = "";
+            }
+
+
+            sameUser = currentUser.equals(lastUser);
+
+            messageBoxes.add(
+                    createMessageBox(
+                            currentUser,
+                            currentTimestamp,
+                            currentMessage,
+                            currentMessageId,
+                            sameUser)
+            );
+
+            // Takes the messageId from the server and assigns it to the global messageIds
+            // we'll use for the delete function.
+            messageIds.add(Integer.valueOf(currentMessageId));
         }
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
@@ -725,11 +791,18 @@ public class MainController extends ControllerUtil {
     /**
      * Creates a message box with proper formatting
      */
-    private VBox createMessageBox(String username, String timestamp, String message, Boolean sameUser) {
-        String shortTime = convertTime(timestamp.replace("\"", ""));
+    private VBox createMessageBox(String username, String timestamp, String message, Integer messageId, Boolean sameUser) {
+        String shortTime = "";
+        try {
+            shortTime = convertTime(timestamp.replace("\"", ""));
+        } catch (Exception e) {
+            shortTime = timestamp;
+        }
+
 
 
         Label hiddenUsername = new Label();
+        Label hiddenMessageId = new Label();
         VBox individualMessageVBox = new VBox();
         VBox individualMessageContainer = new VBox();
         HBox hBox = new HBox();
@@ -772,19 +845,21 @@ public class MainController extends ControllerUtil {
         // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
         if (sameUser && PreferencesObject.get("groupMessages").getAsBoolean()) {
             hBox.getChildren().addAll(timeStampLabel);
-            hiddenUsername.setText(username);
-            hiddenUsername.setVisible(false);
-            hiddenUsername.setManaged(false);
         } else {
             hBox.getChildren().addAll(usernameLabel, timeStampLabel);
-            hiddenUsername.setText(username);
-            hiddenUsername.setVisible(false);
-            hiddenUsername.setManaged(false);
         }
+
+        hiddenUsername.setText(username);
+        hiddenUsername.setVisible(false);
+        hiddenUsername.setManaged(false);
+        hiddenMessageId.setText(messageId.toString());
+        hiddenMessageId.setVisible(false);
+        hiddenMessageId.setManaged(false);
 
         individualMessageContainer.getChildren().addAll(hBox, messageLabel);
 
         individualMessageVBox.getChildren().add(hiddenUsername);
+        individualMessageVBox.getChildren().add(hiddenMessageId);
         individualMessageVBox.getChildren().add(individualMessageContainer);
 
         // Set timestamp font size
