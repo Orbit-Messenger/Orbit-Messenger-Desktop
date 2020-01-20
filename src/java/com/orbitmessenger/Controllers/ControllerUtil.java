@@ -26,6 +26,7 @@ class FxUtil{
 
     public Integer messageNumber;
     public String theme;
+    public Boolean groupMessages;
     public JsonObject PreferencesObject;
     public String version;
 
@@ -130,6 +131,7 @@ class FxUtil{
     public void setPreferences() {
         PreferencesObject.addProperty("messageNumber", messageNumber);
         PreferencesObject.addProperty("theme", theme);
+        PreferencesObject.addProperty("groupMessages", groupMessages);
     }
 }
 

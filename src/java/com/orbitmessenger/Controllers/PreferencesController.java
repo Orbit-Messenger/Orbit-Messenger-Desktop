@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import kong.unirest.Unirest;
@@ -20,6 +21,8 @@ public class PreferencesController extends ControllerUtil {
     private VBox mainVBox;
     @FXML
     private TextField messageNumberTxtField;
+    @FXML
+    private CheckBox groupMessagesCheckBox;
     @FXML
     private Button savePrefBtn;
     @FXML
@@ -46,6 +49,7 @@ public class PreferencesController extends ControllerUtil {
         setDarkMode();
         messageNumberTxtField.setText(PreferencesObject.get("messageNumber").toString());
         themeChoicesDropdown.getSelectionModel().select(cssChoices.indexOf(PreferencesObject.get("theme").toString().replace("\"", "")));
+        groupMessagesCheckBox.setSelected(PreferencesObject.get("groupMessages").getAsBoolean());
     }
     /**
      * Updates the clients from the preferences screen
@@ -68,6 +72,8 @@ public class PreferencesController extends ControllerUtil {
         if (checkField(messageNumberTxtField.getText().trim())) {
             messageNumber = convertToInteger(messageNumberTxtField.getText().trim());
             theme = themeChoicesDropdown.getSelectionModel().getSelectedItem().toString();
+            groupMessages = groupMessagesCheckBox.isSelected();
+
             setPreferences();
 
             // Write JSON file

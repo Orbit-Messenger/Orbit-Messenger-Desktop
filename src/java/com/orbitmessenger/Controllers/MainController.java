@@ -34,7 +34,7 @@ public class MainController extends ControllerUtil {
 
     private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
-    private Boolean ssl;
+    //private Boolean groupMessages;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
     private long pass = 0;
@@ -92,11 +92,18 @@ public class MainController extends ControllerUtil {
 
         setupConnectionInformation();
 
-        updateHandler.start(); // Starts the update handler thread
-        connectionInformationThread.start(); // Starts the connection information thread
-        loadPreferences();
+        waitForPreferencesThread.start();
+        try {
+            waitForPreferencesThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         loadVersion();
         setDarkMode();
+
+        updateHandler.start(); // Starts the update handler thread
+        connectionInformationThread.start(); // Starts the connection information thread
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -204,6 +211,20 @@ public class MainController extends ControllerUtil {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
+            }
+        }
+    });
+
+    private Thread waitForPreferencesThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            loadPreferences();
+            while (PreferencesObject.get("groupMessages") == null) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -749,7 +770,7 @@ public class MainController extends ControllerUtil {
         // Here we hide the user if the previous message if from the same user.
         // Furthermore, we will always set the user to a hidden label so we can grab it.
         // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
-        if (sameUser) {
+        if (sameUser && PreferencesObject.get("groupMessages").getAsBoolean()) {
             hBox.getChildren().addAll(timeStampLabel);
             hiddenUsername.setText(username);
             hiddenUsername.setVisible(false);
