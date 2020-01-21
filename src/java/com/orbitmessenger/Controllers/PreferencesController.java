@@ -31,6 +31,8 @@ public class PreferencesController extends ControllerUtil {
     TextField passwordTextField;
     @FXML
     ChoiceBox themeChoicesDropdown;
+    @FXML
+    TextField fontSizeTxtField;
 
     private String server, wsServer, username;
     private ArrayList<String> cssChoices = new ArrayList<String>();
@@ -50,6 +52,7 @@ public class PreferencesController extends ControllerUtil {
         messageNumberTxtField.setText(PreferencesObject.get("messageNumber").toString());
         themeChoicesDropdown.getSelectionModel().select(cssChoices.indexOf(PreferencesObject.get("theme").toString().replace("\"", "")));
         groupMessagesCheckBox.setSelected(PreferencesObject.get("groupMessages").getAsBoolean());
+        fontSizeTxtField.setText(PreferencesObject.get("fontSize").toString());
     }
     /**
      * Updates the clients from the preferences screen
@@ -73,6 +76,7 @@ public class PreferencesController extends ControllerUtil {
             messageNumber = convertToInteger(messageNumberTxtField.getText().trim());
             theme = themeChoicesDropdown.getSelectionModel().getSelectedItem().toString();
             groupMessages = groupMessagesCheckBox.isSelected();
+            fontSize = Integer.valueOf(fontSizeTxtField.getText());
 
             setPreferences();
 

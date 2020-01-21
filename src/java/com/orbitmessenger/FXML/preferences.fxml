@@ -60,6 +60,16 @@
                         </CheckBox>
                      </children>
                   </HBox>
+                  <HBox alignment="CENTER">
+                     <children>
+                        <Label text="Font Size" />
+                        <TextField fx:id="fontSizeTxtField" maxWidth="50.0">
+                           <HBox.margin>
+                              <Insets left="160.0" />
+                           </HBox.margin>
+                        </TextField>
+                     </children>
+                  </HBox>
                   <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
                      <children>
                         <Button fx:id="savePrefBtn" mnemonicParsing="false" onAction="#savePreferences" onKeyPressed="#savePreferences" text="Save" />

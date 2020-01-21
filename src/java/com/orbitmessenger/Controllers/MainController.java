@@ -21,11 +21,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -41,6 +36,8 @@ public class MainController extends ControllerUtil {
     //private Boolean groupMessages;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
+    private ArrayList<Image> imageList = new ArrayList<>();
+    private JsonObject imageObject = new JsonObject();
     private long pass = 0;
 
     @FXML
@@ -322,7 +319,6 @@ public class MainController extends ControllerUtil {
                 getUsername(),
                 getPreferences()
         );
-        System.out.println("Actual ID: " + messageIds.get(index));
         wsClient.send(submitMessage.toString().trim());
     }
 
@@ -366,7 +362,6 @@ public class MainController extends ControllerUtil {
      */
     public void selectMessageToDelete() {
         int selectedIndex = messagesListView.getSelectionModel().getSelectedIndex();
-        System.out.println("Selected Message ID: " + selectedIndex);
         deleteMessage(selectedIndex);
     }
 
@@ -479,17 +474,6 @@ public class MainController extends ControllerUtil {
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (int i = newMessages.size() -1; i >= 0; i--) {
             JsonObject m = (JsonObject) newMessages.get(i);
-            JsonObject lastMessage = new JsonObject();
-            String lastUser = "";
-            String currentUser = "";
-            Boolean sameUser;
-
-            lastUser = getPreviousUser(newMessages, i);
-
-            // Lets get the current user
-            currentUser = m.get("username").toString().replace("\"", "");
-
-            sameUser = currentUser.equals(lastUser);
 
             messageBoxes.add(
                     createMessageBox(
@@ -511,7 +495,7 @@ public class MainController extends ControllerUtil {
             if (PreferencesObject.get("groupMessages").getAsBoolean()) {
                 groupMessages();
             }
-            trimMessagesToMessageLimit();
+            //trimMessagesToMessageLimit();
             scrollToBottom();
         });
 
@@ -549,7 +533,7 @@ public class MainController extends ControllerUtil {
             currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
 
 
-            if (i > 0) {
+            if (i > 1) {
                 VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
                 Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
                 lastUser = previousUserLabel.getText();
@@ -622,6 +606,10 @@ public class MainController extends ControllerUtil {
             });
 
             label.setText(trimUsers(obj.get("name").toString()));
+
+            // Set room label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+
             roomLabels.add(label);
         }
         Platform.runLater(new Runnable() {
@@ -646,7 +634,6 @@ public class MainController extends ControllerUtil {
             HBox hBox = new HBox();
             Circle circle = new Circle();
             Label label = new Label();
-
             circle.setRadius(7);
 
             // If the user is active, set Circle to GREEN, RED otherwise.
@@ -667,6 +654,9 @@ public class MainController extends ControllerUtil {
             } else {
                 label.setId("userLabelID");
             }
+
+            // Set user label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -810,7 +800,6 @@ public class MainController extends ControllerUtil {
             shortTime = timestamp;
         }
 
-
         //Loading image from URL
         ImageView imv = new ImageView();
         try {
@@ -891,8 +880,11 @@ public class MainController extends ControllerUtil {
         individualMessageVBox.getChildren().add(hBox1);
 
         // Set timestamp font size
-        timeStampLabel.setFont(new Font("Arial", 10));
+        timeStampLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
         timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
+
+        // Set Message font size
+        messageLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
 
         return individualMessageVBox;
     }
