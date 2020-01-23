@@ -103,10 +103,10 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 	}
 
 	// Write user logged in!
-	err := rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
-	if err != nil {
-		glog.Error(err.Error())
-	}
+	//err := rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
+	//if err != nil {
+	//	glog.Error(err.Error())
+	//}
 
 	// sends all the messages, active users, and chatrooms to the client
 	messages := rc.getAllMessagesForClient(&state.LastMessageId, &state.Chatroom, state.Users, &state.MessageLimit)
@@ -138,10 +138,10 @@ func (rc RouteController) logoutAction(clientData ClientData, state *State, wsCo
 	}
 
 	// Write user logged out!
-	err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", state.Chatroom)
-	if err != nil {
-		glog.Error(err.Error())
-	}
+	//err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", state.Chatroom)
+	//if err != nil {
+	//	glog.Error(err.Error())
+	//}
 
 	closeErr := wsConn.Close()
 	if closeErr != nil {

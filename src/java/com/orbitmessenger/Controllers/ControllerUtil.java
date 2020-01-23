@@ -21,11 +21,14 @@ class FxUtil{
     final public String CROOM_FXML = PATH_TO_FXML + "createRoom.fxml";
 
     final public String PREF_LOC = "src/java/com/orbitmessenger/preferences/preferences.json";
+    final public String PROFILE_PIC_LOC = "/com/orbitmessenger/images/profilePics/";
     final public String VERSION_LOC = "version.txt";
 
 
     public Integer messageNumber;
+    public Integer fontSize;
     public String theme;
+    public Boolean groupMessages;
     public JsonObject PreferencesObject;
     public String version;
 
@@ -130,6 +133,8 @@ class FxUtil{
     public void setPreferences() {
         PreferencesObject.addProperty("messageNumber", messageNumber);
         PreferencesObject.addProperty("theme", theme);
+        PreferencesObject.addProperty("groupMessages", groupMessages);
+        PreferencesObject.addProperty("fontSize", fontSize);
     }
 }
 

@@ -45,7 +45,7 @@
 }
 
 #usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
-    -fx-text-fill: #00d9c0;
+    -fx-text-fill: LIGHTBLUE;
     -fx-font-size: 1.1em;
 }
 
@@ -85,4 +85,36 @@
 
 .loginLabels {
     -fx-font-size: 1.5em;
+}
+
+#messagesListView {
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+}
+
+#adminMessageBox {
+    -fx-padding: 0px 15px 0px 15px;
+    -fx-background-color: INDIANRED;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+}
+
+#userMessageBox {
+    -fx-padding: 0px 15px 0px 15px;
+    -fx-background-color: LIGHTBLUE;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+}
+
+#otherMessageBox {
+    -fx-padding: 0px 15px 0px 15px;
+    -fx-background-color: LIGHTGRAY;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+}
+
+#profilePic {
+    -fx-max-width: 50px;
+    -fx-fill-width: 50px;
+    -fx-max-height: 50px;
+    -fx-border-radius: 100px;
 }

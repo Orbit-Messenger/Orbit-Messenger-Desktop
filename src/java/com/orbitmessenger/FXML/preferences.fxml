@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -10,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" prefHeight="234.0" prefWidth="300.0" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
          <children>
@@ -47,6 +48,26 @@
                               <Insets left="5.0" />
                            </HBox.margin>
                         </PasswordField>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label alignment="CENTER" text="Group Messages" />
+                        <CheckBox fx:id="groupMessagesCheckBox" mnemonicParsing="false">
+                           <HBox.margin>
+                              <Insets left="145.0" />
+                           </HBox.margin>
+                        </CheckBox>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER">
+                     <children>
+                        <Label text="Font Size" />
+                        <TextField fx:id="fontSizeTxtField" maxWidth="50.0">
+                           <HBox.margin>
+                              <Insets left="160.0" />
+                           </HBox.margin>
+                        </TextField>
                      </children>
                   </HBox>
                   <HBox alignment="CENTER" VBox.vgrow="ALWAYS">

@@ -1,8 +1,6 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,8 +9,11 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -20,30 +21,29 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class MainController extends ControllerUtil {
 
     private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
-    private Boolean ssl;
+    //private Boolean groupMessages;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
+    private ArrayList<Image> imageList = new ArrayList<>();
+    private JsonObject imageObject = new JsonObject();
     private long pass = 0;
 
     @FXML
     private VBox mainVBox = new VBox();
     @FXML
-    private ListView messagesListView;
+    private ListView messagesListView = new ListView();
     @FXML
     private ScrollPane messagesScrollPane;
 
@@ -93,11 +93,18 @@ public class MainController extends ControllerUtil {
 
         setupConnectionInformation();
 
-        updateHandler.start(); // Starts the update handler thread
-        connectionInformationThread.start(); // Starts the connection information thread
-        loadPreferences();
+        waitForPreferencesThread.start();
+        try {
+            waitForPreferencesThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         loadVersion();
         setDarkMode();
+
+        updateHandler.start(); // Starts the update handler thread
+        connectionInformationThread.start(); // Starts the connection information thread
         roomLabel.setText("general");
         currentRoom = roomLabel.getText();
     }
@@ -205,6 +212,20 @@ public class MainController extends ControllerUtil {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
+            }
+        }
+    });
+
+    private Thread waitForPreferencesThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            loadPreferences();
+            while (PreferencesObject.get("groupMessages") == null) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -409,6 +430,38 @@ public class MainController extends ControllerUtil {
         stage.setOnHidden(e -> closeProgram());
     }
 
+    /**
+     * This will get the user of the last message. This only works because the way we have structured our messages.
+     */
+    private String getPreviousUser(JsonArray newMessages, int i) {
+        // We need to get the last message. To do that there are multiple ways. When changing rooms or logging in
+        // the first time you'll get all the messages, and messagesListView will be empty. So we'll need to scan
+        // there to get it.
+        // Next, if messagesListView is filled, we'll grab the last of that.
+        // Lets get the last message in messagesListView
+
+        JsonObject lastMessage;
+        String lastUser;
+
+        if (messagesListView.getItems().size() > 0) {
+            VBox localObject = (VBox) messagesListView.getItems().get(messagesListView.getItems().size() - 1);
+            //HBox localHBox = (HBox) localObject.getChildren().get(0);
+            Label localLabel = (Label) localObject.getChildren().get(0);
+            lastUser = localLabel.getText();
+        } else {
+            // Now, we want the previous JsonObject in our iteration, else grab this one.
+            if (0 <= i && i < newMessages.size() -1) {
+                lastMessage = newMessages.get(i+1).getAsJsonObject();
+                lastUser = lastMessage.get("username").toString().replace("\"", "");
+            } else {
+                lastMessage = newMessages.get(i).getAsJsonObject();
+                lastUser = lastMessage.get("username").toString().replace("\"", "");
+                lastUser = "";
+            }
+        }
+        return lastUser;
+    }
+
 
     // +++++++++++++++++++++++ UPDATER FUNCTIONS ++++++++++++++++++++++++++
     /**
@@ -419,20 +472,90 @@ public class MainController extends ControllerUtil {
             return;
         }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (Object message : newMessages) {
-            JsonObject m = (JsonObject) message;
+        for (int i = newMessages.size() -1; i >= 0; i--) {
+            JsonObject m = (JsonObject) newMessages.get(i);
+
+            messageBoxes.add(
+                    createMessageBox(
+                            m.get("username").toString().replace("\"", ""),
+                            m.get("timestamp").toString(),
+                            m.get("message").toString().replace("\"", ""),
+                            m.get("messageId").getAsInt(),
+                            false)
+            );
 
             // Takes the messageId from the server and assigns it to the global messageIds
             // we'll use for the delete function.
             messageIds.add(m.get("messageId").getAsInt());
+        }
 
-            // the 0, reverses the order so the latest message is on the bottom. Like a chat should be...
-            messageBoxes.add(0,
+        Platform.runLater(() -> {
+            messagesListView.getItems().addAll(messageBoxes);
+            // If we want to group our messages, we'll do it now.
+            if (PreferencesObject.get("groupMessages").getAsBoolean()) {
+                groupMessages();
+            }
+            //trimMessagesToMessageLimit();
+            scrollToBottom();
+        });
+
+    }
+
+    // Now, if we have groupMessages true, we'll go through and combine them.
+    public void groupMessages() {
+        ArrayList<VBox> messageBoxes = new ArrayList<>();
+        for (int i = 0; i < messagesListView.getItems().size(); i++) {
+            String lastUser = "";
+            String currentUser = "";
+            String currentTimestamp = "";
+            String currentMessage = "";
+            Integer currentMessageId = 0;
+            Boolean sameUser;
+
+            VBox currentMessageVBox = (VBox) messagesListView.getItems().get(i);
+            Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
+            Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
+            HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
+            VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
+            Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
+            HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
+            Label currentTimeStampLabel = new Label();
+            // We do this because if you're switching from group to ungroup, can vise-versa, sometimes there won't be
+            // A second label, only one.
+            try {
+                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
+            } catch (Exception e) {
+                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
+            }
+            currentUser = currentUserLabel.getText();
+            currentTimestamp = currentTimeStampLabel.getText();
+            currentMessage = currentMessageLabel.getText();
+            currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+
+
+            if (i > 1) {
+                VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
+                Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
+                lastUser = previousUserLabel.getText();
+            } else {
+                lastUser = "";
+            }
+
+
+            sameUser = currentUser.equals(lastUser);
+
+            messageBoxes.add(
                     createMessageBox(
-                            m.get("username").toString().replace("\"", ""),
-                            m.get("timestamp").toString(),
-                            m.get("message").toString().replace("\"", ""))
+                            currentUser,
+                            currentTimestamp,
+                            currentMessage,
+                            currentMessageId,
+                            sameUser)
             );
+
+            // Takes the messageId from the server and assigns it to the global messageIds
+            // we'll use for the delete function.
+            // messageIds.add(Integer.valueOf(currentMessageId));
         }
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
@@ -483,6 +606,10 @@ public class MainController extends ControllerUtil {
             });
 
             label.setText(trimUsers(obj.get("name").toString()));
+
+            // Set room label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+
             roomLabels.add(label);
         }
         Platform.runLater(new Runnable() {
@@ -507,7 +634,6 @@ public class MainController extends ControllerUtil {
             HBox hBox = new HBox();
             Circle circle = new Circle();
             Label label = new Label();
-
             circle.setRadius(7);
 
             // If the user is active, set Circle to GREEN, RED otherwise.
@@ -528,6 +654,9 @@ public class MainController extends ControllerUtil {
             } else {
                 label.setId("userLabelID");
             }
+
+            // Set user label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -661,22 +790,57 @@ public class MainController extends ControllerUtil {
     /**
      * Creates a message box with proper formatting
      */
-    private VBox createMessageBox(String username, String timestamp, String message) {
-        String shortTime = convertTime(timestamp.replace("\"", ""));
+    private VBox createMessageBox(String username, String timestamp, String message, Integer messageId, Boolean sameUser) {
+        // We're doing this because if you toggle between grouping messages and not, you'll be passing in a timestamp
+        // that is formatted differently.
+        String shortTime = "";
+        try {
+            shortTime = convertTime(timestamp.replace("\"", ""));
+        } catch (Exception e) {
+            shortTime = timestamp;
+        }
 
-        VBox vbox = new VBox();
+        //Loading image from URL
+        ImageView imv = new ImageView();
+        try {
+            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
+            imv.setImage(image);
+        } catch (Exception e) {
+            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            imv.setImage(image);
+        }
+
+        imv.setId("profilePic");
+
+
+        Label hiddenUsername = new Label();
+        Label hiddenMessageId = new Label();
+        VBox individualMessageVBox = new VBox();
+        VBox individualMessageContainer = new VBox();
         HBox hBox = new HBox();
+        HBox hBox1 = new HBox();
         // check if username == the current user or moves messages to the right
-        if ((!username.equals(this.getUsername())) && (!username.equals("admin"))) {
-            vbox.setAlignment(Pos.CENTER_RIGHT);
+        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
+            hBox1.setAlignment(Pos.CENTER_RIGHT);
             hBox.setAlignment(Pos.CENTER_RIGHT);
+            individualMessageVBox.getStyleClass().add("otherMessageBox");
+            individualMessageContainer.setId("otherMessageBox");
         } else if (username.equals("admin")){
             // must be admin, we want to center these messages
-            vbox.setAlignment(Pos.CENTER);
+            hBox1.setAlignment(Pos.CENTER);
             hBox.setAlignment(Pos.CENTER);
+            individualMessageVBox.getStyleClass().add("adminMessageBox");
+            individualMessageContainer.setId("adminMessageBox");
+        } else {
+            // Must be the user!
+            hBox1.setAlignment(Pos.CENTER_LEFT);
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            individualMessageVBox.getStyleClass().add("userMessageBox");
+            individualMessageContainer.setId("userMessageBox");
         }
-        vbox.setStyle(".messageBox");
-        vbox.getStyleClass().add("messageBox");
+        // Not sure what this does. Commenting out for now.
+        // individualMessageVBox.setStyle(".messageBox");
+        individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
         Label usernameLabel = new Label();
         Label timeStampLabel = new Label();
         Label messageLabel = new Label();
@@ -689,17 +853,40 @@ public class MainController extends ControllerUtil {
         timeStampLabel.setText(shortTime);
         messageLabel.setText(message);
 
-        vbox.getChildren().add(usernameLabel);
-        vbox.getChildren().add(timeStampLabel);
-        hBox.getChildren().addAll(usernameLabel, timeStampLabel);
-        vbox.getChildren().add(hBox);
-        vbox.getChildren().add(messageLabel);
+        // Here we hide the user if the previous message if from the same user.
+        // Furthermore, we will always set the user to a hidden label so we can grab it.
+        // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
+        if (sameUser && PreferencesObject.get("groupMessages").getAsBoolean()) {
+            hBox.getChildren().addAll(timeStampLabel);
+        } else {
+            hBox.getChildren().addAll(usernameLabel, timeStampLabel);
+        }
+
+        hiddenUsername.setText(username);
+        hiddenUsername.setVisible(false);
+        hiddenUsername.setManaged(false);
+        hiddenMessageId.setText(messageId.toString());
+        hiddenMessageId.setVisible(false);
+        hiddenMessageId.setManaged(false);
+
+        individualMessageContainer.getChildren().addAll(hBox, messageLabel);
+        hBox1.getChildren().add(imv);
+        hBox1.getChildren().add(individualMessageContainer);
+
+
+        individualMessageVBox.getChildren().add(hiddenUsername);
+        individualMessageVBox.getChildren().add(hiddenMessageId);
+        //individualMessageVBox.getChildren().add(imv);
+        individualMessageVBox.getChildren().add(hBox1);
 
         // Set timestamp font size
-        timeStampLabel.setFont(new Font("Arial", 10));
+        timeStampLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
         timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
 
-        return vbox;
+        // Set Message font size
+        messageLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
+
+        return individualMessageVBox;
     }
 
     /**
