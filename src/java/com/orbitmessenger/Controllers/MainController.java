@@ -39,6 +39,8 @@ public class MainController extends ControllerUtil {
     private ArrayList<Image> imageList = new ArrayList<>();
     private JsonObject imageObject = new JsonObject();
     private long pass = 0;
+    private ArrayList<int[]> groupIndexes = new ArrayList<>();
+    ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -148,6 +150,7 @@ public class MainController extends ControllerUtil {
                         JsonObject serverMessage = wsClient.getServerResponse();
                         if (serverMessage != null) {
                             //logger.info("Response: " + serverMessage);
+                            System.out.println("Response: " + serverMessage);
                             if (serverMessage.has("messages")) {
                                 updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
                             }
@@ -501,68 +504,103 @@ public class MainController extends ControllerUtil {
 
     }
 
+    public String trimMessages(String message) {
+        message = message.replaceAll("\\[", "").replaceAll("\\]","").trim();
+        message = message + "\n\n";
+        return message;
+    }
+
     // Now, if we have groupMessages true, we'll go through and combine them.
     public void groupMessages() {
-        ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (int i = 0; i < messagesListView.getItems().size(); i++) {
-            String lastUser = "";
+        int start = -1;
+        int end = -1;
+        String lastUser = "";
+        groupIndexes.clear();
+        groupedMessageBoxes.clear();
+        ArrayList<String> messagesToGroup = new ArrayList<>();
+        for (int i=0; i < messagesListView.getItems().size(); i++) {
             String currentUser = "";
-            String currentTimestamp = "";
-            String currentMessage = "";
-            Integer currentMessageId = 0;
-            Boolean sameUser;
-
             VBox currentMessageVBox = (VBox) messagesListView.getItems().get(i);
             Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
-            Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
-            HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
-            VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
-            Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
-            HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
-            Label currentTimeStampLabel = new Label();
-            // We do this because if you're switching from group to ungroup, can vise-versa, sometimes there won't be
-            // A second label, only one.
-            try {
-                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
-            } catch (Exception e) {
-                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
-            }
             currentUser = currentUserLabel.getText();
-            currentTimestamp = currentTimeStampLabel.getText();
-            currentMessage = currentMessageLabel.getText();
-            currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+            boolean sameUser = currentUser.equals(lastUser);
 
+            if (sameUser && (start == -1)) {
+                start = i-1;
+            } else if ((!sameUser && (start != -1))) {
+                end = i-1;
+                groupIndexes.add(new int[]{start,end});
+                start = -1;
+                end = -1;
+            }
+            if (sameUser && (i == messagesListView.getItems().size() -1)) {
+                end = i;
+                groupIndexes.add(new int[]{start,end});
+            }
+            lastUser = currentUser;
+        }
 
-            if (i > 0) {
-                VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
-                Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
-                lastUser = previousUserLabel.getText();
-            } else {
-                lastUser = "";
+        // Now we'll go back and remove the sameUser messages and create one big one for each and reinsert them.
+        for (int[] groupIndex : groupIndexes) {
+            int indexStart = groupIndex[0];
+            int indexEnd = groupIndex[1];
+            String user = "";
+            String timeStamp = "";
+            int currentMessageId = 0;
+            Label currentTimeStampLabel = new Label();
+            messagesToGroup.clear();
+
+            for (int j = indexStart; j <= indexEnd; j++) {
+                VBox currentMessageVBox = (VBox) messagesListView.getItems().get(j);
+                Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
+                Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
+                HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
+                VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
+                Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
+                HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
+                try {
+                    currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
+                } catch (Exception e) {
+                    currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
+                }
+                String message = currentMessageLabel.getText();
+                //System.out.println("Adding Message: " + message);
+                messagesToGroup.add(message);
+                if (j == indexStart) {
+                    user = currentUserLabel.getText();
+                    currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+                }
+            }
+            String finalMessage = "";
+            for ( String message : messagesToGroup) {
+                finalMessage += message + "\n\n";
             }
 
-
-            sameUser = currentUser.equals(lastUser);
-
-            messageBoxes.add(
+            // Now, lets create a new message box and insert it back in!
+            groupedMessageBoxes.add(
                     createMessageBox(
-                            currentUser,
-                            currentTimestamp,
-                            currentMessage,
+                            user,
+                            currentTimeStampLabel.getText(),
+                            finalMessage,
                             currentMessageId,
-                            sameUser)
+                            false)
             );
-
-            // Takes the messageId from the server and assigns it to the global messageIds
-            // we'll use for the delete function.
-            // messageIds.add(Integer.valueOf(currentMessageId));
         }
-        Platform.runLater(() -> {
-            messagesListView.getItems().clear();
-            messagesListView.getItems().addAll(messageBoxes);
-            trimMessagesToMessageLimit();
-            scrollToBottom();
-        });
+
+        Collections.reverse(groupIndexes);
+        if (groupIndexes.size() > 0) {
+            Platform.runLater(() -> {
+                for (int[] groupIndex : groupIndexes) {
+                    int indexStart = groupIndex[0];
+                    int indexEnd = groupIndex[1];
+                    messagesListView.getItems().remove(indexStart, indexEnd+1);
+                    messagesListView.getItems().add(indexStart, groupedMessageBoxes.get(groupedMessageBoxes.size() - 1));
+                    groupedMessageBoxes.remove(groupedMessageBoxes.size()-1);
+                }
+                trimMessagesToMessageLimit();
+                scrollToBottom();
+            });
+        }
     }
 
     public void updateRooms(JsonArray rooms) {
@@ -981,12 +1019,22 @@ public class MainController extends ControllerUtil {
                         e.printStackTrace();
                     }
                 }
+                clearMessages();
                 loadPreferences();
                 sendProperties();
                 setDarkMode();
             }
         });
         updatePreferences.start();
+    }
+
+    private void clearMessages() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                messagesListView.getItems().clear();
+                }
+        });
     }
 
     public ObservableList<Stage> getAllShowingStages() {
