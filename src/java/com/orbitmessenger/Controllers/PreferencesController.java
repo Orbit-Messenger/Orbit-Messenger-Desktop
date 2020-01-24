@@ -115,7 +115,8 @@ public class PreferencesController extends ControllerUtil {
         });
     }
 
-    private void closePreferences() {
+    @FXML
+    public void closePreferences() {
         // get a handle to the stage
         Stage stage = (Stage) savePrefBtn.getScene().getWindow();
 

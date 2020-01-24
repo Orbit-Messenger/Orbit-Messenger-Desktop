@@ -24,9 +24,9 @@ func UserInterfaceEquals(a []db.User, b []db.User) bool {
 		return b[i].Username < b[j].Username
 	})
 	for i := 0; i < len(a); i++ {
-		//if a[i] != b[i] {
-		//	return false
-		//}
+		if a[i].Username != b[i].Username {
+			return false
+		}
 	}
 	return true
 }

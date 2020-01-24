@@ -185,7 +185,7 @@ func (rc RouteController) propertiesAction(clientData ClientData, state *State) 
 func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 	glog.Info("changing chatroom")
 	// Update state to the new room
-	oldRoom := state.Chatroom
+	//oldRoom := state.Chatroom
 	state.Chatroom = clientData.Chatroom
 
 	// Update the new room in the DB
@@ -202,15 +202,15 @@ func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 
 	if state.Chatroom != "direct_messages" {
 		// Write user left room!
-		err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", oldRoom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		//err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", oldRoom)
+		//if err != nil {
+		//	glog.Error(err.Error())
+		//}
 		// Write user joined room!
-		err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		//err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
+		//if err != nil {
+		//	glog.Error(err.Error())
+		//}
 	}
 }
 

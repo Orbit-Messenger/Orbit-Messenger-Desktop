@@ -9,120 +9,112 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" prefHeight="300.0" prefWidth="300.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" prefHeight="300.0" prefWidth="400.0" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <TabPane prefHeight="265.0" prefWidth="300.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
           <Tab text="Messages">
             <content>
-              <AnchorPane>
+                  <VBox prefHeight="44.0" prefWidth="300.0">
                      <children>
-                        <VBox prefHeight="44.0" prefWidth="300.0">
+                        <HBox alignment="CENTER">
                            <children>
-                              <HBox alignment="CENTER">
-                                 <children>
-                                    <Label alignment="CENTER" text="Group Messages" />
-                                    <CheckBox fx:id="groupMessagesCheckBox" mnemonicParsing="false">
-                                       <HBox.margin>
-                                          <Insets left="145.0" />
-                                       </HBox.margin>
-                                    </CheckBox>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="profilePictureHBox" alignment="CENTER">
-                                 <children>
-                                    <Label text="Number of messages" />
-                                    <TextField fx:id="messageNumberTxtField" onKeyTyped="#getInt" prefHeight="26.0" prefWidth="90.0">
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
-                                       <HBox.margin>
-                                          <Insets left="40.0" />
-                                       </HBox.margin>
-                                    </TextField>
-                                 </children>
-                              </HBox>
+                              <Label alignment="CENTER" text="Group Messages" />
+                              <CheckBox fx:id="groupMessagesCheckBox" mnemonicParsing="false">
+                                 <HBox.margin>
+                                    <Insets left="145.0" />
+                                 </HBox.margin>
+                              </CheckBox>
                            </children>
-                           <padding>
-                              <Insets top="10.0" />
-                           </padding>
-                        </VBox>
+                        </HBox>
+                        <HBox fx:id="profilePictureHBox" alignment="CENTER">
+                           <children>
+                              <Label text="Number of messages" />
+                              <TextField fx:id="messageNumberTxtField" onKeyTyped="#getInt" prefHeight="26.0" prefWidth="90.0">
+                                 <opaqueInsets>
+                                    <Insets />
+                                 </opaqueInsets>
+                                 <HBox.margin>
+                                    <Insets left="40.0" />
+                                 </HBox.margin>
+                              </TextField>
+                           </children>
+                        </HBox>
                      </children>
-                  </AnchorPane>
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                  </VBox>
             </content>
           </Tab>
           <Tab text="Style">
             <content>
-              <AnchorPane>
+                  <VBox prefHeight="52.0" prefWidth="300.0">
                      <children>
-                        <VBox prefHeight="52.0" prefWidth="300.0">
+                        <HBox alignment="CENTER">
                            <children>
-                              <HBox alignment="CENTER">
-                                 <children>
-                                    <Label text="Font Size" />
-                                    <TextField fx:id="fontSizeTxtField" maxWidth="50.0">
-                                       <HBox.margin>
-                                          <Insets left="160.0" />
-                                       </HBox.margin>
-                                    </TextField>
-                                 </children>
-                              </HBox>
-                              <HBox alignment="CENTER">
-                                 <children>
-                                    <Label text="Theme" />
-                                    <ChoiceBox fx:id="themeChoicesDropdown" prefHeight="26.0" prefWidth="134.0">
-                                       <HBox.margin>
-                                          <Insets left="90.0" />
-                                       </HBox.margin>
-                                    </ChoiceBox>
-                                 </children>
-                              </HBox>
+                              <Label text="Font Size" />
+                              <TextField fx:id="fontSizeTxtField" maxWidth="50.0">
+                                 <HBox.margin>
+                                    <Insets left="160.0" />
+                                 </HBox.margin>
+                              </TextField>
                            </children>
-                           <padding>
-                              <Insets top="10.0" />
-                           </padding>
-                        </VBox>
+                        </HBox>
+                        <HBox alignment="CENTER">
+                           <children>
+                              <Label text="Theme" />
+                              <ChoiceBox fx:id="themeChoicesDropdown" prefHeight="26.0" prefWidth="134.0">
+                                 <HBox.margin>
+                                    <Insets left="90.0" />
+                                 </HBox.margin>
+                              </ChoiceBox>
+                           </children>
+                        </HBox>
                      </children>
-                  </AnchorPane>
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                  </VBox>
             </content>
           </Tab>
             <Tab text="User">
               <content>
-                <AnchorPane>
+                  <VBox>
                      <children>
-                        <VBox>
+                        <HBox alignment="CENTER" prefHeight="26.0" prefWidth="300.0">
                            <children>
-                              <HBox alignment="CENTER" prefHeight="26.0" prefWidth="300.0">
-                                 <children>
-                                    <Label alignment="CENTER" text="New Password" />
-                                    <PasswordField fx:id="passwordTextField">
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </PasswordField>
-                                 </children>
-                              </HBox>
-                              <HBox alignment="CENTER">
-                                 <children>
-                                    <Label text="Profile Picture" />
-                                    <Button fx:id="profilePictureButton" mnemonicParsing="false" onAction="#uploadProfilePicture" text="Choose">
-                                       <HBox.margin>
-                                          <Insets left="115.0" />
-                                       </HBox.margin>
-                                    </Button>
-                                 </children>
-                              </HBox>
+                              <Label alignment="CENTER" text="New Password" />
+                              <PasswordField fx:id="passwordTextField">
+                                 <HBox.margin>
+                                    <Insets left="5.0" />
+                                 </HBox.margin>
+                              </PasswordField>
+                              <Button mnemonicParsing="false" onAction="#changePassword" text="Change">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                              </Button>
                            </children>
-                           <padding>
-                              <Insets top="10.0" />
-                           </padding>
-                        </VBox>
+                        </HBox>
+                        <HBox alignment="CENTER">
+                           <children>
+                              <Label text="Profile Picture" />
+                              <Button fx:id="profilePictureButton" mnemonicParsing="false" onAction="#uploadProfilePicture" text="Choose">
+                                 <HBox.margin>
+                                    <Insets left="182.0" />
+                                 </HBox.margin>
+                              </Button>
+                           </children>
+                        </HBox>
                      </children>
-                  </AnchorPane>
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                  </VBox>
               </content>
             </Tab>
         </tabs>
@@ -132,9 +124,9 @@
             <HBox alignment="CENTER" prefWidth="300.0" VBox.vgrow="ALWAYS">
                <children>
                   <Button fx:id="savePrefBtn" mnemonicParsing="false" onAction="#savePreferences" onKeyPressed="#savePreferences" text="Save" />
-                  <Button mnemonicParsing="false" onAction="#changePassword" text="Change Password">
+                  <Button fx:id="closePrefBtn" mnemonicParsing="false" onAction="#closePreferences" text="Close">
                      <HBox.margin>
-                        <Insets left="85.0" />
+                        <Insets left="175.0" />
                      </HBox.margin>
                   </Button>
                </children>
