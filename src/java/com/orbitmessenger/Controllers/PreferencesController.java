@@ -130,10 +130,7 @@ public class PreferencesController extends ControllerUtil {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         fileChooser.getExtensionFilters().addAll(
-                //new FileChooser.ExtensionFilter("Text Files", "*.txt"),
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif"));
-                //new FileChooser.ExtensionFilter("Audio Files", "*.wav", "*.mp3", "*.aac"),
-                //new FileChooser.ExtensionFilter("All Files", "*.*"));
         File selectedFile = fileChooser.showOpenDialog(mainStage);
         if (selectedFile != null) {
             //mainStage.display(selectedFile);
@@ -142,7 +139,9 @@ public class PreferencesController extends ControllerUtil {
             if (checkFile(selectedFile)) {
                 int statusCode;
                 try{
-                    statusCode = Unirest.post(this.getServer() + "/addAvatar").field("file", selectedFile).asJson().getStatus();
+                    statusCode = Unirest.post(this.getServer() + "/addAvatar")
+                            .field("avatar", selectedFile)
+                            .field("username", this.username).asJson().getStatus();
                 } catch (Exception e){
                     System.out.println("Couldn't upload AVATAR!");
                     return;
