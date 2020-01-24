@@ -533,7 +533,7 @@ public class MainController extends ControllerUtil {
             currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
 
 
-            if (i > 1) {
+            if (i > 0) {
                 VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
                 Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
                 lastUser = previousUserLabel.getText();
@@ -558,6 +558,7 @@ public class MainController extends ControllerUtil {
             // messageIds.add(Integer.valueOf(currentMessageId));
         }
         Platform.runLater(() -> {
+            messagesListView.getItems().clear();
             messagesListView.getItems().addAll(messageBoxes);
             trimMessagesToMessageLimit();
             scrollToBottom();
