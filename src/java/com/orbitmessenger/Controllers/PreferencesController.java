@@ -4,15 +4,23 @@ import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 public class PreferencesController extends ControllerUtil {
@@ -33,9 +41,14 @@ public class PreferencesController extends ControllerUtil {
     ChoiceBox themeChoicesDropdown;
     @FXML
     TextField fontSizeTxtField;
+    @FXML
+    Button profilePictureButton;
+    @FXML
+    HBox profilePictureHBox;
 
     private String server, wsServer, username;
     private ArrayList<String> cssChoices = new ArrayList<String>();
+    private Stage mainStage;
 
     public String getWsServer() { return wsServer = server.replace("https", "wss"); }
     public String getServer() { return server.replace("wss", "https"); }
@@ -111,6 +124,49 @@ public class PreferencesController extends ControllerUtil {
     }
 
     @FXML
+    public void uploadProfilePicture() {
+        mainStage = (Stage) mainVBox.getScene().getWindow();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        fileChooser.getExtensionFilters().addAll(
+                //new FileChooser.ExtensionFilter("Text Files", "*.txt"),
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif"));
+                //new FileChooser.ExtensionFilter("Audio Files", "*.wav", "*.mp3", "*.aac"),
+                //new FileChooser.ExtensionFilter("All Files", "*.*"));
+        File selectedFile = fileChooser.showOpenDialog(mainStage);
+        if (selectedFile != null) {
+            //mainStage.display(selectedFile);
+
+            // Send file to the server!
+            if (checkFile(selectedFile)) {
+                int statusCode;
+                try{
+                    statusCode = Unirest.post(this.getServer() + "/addAvatar").field("file", selectedFile).asJson().getStatus();
+                } catch (Exception e){
+                    System.out.println("Couldn't upload AVATAR!");
+                    return;
+                }
+                //if(10<x && x<20)
+                if (200 <= statusCode && statusCode < 300) {
+                    System.out.println("Avatar loaded!");
+                } else {
+                    System.out.println("Looks like it didn't work!");
+                }
+
+//                HttpResponse<JsonNode> jsonResponse = Unirest.post(
+//                        this.getServer()+"addAvatar")
+//                        .field("file", selectedFile)
+//                        .asJson();
+//                ;
+                //assertEquals(201, jsonResponse.getStatus());
+            } else {
+                //
+                System.out.println("Didn't select AVATAR...");
+            }
+        }
+    }
+
+    @FXML
     public void getInt() {
         // Lets get the absolute value of the number and make sure it is within a certain bounds
         int absoluteValue = 250;
@@ -126,6 +182,33 @@ public class PreferencesController extends ControllerUtil {
             messageNumberTxtField.setText("1");
         } else {
             // Nothing! Its good!
+        }
+    }
+
+    private boolean checkFile(File file) {
+        BasicFileAttributes attr = null;
+        try {
+            attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        System.out.println("creationTime     = " + attr.creationTime());
+//        System.out.println("lastAccessTime   = " + attr.lastAccessTime());
+//        System.out.println("lastModifiedTime = " + attr.lastModifiedTime());
+//
+//        System.out.println("isDirectory      = " + attr.isDirectory());
+//        System.out.println("isOther          = " + attr.isOther());
+//        System.out.println("isRegularFile    = " + attr.isRegularFile());
+//        System.out.println("isSymbolicLink   = " + attr.isSymbolicLink());
+//        System.out.println("size             = " + attr.size());
+
+        // Now, we must determine that the file is of type .jpg and isn't too large.
+        if (attr.size() < 250000) {
+            return true;
+        } else {
+            System.out.println("File too big");
+            profilePictureHBox.setStyle("-fx-border-color: red");
+            return false;
         }
     }
 
@@ -146,7 +229,7 @@ public class PreferencesController extends ControllerUtil {
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 cssChoices.add(listOfFiles[i].getName());
-                System.out.println("File " + listOfFiles[i].getName());
+                //System.out.println("File " + listOfFiles[i].getName());
             } else if (listOfFiles[i].isDirectory()) {
                 System.out.println("Directory " + listOfFiles[i].getName());
             }
