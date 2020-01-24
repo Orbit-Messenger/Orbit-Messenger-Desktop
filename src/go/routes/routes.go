@@ -37,6 +37,12 @@ type FullData struct {
 	Chatrooms []db.Chatroom `json:"chatrooms"`
 }
 
+type Avatar struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Avatar   string `json:"avatar"`
+}
+
 type State struct {
 	LastMessageId int64
 	Username      string
@@ -197,6 +203,20 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
 
+	}
+}
+
+func (rc RouteController) AddAvatarToUser(c *gin.Context) {
+	var avatar Avatar
+	bindErr := c.BindJSON(&avatar)
+	if bindErr != nil {
+		glog.Warning("Bind Err: ", bindErr.Error())
+	}
+	if rc.dbConn.VerifyPasswordByUsername(avatar.Username, avatar.Password) {
+		c.Status(200)
+		rc.dbConn.AddAvatar(avatar.Username, []byte(avatar.Avatar))
+	} else {
+		c.Status(500)
 	}
 }
 

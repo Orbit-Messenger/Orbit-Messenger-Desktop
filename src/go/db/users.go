@@ -17,6 +17,8 @@ const (
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
+	ADD_AVATAR                 = "UPDATE users SET avatar = $1 WHERE id = $2;"
+	GET_AVATAR                 = "SELECT avatar FROM users WHERE id = $2;"
 )
 
 type User struct {
@@ -26,6 +28,7 @@ type User struct {
 	Salt     string
 	Status   bool
 	Room     string `json:"room"`
+	Avatar   []byte `json:"avatar"`
 }
 
 type AllUsers struct {
@@ -175,4 +178,15 @@ func (dbConn DatabaseConnection) CheckIfUserExists(username string) bool {
 func (dbConn DatabaseConnection) CreateUser(username, password string) error {
 	_, err := dbConn.conn.Exec(context.Background(), CREATE_USER, username, password)
 	return err
+}
+
+// Adds an avatar to a user
+func (dbConn DatabaseConnection) AddAvatar(username string, avatar []byte) error {
+	userId, err := dbConn.GetUserId(username)
+	if err != nil {
+		return fmt.Errorf("couldn't get user ID for avatar image: %v", err)
+	}
+	_, err = dbConn.conn.Exec(context.Background(), ADD_AVATAR, avatar, userId)
+	return err
+
 }
