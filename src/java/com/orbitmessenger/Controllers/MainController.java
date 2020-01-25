@@ -984,12 +984,14 @@ public class MainController extends ControllerUtil {
         logger.info("Opening Create Room!");
         CreateRoomController createRoom = new CreateRoomController();
         createRoom.setServer(getServer());
-        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, new Stage());
+        Stage newStage = new Stage();
+        newStage.setTitle("Create Room");
+        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, newStage);
 
         Thread createRoomThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (getAllShowingStages().size() > 1) {
+                while (getAllShowingStages(newStage.getTitle()).size() > 0) {
                     try {
                         Thread.sleep(500); // Milliseconds
                     } catch (InterruptedException e) {
@@ -1007,12 +1009,14 @@ public class MainController extends ControllerUtil {
     public void openPreferences() {
         logger.info("Opening Preferences!");
         PreferencesController pref = new PreferencesController(this.server, this.username);
-        pref.changeSceneTo(this.PREF_FXML, pref, new Stage());
+        Stage newStage = new Stage();
+        newStage.setTitle("Preferences");
+        pref.changeSceneTo(this.PREF_FXML, pref, newStage);
 
         Thread updatePreferences = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (getAllShowingStages().size() > 1) {
+                while (getAllShowingStages(newStage.getTitle()).size() > 0) {
                     try {
                         Thread.sleep(500); // Milliseconds
                     } catch (InterruptedException e) {
@@ -1037,10 +1041,10 @@ public class MainController extends ControllerUtil {
         });
     }
 
-    public ObservableList<Stage> getAllShowingStages() {
+    public ObservableList<Stage> getAllShowingStages(String name) {
         ObservableList<Stage> stages = FXCollections.observableArrayList();
         Window.getWindows().forEach(w -> {
-            if (w instanceof Stage) {
+            if ((w instanceof Stage) && (name.equals(((Stage) w).getTitle()))){
                 stages.add((Stage) w);
             }
         });
