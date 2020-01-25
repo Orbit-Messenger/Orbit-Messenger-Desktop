@@ -504,12 +504,6 @@ public class MainController extends ControllerUtil {
 
     }
 
-    public String trimMessages(String message) {
-        message = message.replaceAll("\\[", "").replaceAll("\\]","").trim();
-        message = message + "\n\n";
-        return message;
-    }
-
     // Now, if we have groupMessages true, we'll go through and combine them.
     public void groupMessages() {
         int start = -1;
@@ -546,6 +540,7 @@ public class MainController extends ControllerUtil {
             int indexEnd = groupIndex[1];
             String user = "";
             String timeStamp = "";
+            String message = "";
             int currentMessageId = 0;
             Label currentTimeStampLabel = new Label();
             messagesToGroup.clear();
@@ -563,27 +558,30 @@ public class MainController extends ControllerUtil {
                 } catch (Exception e) {
                     currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
                 }
-                String message = currentMessageLabel.getText();
+                timeStamp = currentTimeStampLabel.getText();
+                message = currentMessageLabel.getText();
                 //System.out.println("Adding Message: " + message);
                 messagesToGroup.add(message);
                 if (j == indexStart) {
                     user = currentUserLabel.getText();
-                    currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+                    currentMessageId = Integer.parseInt(currentMessageIdLabel.getText());
                 }
             }
-            String finalMessage = "";
-            for ( String message : messagesToGroup) {
-                finalMessage += message + "\n\n";
+            StringBuilder finalMessage = new StringBuilder();
+            for ( String individualMessage : messagesToGroup) {
+                // Removes extra whitespace/newlines.
+                individualMessage = individualMessage.trim();
+                finalMessage.append(individualMessage).append("\n");
             }
 
             // Now, lets create a new message box and insert it back in!
             groupedMessageBoxes.add(
                     createMessageBox(
                             user,
-                            currentTimeStampLabel.getText(),
-                            finalMessage,
+                            timeStamp,
+                            finalMessage.toString(),
                             currentMessageId,
-                            false)
+                            true)
             );
         }
 
