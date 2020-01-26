@@ -22,6 +22,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import kong.unirest.GetRequest;
+import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 
 import java.net.URI;
@@ -1065,7 +1066,10 @@ public class MainController extends ControllerUtil {
         for (String user : allUsers) {
             GetRequest image
                     = Unirest.get(this.server+"/getAvatar")
-                    .queryString("apiKey", "123");
+                    .queryString("username", user);
+//            HttpResponse<Image> image
+//                    = (HttpResponse<Image>) Unirest.get(this.server+"/getAvatar")
+//                    .queryString("username", user);
             // Now we have the image, we'll add it to the imageMap Map
             imageMap.put(user, (Image) image);
         }
