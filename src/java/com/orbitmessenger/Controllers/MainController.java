@@ -509,6 +509,7 @@ public class MainController extends ControllerUtil {
         int start = -1;
         int end = -1;
         String lastUser = "";
+        messageIds.clear();
         groupIndexes.clear();
         groupedMessageBoxes.clear();
         ArrayList<String> messagesToGroup = new ArrayList<>();
@@ -856,25 +857,7 @@ public class MainController extends ControllerUtil {
         VBox individualMessageContainer = new VBox();
         HBox hBox = new HBox();
         HBox hBox1 = new HBox();
-        // check if username == the current user or moves messages to the right
-        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
-            hBox1.setAlignment(Pos.CENTER_RIGHT);
-            hBox.setAlignment(Pos.CENTER_RIGHT);
-            individualMessageVBox.getStyleClass().add("otherMessageBox");
-            individualMessageContainer.setId("otherMessageBox");
-        } else if (username.equals("admin")){
-            // must be admin, we want to center these messages
-            hBox1.setAlignment(Pos.CENTER);
-            hBox.setAlignment(Pos.CENTER);
-            individualMessageVBox.getStyleClass().add("adminMessageBox");
-            individualMessageContainer.setId("adminMessageBox");
-        } else {
-            // Must be the user!
-            hBox1.setAlignment(Pos.CENTER_LEFT);
-            hBox.setAlignment(Pos.CENTER_LEFT);
-            individualMessageVBox.getStyleClass().add("userMessageBox");
-            individualMessageContainer.setId("userMessageBox");
-        }
+
         // Not sure what this does. Commenting out for now.
         // individualMessageVBox.setStyle(".messageBox");
         individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
@@ -907,9 +890,30 @@ public class MainController extends ControllerUtil {
         hiddenMessageId.setManaged(false);
 
         individualMessageContainer.getChildren().addAll(hBox, messageLabel);
-        hBox1.getChildren().add(imv);
-        hBox1.getChildren().add(individualMessageContainer);
 
+        // check if username == the current user or moves messages to the right
+        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
+            hBox1.setAlignment(Pos.CENTER_RIGHT);
+            hBox.setAlignment(Pos.CENTER_RIGHT);
+            individualMessageVBox.getStyleClass().add("otherMessageBox");
+            individualMessageContainer.setId("otherMessageBox");
+            hBox1.getChildren().add(individualMessageContainer);
+            hBox1.getChildren().add(imv);
+        } else if (username.equals("admin")){
+            // must be admin, we want to center these messages
+            hBox1.setAlignment(Pos.CENTER);
+            hBox.setAlignment(Pos.CENTER);
+            individualMessageVBox.getStyleClass().add("adminMessageBox");
+            individualMessageContainer.setId("adminMessageBox");
+        } else {
+            // Must be the user!
+            hBox1.setAlignment(Pos.CENTER_LEFT);
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            individualMessageVBox.getStyleClass().add("userMessageBox");
+            individualMessageContainer.setId("userMessageBox");
+            hBox1.getChildren().add(imv);
+            hBox1.getChildren().add(individualMessageContainer);
+        }
 
         individualMessageVBox.getChildren().add(hiddenUsername);
         individualMessageVBox.getChildren().add(hiddenMessageId);
