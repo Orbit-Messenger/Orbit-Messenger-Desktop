@@ -28,7 +28,7 @@ type User struct {
 	Salt     string
 	Status   bool
 	Room     string `json:"room"`
-	Avatar   []byte `json:"avatar"`
+	Avatar   string `json:"avatar"`
 }
 
 type AllUsers struct {
@@ -37,6 +37,11 @@ type AllUsers struct {
 
 type ActiveUsers struct {
 	ActiveUsers []string `json:"activeUsers"`
+}
+
+type Avatar struct {
+	Username string
+	Location string
 }
 
 // GetUserId gets the users id from the username
@@ -181,12 +186,15 @@ func (dbConn DatabaseConnection) CreateUser(username, password string) error {
 }
 
 // Adds an avatar to a user
-func (dbConn DatabaseConnection) AddAvatar(username string, avatar []byte) error {
+func (dbConn DatabaseConnection) AddAvatar(username, avatarFilePath string) error {
 	userId, err := dbConn.GetUserId(username)
 	if err != nil {
 		return fmt.Errorf("couldn't get user ID for avatar image: %v", err)
 	}
-	_, err = dbConn.conn.Exec(context.Background(), ADD_AVATAR, avatar, userId)
+	_, err = dbConn.conn.Exec(context.Background(), ADD_AVATAR, avatarFilePath, userId)
 	return err
+}
 
+// Gets all the usernames and their avatar locations
+func (dbConn DatabaseConnection) GetAvatars() error {
 }

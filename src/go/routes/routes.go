@@ -210,14 +210,47 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 	}
 }
 
+// Adds an avatar image to the image folder and updates the location in the database
 func (rc RouteController) AddAvatarToUser(c *gin.Context) {
+	var user Auth
+
+	// converts base64 to an auth
+	basicAuth := c.GetHeader("Authorization")
+	user, err := rc.GetUsernameAndPasswordFromBase64(basicAuth)
+	if err != nil {
+		glog.Error("couldn't decode base64 auth")
+		return
+	}
+
+	// Authenticates the user
+	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+		rc.createAvatarImgAndDataEntry(user.Username, c)
+	} else {
+		c.Status(500)
+	}
+}
+
+func (rc RouteController) createAvatarImgAndDataEntry(username string, c *gin.Context) {
+	// Gets a file from the http request
 	file, err := c.FormFile("file")
 	if err != nil {
 		glog.Error(err)
-		c.Status(500)
+		c.Status(400)
 		return
 	}
+
+	// Saves the file to the image folder
 	err = c.SaveUploadedFile(file, IMAGE_FOLDER_PATH+file.Filename)
+	if err != nil {
+		glog.Error(err)
+	}
+
+	// Updates the database with the image location
+	err = rc.dbConn.AddAvatar(username, IMAGE_FOLDER_PATH+file.Filename)
+	if err != nil {
+		glog.Error(err)
+	}
+	c.Status(200)
 	glog.Error(err)
 }
 
