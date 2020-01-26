@@ -22,26 +22,25 @@
                      <children>
                         <HBox alignment="CENTER">
                            <children>
-                              <Label alignment="CENTER" text="Group Messages" />
-                              <CheckBox fx:id="groupMessagesCheckBox" mnemonicParsing="false">
-                                 <HBox.margin>
-                                    <Insets left="145.0" />
-                                 </HBox.margin>
-                              </CheckBox>
+                              <Label maxWidth="1.7976931348623157E308" text="Group Messages" HBox.hgrow="ALWAYS" />
+                              <CheckBox fx:id="groupMessagesCheckBox" mnemonicParsing="false" />
                            </children>
+                           <padding>
+                              <Insets left="50.0" right="50.0" />
+                           </padding>
                         </HBox>
                         <HBox fx:id="profilePictureHBox" alignment="CENTER">
                            <children>
-                              <Label text="Number of messages" />
+                              <Label maxWidth="1.7976931348623157E308" text="Number of messages" HBox.hgrow="ALWAYS" />
                               <TextField fx:id="messageNumberTxtField" onKeyTyped="#getInt" prefHeight="26.0" prefWidth="90.0">
                                  <opaqueInsets>
                                     <Insets />
                                  </opaqueInsets>
-                                 <HBox.margin>
-                                    <Insets left="40.0" />
-                                 </HBox.margin>
                               </TextField>
                            </children>
+                           <padding>
+                              <Insets left="50.0" right="50.0" />
+                           </padding>
                         </HBox>
                      </children>
                      <padding>
@@ -56,23 +55,29 @@
                      <children>
                         <HBox alignment="CENTER">
                            <children>
-                              <Label text="Font Size" />
+                              <Label maxWidth="1.7976931348623157E308" text="Font Size" HBox.hgrow="ALWAYS" />
                               <TextField fx:id="fontSizeTxtField" maxWidth="50.0">
                                  <HBox.margin>
-                                    <Insets left="160.0" />
+                                    <Insets />
                                  </HBox.margin>
                               </TextField>
                            </children>
+                           <VBox.margin>
+                              <Insets left="50.0" right="50.0" />
+                           </VBox.margin>
                         </HBox>
-                        <HBox alignment="CENTER">
+                        <HBox alignment="CENTER" maxWidth="1.7976931348623157E308">
                            <children>
-                              <Label text="Theme" />
+                              <Label maxWidth="1.7976931348623157E308" text="Theme" HBox.hgrow="ALWAYS" />
                               <ChoiceBox fx:id="themeChoicesDropdown" prefHeight="26.0" prefWidth="134.0">
                                  <HBox.margin>
-                                    <Insets left="90.0" />
+                                    <Insets />
                                  </HBox.margin>
                               </ChoiceBox>
                            </children>
+                           <VBox.margin>
+                              <Insets left="50.0" right="50.0" />
+                           </VBox.margin>
                         </HBox>
                      </children>
                      <padding>
@@ -85,9 +90,9 @@
               <content>
                   <VBox>
                      <children>
-                        <HBox alignment="CENTER" prefHeight="26.0" prefWidth="300.0">
+                        <HBox alignment="CENTER">
                            <children>
-                              <Label alignment="CENTER" text="New Password" />
+                              <Label maxWidth="1.7976931348623157E308" text="New Password" HBox.hgrow="ALWAYS" />
                               <PasswordField fx:id="passwordTextField">
                                  <HBox.margin>
                                     <Insets left="5.0" />
@@ -99,16 +104,22 @@
                                  </HBox.margin>
                               </Button>
                            </children>
+                           <VBox.margin>
+                              <Insets left="25.0" right="25.0" />
+                           </VBox.margin>
                         </HBox>
                         <HBox alignment="CENTER">
                            <children>
-                              <Label text="Profile Picture" />
+                              <Label maxWidth="1.7976931348623157E308" text="Profile Picture" HBox.hgrow="ALWAYS" />
                               <Button fx:id="profilePictureButton" mnemonicParsing="false" onAction="#uploadProfilePicture" text="Choose">
                                  <HBox.margin>
                                     <Insets left="182.0" />
                                  </HBox.margin>
                               </Button>
                            </children>
+                           <VBox.margin>
+                              <Insets left="25.0" right="25.0" />
+                           </VBox.margin>
                         </HBox>
                      </children>
                      <padding>

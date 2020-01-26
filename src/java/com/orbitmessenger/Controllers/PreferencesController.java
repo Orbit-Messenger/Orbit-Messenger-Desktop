@@ -135,15 +135,10 @@ public class PreferencesController extends ControllerUtil {
         System.out.println(selectedFile.getName());
         System.out.println(selectedFile.getTotalSpace());
         if (selectedFile != null) {
-            //mainStage.display(selectedFile);
-
             // Send file to the server!
             if (checkFile(selectedFile)) {
                 int statusCode;
                 try{
-//                    statusCode = Unirest.post(this.getServer() + "/addAvatar")
-//                            .field("avatar", selectedFile)
-//                            .field("username", this.username).asJson().getStatus();
                     InputStream file = new FileInputStream(selectedFile);
                     statusCode = Unirest.post(this.getServer() + "addAvatar")
                             .field("file", file, selectedFile.getName())
@@ -152,21 +147,12 @@ public class PreferencesController extends ControllerUtil {
                     System.out.println("Couldn't upload AVATAR!");
                     return;
                 }
-                //if(10<x && x<20)
                 if (200 <= statusCode && statusCode < 300) {
                     System.out.println("Avatar loaded!");
                 } else {
                     System.out.println("Looks like it didn't work!");
                 }
-
-//                HttpResponse<JsonNode> jsonResponse = Unirest.post(
-//                        this.getServer()+"addAvatar")
-//                        .field("file", selectedFile)
-//                        .asJson();
-//                ;
-                //assertEquals(201, jsonResponse.getStatus());
             } else {
-                //
                 System.out.println("Didn't select AVATAR...");
             }
         }
