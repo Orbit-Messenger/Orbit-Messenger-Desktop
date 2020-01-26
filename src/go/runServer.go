@@ -25,6 +25,7 @@ func main() {
 	router.POST("/createUser", routes.CreateUser)
 	router.POST("/createRoom", routes.CreateChatroom)
 	router.POST("/addAvatar", routes.AddAvatarToUser)
+	router.GET("/getAvatar", routes.GetAvatar)
 	// This allows TLS!
 	// Points to the CERT and KEY files.
 	glog.Fatal(http.ListenAndServeTLS(":3000", "./cert.pem", "./key.pem", router))

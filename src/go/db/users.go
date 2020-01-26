@@ -18,7 +18,7 @@ const (
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
 	ADD_AVATAR                 = "UPDATE users SET avatar = $1 WHERE id = $2;"
-	GET_AVATAR                 = "SELECT avatar FROM users WHERE id = $2;"
+	GET_AVATAR                 = "SELECT avatar FROM users WHERE id = $1;"
 )
 
 type User struct {
@@ -196,5 +196,12 @@ func (dbConn DatabaseConnection) AddAvatar(username, avatarFilePath string) erro
 }
 
 // Gets all the usernames and their avatar locations
-func (dbConn DatabaseConnection) GetAvatars() error {
+func (dbConn DatabaseConnection) GetAvatarByUsername(username string) (string, error) {
+	var avatar string
+	userId, err := dbConn.GetUserId(username)
+	err = dbConn.conn.QueryRow(context.Background(), GET_AVATAR, userId).Scan(&avatar)
+	if err != nil {
+		return avatar, err
+	}
+	return avatar, nil
 }

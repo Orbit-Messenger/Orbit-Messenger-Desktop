@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS users(
   password TEXT DEFAULT '',
   salt TEXT DEFAULT '',
   status boolean DEFAULT false,
-  room VARCHAR(50) DEFAULT 'general'
+  room VARCHAR(50) DEFAULT 'general',
+  avatar VARCHAR(30) DEFAULT null
   );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test');

@@ -41,12 +41,6 @@ type FullData struct {
 	Chatrooms []db.Chatroom `json:"chatrooms"`
 }
 
-type Avatar struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Avatar   string `json:"avatar"`
-}
-
 type State struct {
 	LastMessageId int64
 	Username      string
@@ -252,6 +246,32 @@ func (rc RouteController) createAvatarImgAndDataEntry(username string, c *gin.Co
 	}
 	c.Status(200)
 	glog.Error(err)
+}
+
+type user struct {
+	Username string `json:"username"`
+}
+
+func (rc RouteController) GetAvatar(c *gin.Context) {
+	var username user
+	basicAuth := c.GetHeader("Authorization")
+	user, err := rc.GetUsernameAndPasswordFromBase64(basicAuth)
+	if err != nil {
+		glog.Error("couldn't decode base64 auth")
+		return
+	}
+
+	// Authenticates the user
+	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+		err = c.BindJSON(&username.Username)
+		if err != nil {
+			glog.Error(err)
+		}
+		location, _ := rc.dbConn.GetAvatarByUsername(username.Username)
+		c.File(location)
+	} else {
+		c.Status(500)
+	}
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
