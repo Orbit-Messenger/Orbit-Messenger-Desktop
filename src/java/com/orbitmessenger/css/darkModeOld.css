@@ -1,3 +1,16 @@
+@font-face {
+    font-family: 'OpenSansEmoji';
+    src: url('../fonts/OpenSansEmoji.ttf');
+}
+
+.text {
+    -fx-font-family: OpenSansEmoji;
+}
+
+/*#TEST {*/
+/*    -fx-font-family: OpenSansEmoji;*/
+/*}*/
+
 .root {
     -fx-base: #4C4C4C;
     -fx-accent: #e7eff7 ;
@@ -46,7 +59,7 @@
 
 #usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
     -fx-text-fill: LIGHTBLUE;
-    -fx-font-size: 1.1em;
+    /*-fx-font-size: 1.1em;*/
 }
 
 #timeStampID {

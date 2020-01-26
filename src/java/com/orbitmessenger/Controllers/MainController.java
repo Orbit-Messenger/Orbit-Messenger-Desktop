@@ -1,6 +1,8 @@
 package com.orbitmessenger.Controllers;
 
 import com.google.gson.*;
+import com.vdurmont.emoji.EmojiManager;
+import com.vdurmont.emoji.EmojiParser;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,8 +21,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -611,6 +616,8 @@ public class MainController extends ControllerUtil {
             Label label = new Label();
             label.getStyleClass().add("font-color");
             label.setId("roomLabelID");
+            // Set room label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
 
             label.setOnMouseClicked(new EventHandler<MouseEvent>(){
                 @Override
@@ -644,9 +651,6 @@ public class MainController extends ControllerUtil {
 
             label.setText(trimUsers(obj.get("name").toString()));
 
-            // Set room label font size
-            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
-
             roomLabels.add(label);
         }
         Platform.runLater(new Runnable() {
@@ -671,6 +675,10 @@ public class MainController extends ControllerUtil {
             HBox hBox = new HBox();
             Circle circle = new Circle();
             Label label = new Label();
+
+            // Set user label font size
+            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+
             circle.setRadius(7);
 
             // If the user is active, set Circle to GREEN, RED otherwise.
@@ -691,9 +699,6 @@ public class MainController extends ControllerUtil {
             } else {
                 label.setId("userLabelID");
             }
-
-            // Set user label font size
-            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -824,6 +829,11 @@ public class MainController extends ControllerUtil {
     }
 
 
+    private String convertToEmoji(String message) {
+        System.out.println("Emoji: " + EmojiManager.getByUnicode(EmojiParser.parseToUnicode(message)));
+        return EmojiParser.parseToUnicode(message);
+    }
+
     /**
      * Creates a message box with proper formatting
      */
@@ -881,6 +891,7 @@ public class MainController extends ControllerUtil {
         Label usernameLabel = new Label();
         Label timeStampLabel = new Label();
         Label messageLabel = new Label();
+        messageLabel.setId("TEST");
 
         usernameLabel.getStyleClass().add("font-color");
         timeStampLabel.getStyleClass().add("font-color");
@@ -888,7 +899,8 @@ public class MainController extends ControllerUtil {
 
         usernameLabel.setText(username);
         timeStampLabel.setText(shortTime);
-        messageLabel.setText(message);
+
+        messageLabel.setText(convertToEmoji(message));
 
         // Here we hide the user if the previous message if from the same user.
         // Furthermore, we will always set the user to a hidden label so we can grab it.
@@ -917,12 +929,15 @@ public class MainController extends ControllerUtil {
         individualMessageVBox.getChildren().add(hBox1);
 
         // Set timestamp font size
-        timeStampLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+        timeStampLabel.setFont(new Font(PreferencesObject.get("fontSize").getAsInt() - 4));
         timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
 
         // Set Message font size
-        messageLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
+        messageLabel.setFont(new Font(PreferencesObject.get("fontSize").getAsInt()));
 
+        TextFlow textFlow = new TextFlow(individualMessageVBox);
+        VBox test = new VBox();
+        test.getChildren().add(textFlow);
         return individualMessageVBox;
     }
 
