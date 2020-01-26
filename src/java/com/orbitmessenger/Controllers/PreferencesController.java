@@ -1,23 +1,23 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
+import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
-import kong.unirest.HttpResponse;
-import kong.unirest.JsonNode;
-import kong.unirest.Unirest;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import kong.unirest.Unirest;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -132,6 +132,8 @@ public class PreferencesController extends ControllerUtil {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif"));
         File selectedFile = fileChooser.showOpenDialog(mainStage);
+        System.out.println(selectedFile.getName());
+        System.out.println(selectedFile.getTotalSpace());
         if (selectedFile != null) {
             //mainStage.display(selectedFile);
 
@@ -139,9 +141,13 @@ public class PreferencesController extends ControllerUtil {
             if (checkFile(selectedFile)) {
                 int statusCode;
                 try{
-                    statusCode = Unirest.post(this.getServer() + "/addAvatar")
-                            .field("avatar", selectedFile)
-                            .field("username", this.username).asJson().getStatus();
+//                    statusCode = Unirest.post(this.getServer() + "/addAvatar")
+//                            .field("avatar", selectedFile)
+//                            .field("username", this.username).asJson().getStatus();
+                    InputStream file = new FileInputStream(selectedFile);
+                    statusCode = Unirest.post(this.getServer() + "addAvatar")
+                            .field("file", file, selectedFile.getName())
+                            .asEmpty().getStatus();
                 } catch (Exception e){
                     System.out.println("Couldn't upload AVATAR!");
                     return;

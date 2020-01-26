@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	IMAGE_FOLDER_PATH = "./src/res/images/"
+)
+
 // RouteController controls the database for each route
 type RouteController struct {
 	dbConn        db.DatabaseConnection
@@ -207,17 +211,14 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 }
 
 func (rc RouteController) AddAvatarToUser(c *gin.Context) {
-	var avatar Avatar
-	bindErr := c.BindJSON(&avatar)
-	if bindErr != nil {
-		glog.Warning("Bind Err: ", bindErr.Error())
-	}
-	if rc.dbConn.VerifyPasswordByUsername(avatar.Username, avatar.Password) {
-		c.Status(200)
-		rc.dbConn.AddAvatar(avatar.Username, []byte(avatar.Avatar))
-	} else {
+	file, err := c.FormFile("file")
+	if err != nil {
+		glog.Error(err)
 		c.Status(500)
+		return
 	}
+	err = c.SaveUploadedFile(file, IMAGE_FOLDER_PATH+file.Filename)
+	glog.Error(err)
 }
 
 func updateLastMessageId(messages []db.Message, lastMessageId *int64) {
