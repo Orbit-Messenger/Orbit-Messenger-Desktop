@@ -21,6 +21,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import kong.unirest.GetRequest;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -33,14 +37,12 @@ public class MainController extends ControllerUtil {
 
     private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
-    //private Boolean groupMessages;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
-    private ArrayList<Image> imageList = new ArrayList<>();
-    private JsonObject imageObject = new JsonObject();
-    private long pass = 0;
+    private ArrayList<String> allUsers = new ArrayList<>();
     private ArrayList<int[]> groupIndexes = new ArrayList<>();
-    ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
+    private ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
+    private Map<String,Image> imageMap;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -663,6 +665,8 @@ public class MainController extends ControllerUtil {
         if (users == null) {
             return;
         }
+        // Clear all users, we'll build it again further down.
+        allUsers.clear();
         ArrayList<HBox> userHBox = new ArrayList<>();
         for (JsonElement user : users) {
             JsonObject userObject = new JsonObject();
@@ -684,6 +688,8 @@ public class MainController extends ControllerUtil {
             label.getStyleClass().add("font-color");
             label.setAlignment(Pos.CENTER);
             label.setText(trimUsers(userObject.get("username").toString()));
+            // Adds the user to the user list!
+            allUsers.add(trimUsers(userObject.get("username").toString()));
             label.setStyle("-fx-padding: 0 0 0 10;");
 
             // We want to change the logged in user to a special color.
@@ -694,7 +700,7 @@ public class MainController extends ControllerUtil {
             }
 
             // Set user label font size
-            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+            label.setFont(new Font(PreferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -1051,6 +1057,22 @@ public class MainController extends ControllerUtil {
             }
         });
         return stages;
+    }
+
+    /**
+     * Queries the server, sending each user, obtaining their profile picture.
+     */
+    public void getAllImages() {
+        for (String user : allUsers) {
+            GetRequest image
+                    = Unirest.get(this.server+"/getAvatar")
+                    .queryString("username", user);
+//            HttpResponse<Image> image
+//                    = (HttpResponse<Image>) Unirest.get(this.server+"/getAvatar")
+//                    .queryString("username", user);
+            // Now we have the image, we'll add it to the imageMap Map
+            imageMap.put(user, (Image) image);
+        }
     }
 
     /**
