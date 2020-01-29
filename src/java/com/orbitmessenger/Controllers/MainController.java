@@ -894,8 +894,7 @@ public class MainController extends ControllerUtil {
         //Loading image from URL
         ImageView imv = new ImageView();
         try {
-            Image defaultImage = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
-            Image image = imageMap.getOrDefault(username, defaultImage);
+            Image image = imageMap.get(username);
             imv.setImage(image);
         } catch (Exception e) {
             Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
