@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.embed.swt.SWTFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -25,6 +27,10 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import kong.unirest.Unirest;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -892,6 +898,8 @@ public class MainController extends ControllerUtil {
 
         //Loading image from imageMap
         ImageView imv = new ImageView();
+        imv.setFitWidth(30);
+        imv.setFitHeight(30);
         try {
             Image image = imageMap.get(username);
             imv.setImage(image);
@@ -1019,7 +1027,7 @@ public class MainController extends ControllerUtil {
      *
      * @param messageId
      */
-    public void deleteMessages(Integer messageId) {
+    private void deleteMessages(Integer messageId) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -1095,7 +1103,7 @@ public class MainController extends ControllerUtil {
         });
     }
 
-    public ObservableList<Stage> getAllShowingStages(String name) {
+    private ObservableList<Stage> getAllShowingStages(String name) {
         ObservableList<Stage> stages = FXCollections.observableArrayList();
         Window.getWindows().forEach(w -> {
             if ((w instanceof Stage) && (name.equals(((Stage) w).getTitle()))){
@@ -1108,16 +1116,21 @@ public class MainController extends ControllerUtil {
     /**
      * Queries the server, sending each user, obtaining their profile picture.
      */
-    public void getAllImages() {
+    private void getAllImages() {
+        // Clears the imageMap so we can fill it up again.
         imageMap.clear();
         for (String user : allUsers) {
             try {
-                Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
+                // This was we can get an image as a byte array. Then, keeping it in memory, we can convert it to
+                // an image. Finally, assign that image to our imageMap. Voila!
+                byte[] fileBytes = Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
                         .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
                         .queryString("username", user)
-                        .asFile("src/java/com/orbitmessenger/images/profilePics/temp.jpg")
+                        .asBytes()
                         .getBody();
-                Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/temp.jpg"), 25, 25, false, false);
+                ByteArrayInputStream input_stream= new ByteArrayInputStream(fileBytes);
+                BufferedImage final_buffered_image = ImageIO.read(input_stream);
+                Image image = SwingFXUtils.toFXImage(final_buffered_image, null);
                 imageMap.put(user, image);
             } catch (Exception e) {
                 e.printStackTrace();
