@@ -894,10 +894,12 @@ public class MainController extends ControllerUtil {
         //Loading image from URL
         ImageView imv = new ImageView();
         try {
-            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
+            Image image = imageMap.get(username);
+            //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
             imv.setImage(image);
         } catch (Exception e) {
-            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            Image image = imageMap.get("default");
+            //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
             imv.setImage(image);
         }
 
@@ -1110,6 +1112,7 @@ public class MainController extends ControllerUtil {
      * Queries the server, sending each user, obtaining their profile picture.
      */
     public void getAllImages() {
+        imageMap.clear();
         for (String user : allUsers) {
             System.out.println(user);
 //            GetRequest image
