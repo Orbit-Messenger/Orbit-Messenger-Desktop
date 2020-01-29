@@ -1111,8 +1111,6 @@ public class MainController extends ControllerUtil {
     public void getAllImages() {
         imageMap.clear();
         for (String user : allUsers) {
-            //String tempFileLocation = "../images/profilePics/temp.jpg";
-            //File fileDataFromServer = null;
             try {
                 Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
                         .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
@@ -1120,13 +1118,9 @@ public class MainController extends ControllerUtil {
                         .asFile("src/java/com/orbitmessenger/images/profilePics/temp.jpg")
                         .getBody();
                 Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/temp.jpg"), 25, 25, false, false);
-                //Image image = new Image(MainController.class.getResourceAsStream(fileDataFromServer.getPath()), 25, 25, false, false);
                 imageMap.put(user, image);
-                //fileDataFromServer.delete();
             } catch (Exception e) {
-                System.out.println("hit");
                 e.printStackTrace();
-                //fileDataFromServer.delete();
             }
         }
     }
