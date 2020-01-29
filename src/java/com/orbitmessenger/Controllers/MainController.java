@@ -221,9 +221,6 @@ public class MainController extends ControllerUtil {
                         if (serverMessage != null) {
                             //logger.info("Response: " + serverMessage);
                             System.out.println("Response: " + serverMessage);
-                            if (serverMessage.has("messages")) {
-                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
-                            }
                             if (serverMessage.has("allUsers")) {
                                 updateUsers(wsClient.getUsersFromJsonObject(serverMessage));
                                 try{
@@ -231,6 +228,9 @@ public class MainController extends ControllerUtil {
                                 }catch (Exception e){
                                     e.printStackTrace();
                                 }
+                            }
+                            if (serverMessage.has("messages")) {
+                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
                             }
                             if (serverMessage.has("chatrooms")) {
                                 updateRooms(wsClient.getRoomsFromJsonObject(serverMessage));
@@ -890,7 +890,7 @@ public class MainController extends ControllerUtil {
             shortTime = timestamp;
         }
 
-        //Loading image from URL
+        //Loading image from imageMap
         ImageView imv = new ImageView();
         try {
             Image image = imageMap.get(username);
@@ -1062,7 +1062,7 @@ public class MainController extends ControllerUtil {
      */
     public void openPreferences() {
         logger.info("Opening Preferences!");
-        PreferencesController pref = new PreferencesController(clientInfo.getHttpServer(), clientInfo.getUsername());
+        PreferencesController pref = new PreferencesController(clientInfo.getHttpServer(), clientInfo.getUsername(), clientInfo.getPassword());
         Stage newStage = new Stage();
         newStage.setTitle("Preferences");
         pref.changeSceneTo(this.PREF_FXML, pref, newStage);
@@ -1112,6 +1112,8 @@ public class MainController extends ControllerUtil {
 //        imageMap.clear();
         for (String user : allUsers) {
             System.out.println(user);
+            System.out.println("Username: " + clientInfo.getUsername());
+            System.out.println("Password: " + clientInfo.getPassword());
 //            GetRequest image
 //                    = Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
 //                    .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
@@ -1124,14 +1126,15 @@ public class MainController extends ControllerUtil {
                         .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
                         .queryString("username", user)
                         .asFile(tempFileLocation).getBody();
-                Image image = new Image(MainController.class.getResourceAsStream("./images/profilePics/temp.jpg"), 25, 25, false, false);
-                imageMap.put(user, image);
-                fileDataFromServer.delete();
+                //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+                //Image image = new Image(MainController.class.getResourceAsStream(fileDataFromServer.getPath()), 25, 25, false, false);
+                //imageMap.put(user, image);
+                //fileDataFromServer.delete();
 
             } catch (Exception e) {
                 System.out.println("hit");
                 e.printStackTrace();
-                fileDataFromServer.delete();
+                //fileDataFromServer.delete();
             }
         }
     }

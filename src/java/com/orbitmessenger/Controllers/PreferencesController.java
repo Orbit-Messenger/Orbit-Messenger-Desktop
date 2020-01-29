@@ -46,16 +46,17 @@ public class PreferencesController extends ControllerUtil {
     @FXML
     HBox profilePictureHBox;
 
-    private String server, wsServer, username;
+    private String server, wsServer, username, password;
     private ArrayList<String> cssChoices = new ArrayList<String>();
     private Stage mainStage;
 
     public String getWsServer() { return wsServer = server.replace("https", "wss"); }
     public String getServer() { return server.replace("wss", "https"); }
 
-    public PreferencesController(String server, String username){
+    public PreferencesController(String server, String username, String password){
        this.server = server;
        this.username = username;
+       this.password = password;
     }
 
     public void initialize() {
@@ -140,7 +141,8 @@ public class PreferencesController extends ControllerUtil {
                 int statusCode;
                 try{
                     InputStream file = new FileInputStream(selectedFile);
-                    statusCode = Unirest.post(this.getServer() + "addAvatar")
+                    statusCode = Unirest.post(this.getServer() + "/addAvatar")
+                            .basicAuth(this.username, this.password)
                             .field("file", file, selectedFile.getName())
                             .asEmpty().getStatus();
                 } catch (Exception e){
