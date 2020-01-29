@@ -25,6 +25,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import kong.unirest.Unirest;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
@@ -1120,11 +1121,11 @@ public class MainController extends ControllerUtil {
             FileInputStream fileDataFromServer
                     = null;
             try {
-                fileDataFromServer = new FileInputStream(Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
+                System.out.println("0");
+                fileDataFromServer = new FileInputStream((File) Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
                 .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
                 .queryString("username", user)
-                .asFile(user+".jpg")
-                .getBody());
+                .asObject(File.class));
                 System.out.println("1");
                 logger.warning("text: " + fileDataFromServer.toString());
                 imageMap.put(user, new Image(fileDataFromServer));
