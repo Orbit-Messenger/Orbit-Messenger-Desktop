@@ -321,7 +321,7 @@ public class MainController extends ControllerUtil {
     // +++++++++++++++++++++++ UI ACTIONS ++++++++++++++++++++++++++
 
     /**
-     * Switches to a DIRECT MESSAGE room
+     * Switches to a DIRECT MESSAGE room via the context menu
      */
     public void switchToDirectMessage(String user) {
         JsonArray usersList = new JsonArray();
@@ -353,6 +353,7 @@ public class MainController extends ControllerUtil {
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
+        clientInfo.setCurrentRoom(room);
     }
 
     /**
@@ -433,6 +434,37 @@ public class MainController extends ControllerUtil {
                 mainVBox.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
+    }
+
+    /**
+     * Joins a room via the context menu
+     */
+    public void join() {
+        final int selectedId = roomListView.getSelectionModel().getSelectedIndex();
+        if (selectedId == -1) {
+            return;
+        }
+        Label label = (Label) roomListView.getItems().get(selectedId);
+
+        System.out.println("Current Room 1: " + clientInfo.getCurrentRoom());
+        System.out.println("Current Room 2: " + label.getText());
+
+        // Don't switch if you're already in that room
+        if (!clientInfo.getCurrentRoom().equals(label.getText())) {
+            switchRoom(label.getText());
+        }
+    }
+
+    /**
+     * Switches to directMessenging via the label you clicked on!
+     */
+    public void switchToDirectMessenging() {
+        final int selectedId = userListView.getSelectionModel().getSelectedIndex();
+        if (selectedId == -1) {
+            return;
+        }
+        HBox hBox = (HBox) userListView.getItems().get(selectedId);
+        Label label = (Label) hBox.getChildren().get(1);
     }
 
     /**
@@ -671,9 +703,8 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        if (label.getText() != clientInfo.getCurrentRoom()) {
+                        if (!label.getText().equals(clientInfo.getCurrentRoom())) {
                             switchRoom(label.getText());
-                            clientInfo.setCurrentRoom(label.getText());
                         } else {
                             logger.info("Not switching room since you chose the same room");
                         }
@@ -687,9 +718,8 @@ public class MainController extends ControllerUtil {
                     if (event.getClickCount() == 2) {
                         Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
                         //logger.info("Room Index: " + roomIndex);
-                        if (roomLabels.get(roomIndex).getText() != clientInfo.getCurrentRoom()) {
+                        if (!roomLabels.get(roomIndex).getText().equals(clientInfo.getCurrentRoom())) {
                             switchRoom(roomLabels.get(roomIndex).getText());
-                            clientInfo.setCurrentRoom(roomLabels.get(roomIndex).getText());
                         } else {
                             logger.info("Not switching rooms, you chose the same room.");
                         }
