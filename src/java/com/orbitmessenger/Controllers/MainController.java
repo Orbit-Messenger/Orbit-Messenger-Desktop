@@ -1,6 +1,8 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,10 +23,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import kong.unirest.GetRequest;
-import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -33,9 +35,65 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
+class ClientInfo {
+    private String username, password, httpServer, currentRoom, wsServer;
+
+    public ClientInfo(String username, String password, String httpServer, String currentRoom) {
+        this.username = username;
+        this.password = password;
+        this.httpServer = httpServer;
+        this.currentRoom = currentRoom;
+        this.setWsServer(this.httpServer);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getHttpServer() {
+        return httpServer;
+    }
+
+    public void setHttpServer(String httpServer) {
+        this.httpServer = httpServer;
+    }
+
+    public String getCurrentRoom() {
+        return currentRoom;
+    }
+
+    public void setCurrentRoom(String currentRoom) {
+        this.currentRoom = currentRoom;
+    }
+
+    public String getWsServer() {
+        return wsServer;
+    }
+
+    public void setWsServer() {
+        this.wsServer = this.getHttpServer().replace("https", "wss");
+    }
+
+    public void setWsServer(String httpServer) {
+        this.wsServer = httpServer.replace("https", "wss");
+    }
+}
+
+
 public class MainController extends ControllerUtil {
 
-    private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
@@ -43,6 +101,7 @@ public class MainController extends ControllerUtil {
     private ArrayList<int[]> groupIndexes = new ArrayList<>();
     private ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
     private Map<String,Image> imageMap;
+    private ClientInfo clientInfo;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -80,7 +139,10 @@ public class MainController extends ControllerUtil {
 
     @FXML
     public void initialize() throws URISyntaxException {
-        wsClient = new WSClient(new URI(this.getServer()), getUsername(), getPassword());
+        wsClient = new WSClient(
+                new URI(clientInfo.getWsServer()),
+                clientInfo.getUsername(),
+                clientInfo.getPassword());
         logger = Logger.getLogger("test");
         wsClient.setConnectionLostTimeout( 60 );
         wsClient.setTcpNoDelay(true);
@@ -110,7 +172,14 @@ public class MainController extends ControllerUtil {
         updateHandler.start(); // Starts the update handler thread
         connectionInformationThread.start(); // Starts the connection information thread
         roomLabel.setText("general");
-        currentRoom = roomLabel.getText();
+    }
+
+    public ClientInfo getClientInfo() {
+        return clientInfo;
+    }
+
+    public void setClientInfo(ClientInfo clientInfo) {
+        this.clientInfo = clientInfo;
     }
 
     // +++++++++++++++++++++++ THREADS ++++++++++++++++++++++++++
@@ -158,6 +227,11 @@ public class MainController extends ControllerUtil {
                             }
                             if (serverMessage.has("allUsers")) {
                                 updateUsers(wsClient.getUsersFromJsonObject(serverMessage));
+                                try{
+                                    getAllImages();
+                                }catch (Exception e){
+                                    logger.warning(e.toString());
+                                }
                             }
                             if (serverMessage.has("chatrooms")) {
                                 updateRooms(wsClient.getRoomsFromJsonObject(serverMessage));
@@ -236,36 +310,9 @@ public class MainController extends ControllerUtil {
         }
     });
 
-    // +++++++++++++++++++++++ GETTERS AND SETTERS ++++++++++++++++++++++++++
-    private String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getServer() { return server; }
-    public String getWsServer() { return wsServer = server.replace("https", "wss"); }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    //private JsonObject getProperties() { return properties; }
-
     public void setProperties(JsonObject properties) {
         this.properties = properties;
     }
-
     // +++++++++++++++++++++++ UI ACTIONS ++++++++++++++++++++++++++
 
     /**
@@ -273,7 +320,7 @@ public class MainController extends ControllerUtil {
      */
     public void switchToDirectMessage(String user) {
         JsonArray usersList = new JsonArray();
-        usersList.add(getUsername());
+        usersList.add(clientInfo.getUsername());
         usersList.add(user);
         JsonObject submitMessage = new JsonObject();
         submitMessage.addProperty("action", "chatroom");
@@ -295,7 +342,7 @@ public class MainController extends ControllerUtil {
                 "chatroom",
                 room,
                 null,
-                getUsername(),
+                clientInfo.getUsername(),
                 properties);
         wsClient.send(submitMessage.toString().trim());
         messagesListView.getItems().clear();
@@ -321,7 +368,7 @@ public class MainController extends ControllerUtil {
                 "delete",
                 null,
                 messageIds.get(index).toString(),
-                getUsername(),
+                clientInfo.getUsername(),
                 getPreferences()
         );
         wsClient.send(submitMessage.toString().trim());
@@ -333,9 +380,9 @@ public class MainController extends ControllerUtil {
     public void sendProperties() {
         JsonObject propertiesMessage = wsClient.createSubmitObject(
                 "properties",
-                currentRoom,
+                clientInfo.getCurrentRoom(),
                 null,
-                getUsername(),
+                clientInfo.getUsername(),
                 getPreferences()
         );
         wsClient.send(propertiesMessage.toString().trim());
@@ -352,9 +399,9 @@ public class MainController extends ControllerUtil {
 
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "add",
-                currentRoom,
+                clientInfo.getCurrentRoom(),
                 userText,
-                getUsername(),
+                clientInfo.getUsername(),
                 properties
         );
         wsClient.send(submitMessage.toString().trim());
@@ -421,7 +468,7 @@ public class MainController extends ControllerUtil {
                 "logout",
                 null,
                 "",
-                getUsername(),
+                clientInfo.getUsername(),
                 null
         );
         wsClient.send(submitMessage.toString().trim());
@@ -619,9 +666,9 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        if (label.getText() != currentRoom) {
+                        if (label.getText() != clientInfo.getCurrentRoom()) {
                             switchRoom(label.getText());
-                            currentRoom = label.getText();
+                            clientInfo.setCurrentRoom(label.getText());
                         } else {
                             logger.info("Not switching room since you chose the same room");
                         }
@@ -635,9 +682,9 @@ public class MainController extends ControllerUtil {
                     if (event.getClickCount() == 2) {
                         Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
                         //logger.info("Room Index: " + roomIndex);
-                        if (roomLabels.get(roomIndex).getText() != currentRoom) {
+                        if (roomLabels.get(roomIndex).getText() != clientInfo.getCurrentRoom()) {
                             switchRoom(roomLabels.get(roomIndex).getText());
-                            currentRoom = roomLabels.get(roomIndex).getText();
+                            clientInfo.setCurrentRoom(roomLabels.get(roomIndex).getText());
                         } else {
                             logger.info("Not switching rooms, you chose the same room.");
                         }
@@ -693,7 +740,7 @@ public class MainController extends ControllerUtil {
             label.setStyle("-fx-padding: 0 0 0 10;");
 
             // We want to change the logged in user to a special color.
-            if (trimUsers(userObject.get("username").toString()).equals(getUsername())) {
+            if (trimUsers(userObject.get("username").toString()).equals(clientInfo.getUsername())) {
                 label.setTextFill(Color.ROYALBLUE);
             } else {
                 label.setId("userLabelID");
@@ -710,9 +757,9 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        if (label.getText() != currentRoom) {
+                        if (label.getText() != clientInfo.getCurrentRoom()) {
                             switchToDirectMessage(label.getText());
-                            currentRoom = label.getText();
+                            clientInfo.setCurrentRoom(label.getText());
                         } else {
                             logger.info("Not switching room since you chose the same room");
                         }
@@ -731,7 +778,7 @@ public class MainController extends ControllerUtil {
                     // The second element, that is the one that has the label.
                     label = (Label) userHBox.get(userIndex).getChildren().get(1);
                     switchToDirectMessage(label.getText());
-                    currentRoom = label.getText();
+                    clientInfo.setCurrentRoom(label.getText());
                 }
             }
         });
@@ -898,7 +945,7 @@ public class MainController extends ControllerUtil {
         individualMessageContainer.getChildren().addAll(hBox, messageLabel);
 
         // check if username == the current user or moves messages to the right
-        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
+        if ((!username.equals(clientInfo.getUsername())) && (!username.equals("admin"))) {
             hBox1.setAlignment(Pos.CENTER_RIGHT);
             hBox.setAlignment(Pos.CENTER_RIGHT);
             individualMessageVBox.getStyleClass().add("otherMessageBox");
@@ -991,7 +1038,7 @@ public class MainController extends ControllerUtil {
     public void openCreateRoom() {
         logger.info("Opening Create Room!");
         CreateRoomController createRoom = new CreateRoomController();
-        createRoom.setServer(getServer());
+        createRoom.setServer(clientInfo.getHttpServer());
         Stage newStage = new Stage();
         newStage.setTitle("Create Room");
         createRoom.changeSceneTo(this.CROOM_FXML, createRoom, newStage);
@@ -1016,7 +1063,7 @@ public class MainController extends ControllerUtil {
      */
     public void openPreferences() {
         logger.info("Opening Preferences!");
-        PreferencesController pref = new PreferencesController(this.server, this.username);
+        PreferencesController pref = new PreferencesController(clientInfo.getHttpServer(), clientInfo.getUsername());
         Stage newStage = new Stage();
         newStage.setTitle("Preferences");
         pref.changeSceneTo(this.PREF_FXML, pref, newStage);
@@ -1064,14 +1111,31 @@ public class MainController extends ControllerUtil {
      */
     public void getAllImages() {
         for (String user : allUsers) {
-            GetRequest image
-                    = Unirest.get(this.server+"/getAvatar")
-                    .queryString("username", user);
+            System.out.println(user);
+//            GetRequest image
+//                    = Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
+//                    .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
+//                    .queryString("username", user);
+            FileInputStream fileDataFromServer
+                    = null;
+            try {
+                fileDataFromServer = new FileInputStream(Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
+                .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
+                .queryString("username", user)
+                .asFile(user+".jpg")
+                .getBody());
+                System.out.println("1");
+                logger.warning("text: " + fileDataFromServer.toString());
+                imageMap.put(user, new Image(fileDataFromServer));
+                System.out.println("2");
+
+            } catch (FileNotFoundException e) {
+                logger.warning(e.toString());
+            }
 //            HttpResponse<Image> image
 //                    = (HttpResponse<Image>) Unirest.get(this.server+"/getAvatar")
 //                    .queryString("username", user);
             // Now we have the image, we'll add it to the imageMap Map
-            imageMap.put(user, (Image) image);
         }
     }
 
@@ -1087,7 +1151,7 @@ public class MainController extends ControllerUtil {
                         "logout",
                         null,
                         "",
-                        getUsername(),
+                        clientInfo.getUsername(),
                         null
                 );
                 try {

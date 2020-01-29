@@ -263,11 +263,16 @@ func (rc RouteController) GetAvatar(c *gin.Context) {
 
 	// Authenticates the user
 	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
-		err = c.BindJSON(&username.Username)
+		glog.Info(c)
+		err = c.BindJSON(&username)
 		if err != nil {
 			glog.Error(err)
 		}
-		location, _ := rc.dbConn.GetAvatarByUsername(username.Username)
+		location, err := rc.dbConn.GetAvatarByUsername(username.Username)
+		if err != nil {
+			c.Status(403)
+			return
+		}
 		c.File(location)
 	} else {
 		c.Status(500)

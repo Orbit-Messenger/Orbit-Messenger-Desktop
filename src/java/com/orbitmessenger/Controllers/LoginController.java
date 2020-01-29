@@ -71,9 +71,8 @@ public class LoginController extends ControllerUtil {
             if (statusCode == 200) {
                 addServerToServerListIfNotExists(server);
                 MainController mc = new MainController();
-                mc.setUsername(username);
-                mc.setPassword(password);
-                mc.setServer(wssServerChange(serverPrefix));
+                ClientInfo clientInfo = new ClientInfo(username, password, serverPrefix, "general");
+                mc.setClientInfo(clientInfo);
                 // We do this so that when someone clicks the RED X it will call the closeProgram method.
                 // This is a roundabout way. You can thank Java for that.
                 mc.setClose((Stage) usernameTextField.getScene().getWindow());
@@ -213,9 +212,8 @@ public class LoginController extends ControllerUtil {
                     .body(loginInfo).asString().getStatus();
             if (statusCode == 200) {
                 MainController mc = new MainController();
-                mc.setUsername(username);
-                mc.setPassword(password);
-                mc.setServer(wssServerChange(serverPrefix));
+                ClientInfo clientInfo = new ClientInfo(username, password, serverPrefix, "general");
+                mc.setClientInfo(clientInfo);
                 changeSceneTo(this.MAIN_FXML, mc, (Stage) usernameTextField.getScene().getWindow());
             } else {
                 // change to a status update
