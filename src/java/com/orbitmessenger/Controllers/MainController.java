@@ -894,12 +894,11 @@ public class MainController extends ControllerUtil {
         //Loading image from URL
         ImageView imv = new ImageView();
         try {
-            Image image = imageMap.get(username);
-            //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
+            Image defaultImage = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            Image image = imageMap.getOrDefault(username, defaultImage);
             imv.setImage(image);
         } catch (Exception e) {
-            Image image = imageMap.get("default");
-            //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
             imv.setImage(image);
         }
 
