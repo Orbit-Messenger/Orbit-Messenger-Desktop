@@ -99,7 +99,7 @@ public class MainController extends ControllerUtil {
     private ArrayList<String> allUsers = new ArrayList<>();
     private ArrayList<int[]> groupIndexes = new ArrayList<>();
     private ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
-    private Map<String,Image> imageMap;
+    private HashMap<String,Image> imageMap = new HashMap<>();
     private ClientInfo clientInfo;
 
     @FXML
@@ -1109,28 +1109,20 @@ public class MainController extends ControllerUtil {
      * Queries the server, sending each user, obtaining their profile picture.
      */
     public void getAllImages() {
-//        imageMap.clear();
+        imageMap.clear();
         for (String user : allUsers) {
-            System.out.println(user);
-            System.out.println("Username: " + clientInfo.getUsername());
-            System.out.println("Password: " + clientInfo.getPassword());
-//            GetRequest image
-//                    = Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
-//                    .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
-//                    .queryString("username", user);
-            System.out.println("0");
-            String tempFileLocation = "/src/java/com/orbitmessenger/images/profilePics/temp.jpg";
-            File fileDataFromServer = null;
+            //String tempFileLocation = "../images/profilePics/temp.jpg";
+            //File fileDataFromServer = null;
             try {
-                fileDataFromServer = Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
+                Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
                         .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
                         .queryString("username", user)
-                        .asFile(tempFileLocation).getBody();
-                //Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+                        .asFile("src/java/com/orbitmessenger/images/profilePics/temp.jpg")
+                        .getBody();
+                Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/temp.jpg"), 25, 25, false, false);
                 //Image image = new Image(MainController.class.getResourceAsStream(fileDataFromServer.getPath()), 25, 25, false, false);
-                //imageMap.put(user, image);
+                imageMap.put(user, image);
                 //fileDataFromServer.delete();
-
             } catch (Exception e) {
                 System.out.println("hit");
                 e.printStackTrace();
