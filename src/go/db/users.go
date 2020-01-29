@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/golang/glog"
 )
 
 const (
@@ -199,9 +200,15 @@ func (dbConn DatabaseConnection) AddAvatar(username, avatarFilePath string) erro
 func (dbConn DatabaseConnection) GetAvatarByUsername(username string) (string, error) {
 	var avatar string
 	userId, err := dbConn.GetUserId(username)
-	err = dbConn.conn.QueryRow(context.Background(), GET_AVATAR, userId).Scan(&avatar)
 	if err != nil {
+		glog.Error(err)
 		return avatar, err
 	}
+	err = dbConn.conn.QueryRow(context.Background(), GET_AVATAR, userId).Scan(&avatar)
+	if err != nil {
+		glog.Error(err)
+		return avatar, err
+	}
+
 	return avatar, nil
 }

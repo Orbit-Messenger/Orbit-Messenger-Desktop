@@ -249,7 +249,7 @@ func (rc RouteController) createAvatarImgAndDataEntry(username string, c *gin.Co
 }
 
 type user struct {
-	Username string `json:"username"`
+	Username string `form:"username"`
 }
 
 func (rc RouteController) GetAvatar(c *gin.Context) {
@@ -263,17 +263,20 @@ func (rc RouteController) GetAvatar(c *gin.Context) {
 
 	// Authenticates the user
 	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
-		glog.Info(c)
-		err = c.BindJSON(&username)
+		err = c.BindQuery(&username)
 		if err != nil {
 			glog.Error(err)
+			c.String(404, "error %v", err)
 		}
+		glog.Info(username)
 		location, err := rc.dbConn.GetAvatarByUsername(username.Username)
 		if err != nil {
-			c.Status(403)
+			c.String(403, "error %v", err)
 			return
 		}
+		glog.Info(location)
 		c.File(location)
+		glog.Info("past file location")
 	} else {
 		c.Status(500)
 	}
