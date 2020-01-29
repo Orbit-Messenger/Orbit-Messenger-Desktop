@@ -26,8 +26,6 @@ import javafx.stage.Window;
 import kong.unirest.Unirest;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -231,7 +229,7 @@ public class MainController extends ControllerUtil {
                                 try{
                                     getAllImages();
                                 }catch (Exception e){
-                                    logger.warning(e.toString());
+                                    e.printStackTrace();
                                 }
                             }
                             if (serverMessage.has("chatrooms")) {
@@ -1111,33 +1109,30 @@ public class MainController extends ControllerUtil {
      * Queries the server, sending each user, obtaining their profile picture.
      */
     public void getAllImages() {
-        imageMap.clear();
+//        imageMap.clear();
         for (String user : allUsers) {
             System.out.println(user);
 //            GetRequest image
 //                    = Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
 //                    .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
 //                    .queryString("username", user);
-            FileInputStream fileDataFromServer
-                    = null;
+            System.out.println("0");
+            String tempFileLocation = "/src/java/com/orbitmessenger/images/profilePics/temp.jpg";
+            File fileDataFromServer = null;
             try {
-                System.out.println("0");
-                fileDataFromServer = new FileInputStream((File) Unirest.get(this.clientInfo.getHttpServer()+"/getAvatar")
-                .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
-                .queryString("username", user)
-                .asObject(File.class));
-                System.out.println("1");
-                logger.warning("text: " + fileDataFromServer.toString());
-                imageMap.put(user, new Image(fileDataFromServer));
-                System.out.println("2");
+                fileDataFromServer = Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
+                        .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
+                        .queryString("username", user)
+                        .asFile(tempFileLocation).getBody();
+                Image image = new Image(MainController.class.getResourceAsStream("./images/profilePics/temp.jpg"), 25, 25, false, false);
+                imageMap.put(user, image);
+                fileDataFromServer.delete();
 
-            } catch (FileNotFoundException e) {
-                logger.warning(e.toString());
+            } catch (Exception e) {
+                System.out.println("hit");
+                e.printStackTrace();
+                fileDataFromServer.delete();
             }
-//            HttpResponse<Image> image
-//                    = (HttpResponse<Image>) Unirest.get(this.server+"/getAvatar")
-//                    .queryString("username", user);
-            // Now we have the image, we'll add it to the imageMap Map
         }
     }
 
