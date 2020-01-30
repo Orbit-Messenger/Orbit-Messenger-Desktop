@@ -1,9 +1,12 @@
 package com.orbitmessenger.Controllers;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -21,6 +24,11 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import kong.unirest.Unirest;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -29,16 +37,73 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
+class ClientInfo {
+    private String username, password, httpServer, currentRoom, wsServer;
+
+    public ClientInfo(String username, String password, String httpServer, String currentRoom) {
+        this.username = username;
+        this.password = password;
+        this.httpServer = httpServer;
+        this.currentRoom = currentRoom;
+        this.setWsServer(this.httpServer);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getHttpServer() {
+        return httpServer;
+    }
+
+    public void setHttpServer(String httpServer) {
+        this.httpServer = httpServer;
+    }
+
+    public String getCurrentRoom() {
+        return currentRoom;
+    }
+
+    public void setCurrentRoom(String currentRoom) {
+        this.currentRoom = currentRoom;
+    }
+
+    public String getWsServer() {
+        return wsServer;
+    }
+
+    public void setWsServer() {
+        this.wsServer = this.getHttpServer().replace("https", "wss");
+    }
+
+    public void setWsServer(String httpServer) {
+        this.wsServer = httpServer.replace("https", "wss");
+    }
+}
+
+
 public class MainController extends ControllerUtil {
 
-    private String username, password, server, currentRoom;
     private String wsServer, httpsServer;
-    //private Boolean groupMessages;
     private JsonObject properties;
     private ArrayList<Integer> messageIds = new ArrayList<>();
-    private ArrayList<Image> imageList = new ArrayList<>();
-    private JsonObject imageObject = new JsonObject();
-    private long pass = 0;
+    private ArrayList<String> allUsers = new ArrayList<>();
+    private ArrayList<int[]> groupIndexes = new ArrayList<>();
+    private ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
+    private HashMap<String,Image> imageMap = new HashMap<>();
+    private ClientInfo clientInfo;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -76,7 +141,10 @@ public class MainController extends ControllerUtil {
 
     @FXML
     public void initialize() throws URISyntaxException {
-        wsClient = new WSClient(new URI(this.getServer()), getUsername(), getPassword());
+        wsClient = new WSClient(
+                new URI(clientInfo.getWsServer()),
+                clientInfo.getUsername(),
+                clientInfo.getPassword());
         logger = Logger.getLogger("test");
         wsClient.setConnectionLostTimeout( 60 );
         wsClient.setTcpNoDelay(true);
@@ -106,7 +174,14 @@ public class MainController extends ControllerUtil {
         updateHandler.start(); // Starts the update handler thread
         connectionInformationThread.start(); // Starts the connection information thread
         roomLabel.setText("general");
-        currentRoom = roomLabel.getText();
+    }
+
+    public ClientInfo getClientInfo() {
+        return clientInfo;
+    }
+
+    public void setClientInfo(ClientInfo clientInfo) {
+        this.clientInfo = clientInfo;
     }
 
     // +++++++++++++++++++++++ THREADS ++++++++++++++++++++++++++
@@ -148,11 +223,17 @@ public class MainController extends ControllerUtil {
                         JsonObject serverMessage = wsClient.getServerResponse();
                         if (serverMessage != null) {
                             //logger.info("Response: " + serverMessage);
-                            if (serverMessage.has("messages")) {
-                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
-                            }
+                            System.out.println("Response: " + serverMessage);
                             if (serverMessage.has("allUsers")) {
                                 updateUsers(wsClient.getUsersFromJsonObject(serverMessage));
+                                try{
+                                    getAllImages();
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                            if (serverMessage.has("messages")) {
+                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
                             }
                             if (serverMessage.has("chatrooms")) {
                                 updateRooms(wsClient.getRoomsFromJsonObject(serverMessage));
@@ -231,44 +312,17 @@ public class MainController extends ControllerUtil {
         }
     });
 
-    // +++++++++++++++++++++++ GETTERS AND SETTERS ++++++++++++++++++++++++++
-    private String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getServer() { return server; }
-    public String getWsServer() { return wsServer = server.replace("https", "wss"); }
-
-    public void setServer(String server) {
-        this.server = server;
-    }
-
-    //private JsonObject getProperties() { return properties; }
-
     public void setProperties(JsonObject properties) {
         this.properties = properties;
     }
-
     // +++++++++++++++++++++++ UI ACTIONS ++++++++++++++++++++++++++
 
     /**
-     * Switches to a DIRECT MESSAGE room
+     * Switches to a DIRECT MESSAGE room via the context menu
      */
     public void switchToDirectMessage(String user) {
         JsonArray usersList = new JsonArray();
-        usersList.add(getUsername());
+        usersList.add(clientInfo.getUsername());
         usersList.add(user);
         JsonObject submitMessage = new JsonObject();
         submitMessage.addProperty("action", "chatroom");
@@ -290,12 +344,13 @@ public class MainController extends ControllerUtil {
                 "chatroom",
                 room,
                 null,
-                getUsername(),
+                clientInfo.getUsername(),
                 properties);
         wsClient.send(submitMessage.toString().trim());
         messagesListView.getItems().clear();
         messageIds.clear();
         roomLabel.setText(room);
+        clientInfo.setCurrentRoom(room);
     }
 
     /**
@@ -316,7 +371,7 @@ public class MainController extends ControllerUtil {
                 "delete",
                 null,
                 messageIds.get(index).toString(),
-                getUsername(),
+                clientInfo.getUsername(),
                 getPreferences()
         );
         wsClient.send(submitMessage.toString().trim());
@@ -328,9 +383,9 @@ public class MainController extends ControllerUtil {
     public void sendProperties() {
         JsonObject propertiesMessage = wsClient.createSubmitObject(
                 "properties",
-                currentRoom,
+                clientInfo.getCurrentRoom(),
                 null,
-                getUsername(),
+                clientInfo.getUsername(),
                 getPreferences()
         );
         wsClient.send(propertiesMessage.toString().trim());
@@ -347,9 +402,9 @@ public class MainController extends ControllerUtil {
 
         JsonObject submitMessage = wsClient.createSubmitObject(
                 "add",
-                currentRoom,
+                clientInfo.getCurrentRoom(),
                 userText,
-                getUsername(),
+                clientInfo.getUsername(),
                 properties
         );
         wsClient.send(submitMessage.toString().trim());
@@ -376,6 +431,37 @@ public class MainController extends ControllerUtil {
                 mainVBox.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
+    }
+
+    /**
+     * Joins a room via the context menu
+     */
+    public void join() {
+        final int selectedId = roomListView.getSelectionModel().getSelectedIndex();
+        if (selectedId == -1) {
+            return;
+        }
+        Label label = (Label) roomListView.getItems().get(selectedId);
+
+        System.out.println("Current Room 1: " + clientInfo.getCurrentRoom());
+        System.out.println("Current Room 2: " + label.getText());
+
+        // Don't switch if you're already in that room
+        if (!clientInfo.getCurrentRoom().equals(label.getText())) {
+            switchRoom(label.getText());
+        }
+    }
+
+    /**
+     * Switches to directMessenging via the label you clicked on!
+     */
+    public void switchToDirectMessenging() {
+        final int selectedId = userListView.getSelectionModel().getSelectedIndex();
+        if (selectedId == -1) {
+            return;
+        }
+        HBox hBox = (HBox) userListView.getItems().get(selectedId);
+        Label label = (Label) hBox.getChildren().get(1);
     }
 
     /**
@@ -416,7 +502,7 @@ public class MainController extends ControllerUtil {
                 "logout",
                 null,
                 "",
-                getUsername(),
+                clientInfo.getUsername(),
                 null
         );
         wsClient.send(submitMessage.toString().trim());
@@ -503,65 +589,100 @@ public class MainController extends ControllerUtil {
 
     // Now, if we have groupMessages true, we'll go through and combine them.
     public void groupMessages() {
-        ArrayList<VBox> messageBoxes = new ArrayList<>();
-        for (int i = 0; i < messagesListView.getItems().size(); i++) {
-            String lastUser = "";
+        int start = -1;
+        int end = -1;
+        String lastUser = "";
+        messageIds.clear();
+        groupIndexes.clear();
+        groupedMessageBoxes.clear();
+        ArrayList<String> messagesToGroup = new ArrayList<>();
+        for (int i=0; i < messagesListView.getItems().size(); i++) {
             String currentUser = "";
-            String currentTimestamp = "";
-            String currentMessage = "";
-            Integer currentMessageId = 0;
-            Boolean sameUser;
-
             VBox currentMessageVBox = (VBox) messagesListView.getItems().get(i);
             Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
-            Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
-            HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
-            VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
-            Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
-            HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
-            Label currentTimeStampLabel = new Label();
-            // We do this because if you're switching from group to ungroup, can vise-versa, sometimes there won't be
-            // A second label, only one.
-            try {
-                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
-            } catch (Exception e) {
-                currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
-            }
             currentUser = currentUserLabel.getText();
-            currentTimestamp = currentTimeStampLabel.getText();
-            currentMessage = currentMessageLabel.getText();
-            currentMessageId = Integer.valueOf(currentMessageIdLabel.getText());
+            boolean sameUser = currentUser.equals(lastUser);
 
+            if (sameUser && (start == -1)) {
+                start = i-1;
+            } else if ((!sameUser && (start != -1))) {
+                end = i-1;
+                groupIndexes.add(new int[]{start,end});
+                start = -1;
+                end = -1;
+            }
+            if (sameUser && (i == messagesListView.getItems().size() -1)) {
+                end = i;
+                groupIndexes.add(new int[]{start,end});
+            }
+            lastUser = currentUser;
+        }
 
-            if (i > 1) {
-                VBox previousMessage = (VBox) messagesListView.getItems().get(i-1);
-                Label previousUserLabel = (Label) previousMessage.getChildren().get(0);
-                lastUser = previousUserLabel.getText();
-            } else {
-                lastUser = "";
+        // Now we'll go back and remove the sameUser messages and create one big one for each and reinsert them.
+        for (int[] groupIndex : groupIndexes) {
+            int indexStart = groupIndex[0];
+            int indexEnd = groupIndex[1];
+            String user = "";
+            String timeStamp = "";
+            String message = "";
+            int currentMessageId = 0;
+            Label currentTimeStampLabel = new Label();
+            messagesToGroup.clear();
+
+            for (int j = indexStart; j <= indexEnd; j++) {
+                VBox currentMessageVBox = (VBox) messagesListView.getItems().get(j);
+                Label currentUserLabel = (Label) currentMessageVBox.getChildren().get(0);
+                Label currentMessageIdLabel = (Label) currentMessageVBox.getChildren().get(1);
+                HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
+                VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
+                Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
+                HBox currentTimeStampHBox = (HBox) currentMessageVBox2.getChildren().get(0);
+                try {
+                    currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(1);
+                } catch (Exception e) {
+                    currentTimeStampLabel = (Label) currentTimeStampHBox.getChildren().get(0);
+                }
+                timeStamp = currentTimeStampLabel.getText();
+                message = currentMessageLabel.getText();
+                //System.out.println("Adding Message: " + message);
+                messagesToGroup.add(message);
+                if (j == indexStart) {
+                    user = currentUserLabel.getText();
+                    currentMessageId = Integer.parseInt(currentMessageIdLabel.getText());
+                }
+            }
+            StringBuilder finalMessage = new StringBuilder();
+            for ( String individualMessage : messagesToGroup) {
+                // Removes extra whitespace/newlines.
+                individualMessage = individualMessage.trim();
+                finalMessage.append(individualMessage).append("\n");
             }
 
-
-            sameUser = currentUser.equals(lastUser);
-
-            messageBoxes.add(
+            // Now, lets create a new message box and insert it back in!
+            groupedMessageBoxes.add(
                     createMessageBox(
-                            currentUser,
-                            currentTimestamp,
-                            currentMessage,
+                            user,
+                            timeStamp,
+                            finalMessage.toString(),
                             currentMessageId,
-                            sameUser)
+                            true)
             );
-
-            // Takes the messageId from the server and assigns it to the global messageIds
-            // we'll use for the delete function.
-            // messageIds.add(Integer.valueOf(currentMessageId));
         }
-        Platform.runLater(() -> {
-            messagesListView.getItems().addAll(messageBoxes);
-            trimMessagesToMessageLimit();
-            scrollToBottom();
-        });
+
+        Collections.reverse(groupIndexes);
+        if (groupIndexes.size() > 0) {
+            Platform.runLater(() -> {
+                for (int[] groupIndex : groupIndexes) {
+                    int indexStart = groupIndex[0];
+                    int indexEnd = groupIndex[1];
+                    messagesListView.getItems().remove(indexStart, indexEnd+1);
+                    messagesListView.getItems().add(indexStart, groupedMessageBoxes.get(groupedMessageBoxes.size() - 1));
+                    groupedMessageBoxes.remove(groupedMessageBoxes.size()-1);
+                }
+                trimMessagesToMessageLimit();
+                scrollToBottom();
+            });
+        }
     }
 
     public void updateRooms(JsonArray rooms) {
@@ -579,9 +700,8 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        if (label.getText() != currentRoom) {
+                        if (!label.getText().equals(clientInfo.getCurrentRoom())) {
                             switchRoom(label.getText());
-                            currentRoom = label.getText();
                         } else {
                             logger.info("Not switching room since you chose the same room");
                         }
@@ -595,9 +715,8 @@ public class MainController extends ControllerUtil {
                     if (event.getClickCount() == 2) {
                         Integer roomIndex = roomListView.getFocusModel().focusedIndexProperty().getValue();
                         //logger.info("Room Index: " + roomIndex);
-                        if (roomLabels.get(roomIndex).getText() != currentRoom) {
+                        if (!roomLabels.get(roomIndex).getText().equals(clientInfo.getCurrentRoom())) {
                             switchRoom(roomLabels.get(roomIndex).getText());
-                            currentRoom = roomLabels.get(roomIndex).getText();
                         } else {
                             logger.info("Not switching rooms, you chose the same room.");
                         }
@@ -625,6 +744,8 @@ public class MainController extends ControllerUtil {
         if (users == null) {
             return;
         }
+        // Clear all users, we'll build it again further down.
+        allUsers.clear();
         ArrayList<HBox> userHBox = new ArrayList<>();
         for (JsonElement user : users) {
             JsonObject userObject = new JsonObject();
@@ -646,17 +767,19 @@ public class MainController extends ControllerUtil {
             label.getStyleClass().add("font-color");
             label.setAlignment(Pos.CENTER);
             label.setText(trimUsers(userObject.get("username").toString()));
+            // Adds the user to the user list!
+            allUsers.add(trimUsers(userObject.get("username").toString()));
             label.setStyle("-fx-padding: 0 0 0 10;");
 
             // We want to change the logged in user to a special color.
-            if (trimUsers(userObject.get("username").toString()).equals(getUsername())) {
+            if (trimUsers(userObject.get("username").toString()).equals(clientInfo.getUsername())) {
                 label.setTextFill(Color.ROYALBLUE);
             } else {
                 label.setId("userLabelID");
             }
 
             // Set user label font size
-            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+            label.setFont(new Font(PreferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -666,9 +789,9 @@ public class MainController extends ControllerUtil {
                 @Override
                 public void handle(MouseEvent event){
                     if (event.getClickCount() == 2) {
-                        if (label.getText() != currentRoom) {
+                        if (label.getText() != clientInfo.getCurrentRoom()) {
                             switchToDirectMessage(label.getText());
-                            currentRoom = label.getText();
+                            clientInfo.setCurrentRoom(label.getText());
                         } else {
                             logger.info("Not switching room since you chose the same room");
                         }
@@ -687,7 +810,7 @@ public class MainController extends ControllerUtil {
                     // The second element, that is the one that has the label.
                     label = (Label) userHBox.get(userIndex).getChildren().get(1);
                     switchToDirectMessage(label.getText());
-                    currentRoom = label.getText();
+                    clientInfo.setCurrentRoom(label.getText());
                 }
             }
         });
@@ -800,13 +923,19 @@ public class MainController extends ControllerUtil {
             shortTime = timestamp;
         }
 
-        //Loading image from URL
+        //Loading image from imageMap
         ImageView imv = new ImageView();
+        int imageWidth = 40;
+        int imageHeight = 40;
+        imv.setFitWidth(imageWidth);
+        imv.setFitHeight(imageHeight);
         try {
-            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/"+username+".jpg"), 25, 25, false, false);
+            Image image = imageMap.get(username);
             imv.setImage(image);
         } catch (Exception e) {
-            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            Image image = new Image(MainController.class.getResourceAsStream(
+                    "../images/profilePics/default.jpg"),
+                    imageWidth, imageHeight, false, false);
             imv.setImage(image);
         }
 
@@ -819,25 +948,7 @@ public class MainController extends ControllerUtil {
         VBox individualMessageContainer = new VBox();
         HBox hBox = new HBox();
         HBox hBox1 = new HBox();
-        // check if username == the current user or moves messages to the right
-        if ((!username.equals(getUsername())) && (!username.equals("admin"))) {
-            hBox1.setAlignment(Pos.CENTER_RIGHT);
-            hBox.setAlignment(Pos.CENTER_RIGHT);
-            individualMessageVBox.getStyleClass().add("otherMessageBox");
-            individualMessageContainer.setId("otherMessageBox");
-        } else if (username.equals("admin")){
-            // must be admin, we want to center these messages
-            hBox1.setAlignment(Pos.CENTER);
-            hBox.setAlignment(Pos.CENTER);
-            individualMessageVBox.getStyleClass().add("adminMessageBox");
-            individualMessageContainer.setId("adminMessageBox");
-        } else {
-            // Must be the user!
-            hBox1.setAlignment(Pos.CENTER_LEFT);
-            hBox.setAlignment(Pos.CENTER_LEFT);
-            individualMessageVBox.getStyleClass().add("userMessageBox");
-            individualMessageContainer.setId("userMessageBox");
-        }
+
         // Not sure what this does. Commenting out for now.
         // individualMessageVBox.setStyle(".messageBox");
         individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
@@ -870,9 +981,30 @@ public class MainController extends ControllerUtil {
         hiddenMessageId.setManaged(false);
 
         individualMessageContainer.getChildren().addAll(hBox, messageLabel);
-        hBox1.getChildren().add(imv);
-        hBox1.getChildren().add(individualMessageContainer);
 
+        // check if username == the current user or moves messages to the right
+        if ((!username.equals(clientInfo.getUsername())) && (!username.equals("admin"))) {
+            hBox1.setAlignment(Pos.CENTER_RIGHT);
+            hBox.setAlignment(Pos.CENTER_RIGHT);
+            individualMessageVBox.getStyleClass().add("otherMessageBox");
+            individualMessageContainer.setId("otherMessageBox");
+            hBox1.getChildren().add(individualMessageContainer);
+            hBox1.getChildren().add(imv);
+        } else if (username.equals("admin")){
+            // must be admin, we want to center these messages
+            hBox1.setAlignment(Pos.CENTER);
+            hBox.setAlignment(Pos.CENTER);
+            individualMessageVBox.getStyleClass().add("adminMessageBox");
+            individualMessageContainer.setId("adminMessageBox");
+        } else {
+            // Must be the user!
+            hBox1.setAlignment(Pos.CENTER_LEFT);
+            hBox.setAlignment(Pos.CENTER_LEFT);
+            individualMessageVBox.getStyleClass().add("userMessageBox");
+            individualMessageContainer.setId("userMessageBox");
+            hBox1.getChildren().add(imv);
+            hBox1.getChildren().add(individualMessageContainer);
+        }
 
         individualMessageVBox.getChildren().add(hiddenUsername);
         individualMessageVBox.getChildren().add(hiddenMessageId);
@@ -926,7 +1058,7 @@ public class MainController extends ControllerUtil {
      *
      * @param messageId
      */
-    public void deleteMessages(Integer messageId) {
+    private void deleteMessages(Integer messageId) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -944,13 +1076,15 @@ public class MainController extends ControllerUtil {
     public void openCreateRoom() {
         logger.info("Opening Create Room!");
         CreateRoomController createRoom = new CreateRoomController();
-        createRoom.setServer(getServer());
-        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, new Stage());
+        createRoom.setServer(clientInfo.getHttpServer());
+        Stage newStage = new Stage();
+        newStage.setTitle("Create Room");
+        createRoom.changeSceneTo(this.CROOM_FXML, createRoom, newStage);
 
         Thread createRoomThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (getAllShowingStages().size() > 1) {
+                while (getAllShowingStages(newStage.getTitle()).size() > 0) {
                     try {
                         Thread.sleep(500); // Milliseconds
                     } catch (InterruptedException e) {
@@ -967,19 +1101,23 @@ public class MainController extends ControllerUtil {
      */
     public void openPreferences() {
         logger.info("Opening Preferences!");
-        PreferencesController pref = new PreferencesController(this.server, this.username);
-        pref.changeSceneTo(this.PREF_FXML, pref, new Stage());
+        PreferencesController pref = new PreferencesController(clientInfo.getHttpServer(), clientInfo.getUsername(), clientInfo.getPassword());
+        Stage newStage = new Stage();
+        newStage.setTitle("Preferences");
+        pref.changeSceneTo(this.PREF_FXML, pref, newStage);
 
         Thread updatePreferences = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (getAllShowingStages().size() > 1) {
+                while (getAllShowingStages(newStage.getTitle()).size() > 0) {
                     try {
                         Thread.sleep(500); // Milliseconds
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                getAllImages();
+                clearMessages();
                 loadPreferences();
                 sendProperties();
                 setDarkMode();
@@ -988,14 +1126,48 @@ public class MainController extends ControllerUtil {
         updatePreferences.start();
     }
 
-    public ObservableList<Stage> getAllShowingStages() {
+    private void clearMessages() {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                messagesListView.getItems().clear();
+                }
+        });
+    }
+
+    private ObservableList<Stage> getAllShowingStages(String name) {
         ObservableList<Stage> stages = FXCollections.observableArrayList();
         Window.getWindows().forEach(w -> {
-            if (w instanceof Stage) {
+            if ((w instanceof Stage) && (name.equals(((Stage) w).getTitle()))){
                 stages.add((Stage) w);
             }
         });
         return stages;
+    }
+
+    /**
+     * Queries the server, sending each user, obtaining their profile picture.
+     */
+    public void getAllImages() {
+        // Clears the imageMap so we can fill it up again.
+        imageMap.clear();
+        for (String user : allUsers) {
+            try {
+                // This was we can get an image as a byte array. Then, keeping it in memory, we can convert it to
+                // an image. Finally, assign that image to our imageMap. Voila!
+                byte[] fileBytes = Unirest.get(this.clientInfo.getHttpServer() + "/getAvatar")
+                        .basicAuth(clientInfo.getUsername(), clientInfo.getPassword())
+                        .queryString("username", user)
+                        .asBytes()
+                        .getBody();
+                ByteArrayInputStream input_stream= new ByteArrayInputStream(fileBytes);
+                BufferedImage final_buffered_image = ImageIO.read(input_stream);
+                Image image = SwingFXUtils.toFXImage(final_buffered_image, null);
+                imageMap.put(user, image);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -1010,7 +1182,7 @@ public class MainController extends ControllerUtil {
                         "logout",
                         null,
                         "",
-                        getUsername(),
+                        clientInfo.getUsername(),
                         null
                 );
                 try {

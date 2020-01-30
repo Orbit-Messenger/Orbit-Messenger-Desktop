@@ -24,7 +24,7 @@ func UserInterfaceEquals(a []db.User, b []db.User) bool {
 		return b[i].Username < b[j].Username
 	})
 	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
+		if a[i].Username != b[i].Username {
 			return false
 		}
 	}
@@ -93,5 +93,4 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		// SMALL SLEEP SO THE CPU WON'T MELT.
 		time.Sleep(tick_speed - totalExecutionTime)
 	}
-	glog.Info("out of update handler")
 }

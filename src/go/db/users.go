@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/golang/glog"
 )
 
 const (
@@ -17,6 +18,8 @@ const (
 	CHECK_IF_USER_EXISTS       = "SELECT EXISTS(SELECT username FROM users WHERE username = $1);"
 	CREATE_USER                = "INSERT INTO users VALUES(DEFAULT, $1, $2, $2)"
 	CHANGE_PASSWORD            = "UPDATE users SET password = $1 WHERE id = $2;"
+	ADD_AVATAR                 = "UPDATE users SET avatar = $1 WHERE id = $2;"
+	GET_AVATAR                 = "SELECT avatar FROM users WHERE id = $1;"
 )
 
 type User struct {
@@ -26,6 +29,7 @@ type User struct {
 	Salt     string
 	Status   bool
 	Room     string `json:"room"`
+	Avatar   string `json:"avatar"`
 }
 
 type AllUsers struct {
@@ -34,6 +38,11 @@ type AllUsers struct {
 
 type ActiveUsers struct {
 	ActiveUsers []string `json:"activeUsers"`
+}
+
+type Avatar struct {
+	Username string
+	Location string
 }
 
 // GetUserId gets the users id from the username
@@ -175,4 +184,31 @@ func (dbConn DatabaseConnection) CheckIfUserExists(username string) bool {
 func (dbConn DatabaseConnection) CreateUser(username, password string) error {
 	_, err := dbConn.conn.Exec(context.Background(), CREATE_USER, username, password)
 	return err
+}
+
+// Adds an avatar to a user
+func (dbConn DatabaseConnection) AddAvatar(username, avatarFilePath string) error {
+	userId, err := dbConn.GetUserId(username)
+	if err != nil {
+		return fmt.Errorf("couldn't get user ID for avatar image: %v", err)
+	}
+	_, err = dbConn.conn.Exec(context.Background(), ADD_AVATAR, avatarFilePath, userId)
+	return err
+}
+
+// Gets all the usernames and their avatar locations
+func (dbConn DatabaseConnection) GetAvatarByUsername(username string) (string, error) {
+	var avatar string
+	userId, err := dbConn.GetUserId(username)
+	if err != nil {
+		glog.Error(err)
+		return avatar, err
+	}
+	err = dbConn.conn.QueryRow(context.Background(), GET_AVATAR, userId).Scan(&avatar)
+	if err != nil {
+		glog.Error(err)
+		return avatar, err
+	}
+
+	return avatar, nil
 }

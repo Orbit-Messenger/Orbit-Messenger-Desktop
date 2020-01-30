@@ -15,7 +15,7 @@ type Auth struct {
 
 // Creates an Auth from the given context by it's header
 func (rc RouteController) getAuth(c *gin.Context) (Auth, error) {
-	auth, err := getUsernameAndPasswordFromBase64(c.GetHeader("Authorization"))
+	auth, err := rc.GetUsernameAndPasswordFromBase64(c.GetHeader("Authorization"))
 	if err != nil {
 		return *new(Auth), nil
 	}
@@ -32,7 +32,7 @@ func (rc RouteController) ValidateUser(c *gin.Context) bool {
 }
 
 // Used to get the username and password from basic auth
-func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
+func (rc RouteController) GetUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	var output Auth
 	if input == "" {
 		return output, fmt.Errorf("No username or password in basic auth")
@@ -42,7 +42,6 @@ func getUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	// this removes the basic part
 	base64String := strings.Replace(input, "Basic ", "", 1)
 	data, err := base64.StdEncoding.DecodeString(base64String)
-	fmt.Printf("\ndata: %v\n", string(data))
 	if err != nil {
 		return output, err
 	}

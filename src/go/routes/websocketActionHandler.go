@@ -15,7 +15,12 @@ func (rc *RouteController) handleAction(wsConn *websocket.Conn, state *State) {
 	defer rc.handleRecovery(state, wsConn)
 
 	for {
-		clientData := rc.handleReadDeadlineAndRead(state, wsConn)
+		clientData, err := rc.handleReadDeadlineAndRead(state, wsConn)
+		if err != nil {
+			// For Debugging
+			//glog.Error(err)
+			return
+		}
 		switch clientData.Action {
 		case "login":
 			rc.loginAction(clientData, state, wsConn)
@@ -56,7 +61,7 @@ func (rc RouteController) handleRecovery(state *State, wsConn *websocket.Conn) {
 
 }
 
-func (rc RouteController) handleReadDeadlineAndRead(state *State, wsConn *websocket.Conn) ClientData {
+func (rc RouteController) handleReadDeadlineAndRead(state *State, wsConn *websocket.Conn) (ClientData, error) {
 	var clientData ClientData
 	wsConn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	// When the client sends us a pong, we reset the timer!
@@ -67,16 +72,16 @@ func (rc RouteController) handleReadDeadlineAndRead(state *State, wsConn *websoc
 	err := wsConn.ReadJSON(&clientData)
 	if err != nil {
 		// There shouldn't be any more errors since we're handling the pong messages above. If so, lets close.
-		glog.Error(err.Error())
+		//glog.Error(err.Error())
 		// This should log out a user if they get disconnected.
 		userStatusErr := rc.dbConn.ChangeUserStatus(state.Username, false)
 		if userStatusErr != nil {
 			glog.Error(userStatusErr.Error())
 		}
 		wsConn.Close()
-		glog.Info("closing connection")
+		return clientData, err
 	}
-	return clientData
+	return clientData, nil
 }
 
 func (rc RouteController) loginAction(clientData ClientData, state *State, wsConn *websocket.Conn) {
@@ -131,7 +136,7 @@ func (rc RouteController) loginAction(clientData ClientData, state *State, wsCon
 }
 
 func (rc RouteController) logoutAction(clientData ClientData, state *State, wsConn *websocket.Conn) {
-	glog.Infof("user logged out: %v ", clientData.Username)
+	//glog.Infof("user logged out: %v ", clientData.Username) //DEBUG
 	userStatusErr := rc.dbConn.ChangeUserStatus(clientData.Username, false)
 	if userStatusErr != nil {
 		fmt.Println("Error changing user status: ", userStatusErr.Error())
@@ -185,7 +190,7 @@ func (rc RouteController) propertiesAction(clientData ClientData, state *State) 
 func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 	glog.Info("changing chatroom")
 	// Update state to the new room
-	oldRoom := state.Chatroom
+	//oldRoom := state.Chatroom
 	state.Chatroom = clientData.Chatroom
 
 	// Update the new room in the DB
@@ -202,15 +207,15 @@ func (rc RouteController) chatroomAction(clientData ClientData, state *State) {
 
 	if state.Chatroom != "direct_messages" {
 		// Write user left room!
-		err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", oldRoom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		//err := rc.dbConn.AddMessage("User left room: "+state.Username, "admin", oldRoom)
+		//if err != nil {
+		//	glog.Error(err.Error())
+		//}
 		// Write user joined room!
-		err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
-		if err != nil {
-			glog.Error(err.Error())
-		}
+		//err = rc.dbConn.AddMessage("User joined room: "+state.Username, "admin", state.Chatroom)
+		//if err != nil {
+		//	glog.Error(err.Error())
+		//}
 	}
 }
 
