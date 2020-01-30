@@ -226,11 +226,9 @@ public class MainController extends ControllerUtil {
                             System.out.println("Response: " + serverMessage);
                             if (serverMessage.has("allUsers")) {
                                 updateUsers(wsClient.getUsersFromJsonObject(serverMessage));
-                                try{
-                                    getAllImages();
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
+                            }
+                            if (serverMessage.has("updateAvatar")) {
+                                getAllImages();
                             }
                             if (serverMessage.has("messages")) {
                                 updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
