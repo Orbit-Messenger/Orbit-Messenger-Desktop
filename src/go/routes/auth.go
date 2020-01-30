@@ -42,7 +42,6 @@ func (rc RouteController) GetUsernameAndPasswordFromBase64(input string) (Auth, 
 	// this removes the basic part
 	base64String := strings.Replace(input, "Basic ", "", 1)
 	data, err := base64.StdEncoding.DecodeString(base64String)
-	fmt.Printf("\ndata: %v\n", string(data))
 	if err != nil {
 		return output, err
 	}

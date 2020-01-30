@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users(
   salt TEXT DEFAULT '',
   status boolean DEFAULT false,
   room VARCHAR(50) DEFAULT 'general',
-  avatar VARCHAR(30) DEFAULT null
+  avatar VARCHAR(100) DEFAULT './src/res/images/default.jpg'
   );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test');

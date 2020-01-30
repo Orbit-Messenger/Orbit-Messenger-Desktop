@@ -4,10 +4,7 @@ import com.google.gson.JsonObject;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -45,6 +42,8 @@ public class PreferencesController extends ControllerUtil {
     Button profilePictureButton;
     @FXML
     HBox profilePictureHBox;
+    @FXML
+    Label propertiesLabel;
 
     private String server, wsServer, username, password;
     private ArrayList<String> cssChoices = new ArrayList<String>();
@@ -130,11 +129,12 @@ public class PreferencesController extends ControllerUtil {
         mainStage = (Stage) mainVBox.getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif"));
         File selectedFile = fileChooser.showOpenDialog(mainStage);
-        System.out.println(selectedFile.getName());
-        System.out.println(selectedFile.getTotalSpace());
+//        System.out.println(selectedFile.getName());
+//        System.out.println(selectedFile.getTotalSpace());
         if (selectedFile != null) {
             // Send file to the server!
             if (checkFile(selectedFile)) {
@@ -146,13 +146,14 @@ public class PreferencesController extends ControllerUtil {
                             .field("file", file, selectedFile.getName())
                             .asEmpty().getStatus();
                 } catch (Exception e){
-                    System.out.println("Couldn't upload AVATAR!");
+                    sendError("Couldn't upload Avatar!: " + e.toString());
+                    System.out.println("Couldn't upload AVATAR! " + e.toString());
                     return;
                 }
                 if (200 <= statusCode && statusCode < 300) {
-                    System.out.println("Avatar loaded!");
+                    sendAcceptance("Avatar Accepted!");
                 } else {
-                    System.out.println("Looks like it didn't work!");
+                    sendError("The server didn't accept your image!");
                 }
             } else {
                 System.out.println("Didn't select AVATAR...");
@@ -184,6 +185,7 @@ public class PreferencesController extends ControllerUtil {
         try {
             attr = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
         } catch (IOException e) {
+            sendError(e.toString());
             e.printStackTrace();
         }
 //        System.out.println("creationTime     = " + attr.creationTime());
@@ -200,7 +202,7 @@ public class PreferencesController extends ControllerUtil {
         if (attr.size() < 250000) {
             return true;
         } else {
-            System.out.println("File too big");
+            sendError("File too big!");
             profilePictureHBox.setStyle("-fx-border-color: red");
             return false;
         }
@@ -233,5 +235,19 @@ public class PreferencesController extends ControllerUtil {
 
     private Integer convertToInteger(String messageNumTxt) {
         return Integer.parseInt(messageNumTxt);
+    }
+
+    private void setPropertiesLabelText(String text){
+        propertiesLabel.setText(text);
+    }
+
+    private  void sendError(String error){
+        propertiesLabel.setStyle("-fx-background-color: red");
+        setPropertiesLabelText(error);
+    }
+
+    private  void sendAcceptance(String acceptMessage){
+        propertiesLabel.setStyle("-fx-background-color: yellowGreen");
+        setPropertiesLabelText(acceptMessage);
     }
 }

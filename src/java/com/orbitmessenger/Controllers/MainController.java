@@ -7,7 +7,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.embed.swt.SWTFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -28,10 +27,8 @@ import javafx.stage.Window;
 import kong.unirest.Unirest;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -928,13 +925,17 @@ public class MainController extends ControllerUtil {
 
         //Loading image from imageMap
         ImageView imv = new ImageView();
-        imv.setFitWidth(30);
-        imv.setFitHeight(30);
+        int imageWidth = 40;
+        int imageHeight = 40;
+        imv.setFitWidth(imageWidth);
+        imv.setFitHeight(imageHeight);
         try {
             Image image = imageMap.get(username);
             imv.setImage(image);
         } catch (Exception e) {
-            Image image = new Image(MainController.class.getResourceAsStream("../images/profilePics/default.jpg"), 25, 25, false, false);
+            Image image = new Image(MainController.class.getResourceAsStream(
+                    "../images/profilePics/default.jpg"),
+                    imageWidth, imageHeight, false, false);
             imv.setImage(image);
         }
 
@@ -1115,6 +1116,7 @@ public class MainController extends ControllerUtil {
                         e.printStackTrace();
                     }
                 }
+                getAllImages();
                 clearMessages();
                 loadPreferences();
                 sendProperties();
@@ -1146,7 +1148,7 @@ public class MainController extends ControllerUtil {
     /**
      * Queries the server, sending each user, obtaining their profile picture.
      */
-    private void getAllImages() {
+    public void getAllImages() {
         // Clears the imageMap so we can fill it up again.
         imageMap.clear();
         for (String user : allUsers) {

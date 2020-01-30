@@ -93,5 +93,4 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 		// SMALL SLEEP SO THE CPU WON'T MELT.
 		time.Sleep(tick_speed - totalExecutionTime)
 	}
-	glog.Info("out of update handler")
 }

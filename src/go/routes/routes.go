@@ -253,6 +253,7 @@ type user struct {
 }
 
 func (rc RouteController) GetAvatar(c *gin.Context) {
+	defaultImg := "./src/res/images/default.jpg"
 	var username user
 	basicAuth := c.GetHeader("Authorization")
 	user, err := rc.GetUsernameAndPasswordFromBase64(basicAuth)
@@ -268,15 +269,12 @@ func (rc RouteController) GetAvatar(c *gin.Context) {
 			glog.Error(err)
 			c.String(404, "error %v", err)
 		}
-		glog.Info(username)
 		location, err := rc.dbConn.GetAvatarByUsername(username.Username)
 		if err != nil {
-			c.String(403, "error %v", err)
-			return
+			c.String(201, "error %v", err)
+			location = defaultImg
 		}
-		glog.Info(location)
 		c.File(location)
-		glog.Info("past file location")
 	} else {
 		c.Status(500)
 	}

@@ -12,8 +12,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainVBox" prefHeight="300.0" prefWidth="400.0" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="mainVBox" alignment="CENTER" prefHeight="326.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
+      <Label fx:id="propertiesLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" />
       <TabPane prefHeight="265.0" prefWidth="300.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
           <Tab text="Messages">
