@@ -13,8 +13,8 @@ const (
 	IMAGE_FOLDER_PATH = "./src/res/images/"
 )
 
-// RouteController controls the database for each route
-type RouteController struct {
+// ServerStateController controls the database for each route
+type ServerStateController struct {
 	dbConn        db.DatabaseConnection
 	serverActions *ServerActionsController
 }
@@ -52,15 +52,15 @@ type State struct {
 	AllUsers      []db.User
 }
 
-// CreateRouteController will create a database connection and return a RouteController
-func CreateRouteController() RouteController {
-	return RouteController{
+// CreateServerStateController will create a database connection and return a ServerStateController
+func CreateServerStateController() ServerStateController {
+	return ServerStateController{
 		db.CreateDatabaseConnection(),
 		CreateServerActionsController(),
 	}
 }
 
-func (rc RouteController) WebSocket(c *gin.Context) {
+func (serverState ServerStateController) WebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -70,11 +70,11 @@ func (rc RouteController) WebSocket(c *gin.Context) {
 	var state State
 	state.Chatroom = "general"
 
-	go rc.handleAction(conn, &state)
-	go rc.UpdateHandler(conn, &state)
+	go serverState.handleAction(conn, &state)
+	go serverState.UpdateHandler(conn, &state)
 }
 
-func (rc RouteController) VerifyUser(c *gin.Context) {
+func (serverState ServerStateController) VerifyUser(c *gin.Context) {
 	var user Auth
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
@@ -83,47 +83,47 @@ func (rc RouteController) VerifyUser(c *gin.Context) {
 
 	glog.Infof("Verifying user: %v", user)
 
-	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+	if serverState.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
 		c.Status(200)
 	} else {
 		c.Status(403)
 	}
 }
 
-func (rc RouteController) CreateUser(c *gin.Context) {
+func (serverState ServerStateController) CreateUser(c *gin.Context) {
 	var user Auth
 	bindErr := c.BindJSON(&user)
 	if bindErr != nil {
 		glog.Warning("Bind Err: ", bindErr.Error())
 	}
-	if !rc.dbConn.CheckIfUserExists(user.Username) {
-		rc.dbConn.CreateUser(user.Username, user.Password)
+	if !serverState.dbConn.CheckIfUserExists(user.Username) {
+		serverState.dbConn.CreateUser(user.Username, user.Password)
 	}
-	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+	if serverState.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
 		c.Status(200)
 	} else {
 		c.Status(500)
 	}
 }
 
-func (rc RouteController) CreateChatroom(c *gin.Context) {
+func (serverState ServerStateController) CreateChatroom(c *gin.Context) {
 	var chatroom db.Chatroom
 	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&chatroom)
 	if bindErr != nil {
 		glog.Warning("Bind Err: ", bindErr.Error())
 	}
-	if !rc.dbConn.CheckIfChatroomExists(chatroom.Name) {
-		rc.dbConn.CreateChatroom(chatroom.Name)
+	if !serverState.dbConn.CheckIfChatroomExists(chatroom.Name) {
+		serverState.dbConn.CreateChatroom(chatroom.Name)
 	}
-	if rc.dbConn.CheckIfChatroomExists(chatroom.Name) {
+	if serverState.dbConn.CheckIfChatroomExists(chatroom.Name) {
 		c.Status(200)
 	} else {
 		c.Status(500)
 	}
 }
 
-func (rc RouteController) ChangePassword(c *gin.Context) {
+func (serverState ServerStateController) ChangePassword(c *gin.Context) {
 	var user db.User
 	// Shouldn't ignore err.
 	bindErr := c.BindJSON(&user)
@@ -131,19 +131,20 @@ func (rc RouteController) ChangePassword(c *gin.Context) {
 		glog.Warning("Bind Err: ", bindErr.Error())
 	}
 
-	id, err := rc.dbConn.GetUserId(user.Username)
+	id, err := serverState.dbConn.GetUserId(user.Username)
 	if err != nil {
 		glog.Warning("database error couldn't get user id: %v", err)
 	}
 
-	err = rc.dbConn.ChangePassword(id, user.Password)
+	err = serverState.dbConn.ChangePassword(id, user.Password)
 	if err != nil {
 		glog.Warning("database error couldn't change user password: %v", err)
 	}
+	c.Status(200)
 }
 
-func (rc RouteController) getAllUsers() db.AllUsers {
-	users, err := rc.dbConn.GetAllUsers()
+func (serverState ServerStateController) getAllUsers() db.AllUsers {
+	users, err := serverState.dbConn.GetAllUsers()
 	if err != nil {
 		glog.Error(err)
 		return users
@@ -151,8 +152,8 @@ func (rc RouteController) getAllUsers() db.AllUsers {
 	return users
 }
 
-func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
-	activeUsers, err := rc.dbConn.GetUsersByStatus(true, chatroom)
+func (serverState ServerStateController) getActiveUsersForClient(chatroom string) db.ActiveUsers {
+	activeUsers, err := serverState.dbConn.GetUsersByStatus(true, chatroom)
 	if err != nil {
 		glog.Error(err)
 		return activeUsers
@@ -160,10 +161,10 @@ func (rc RouteController) getActiveUsersForClient(chatroom string) db.ActiveUser
 	return activeUsers
 }
 
-func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
+func (serverState ServerStateController) getNewMessagesForClient(lastMessageId *int64, chatroom *string, users *[]string, messageLimit *int64) db.Messages {
 	// If Chatroom direct message, get those messages, else get the regular room messages.
 	if *chatroom == "direct_messages" {
-		messages, err := rc.dbConn.GetNewestDirectMessages(*lastMessageId, *users, *messageLimit)
+		messages, err := serverState.dbConn.GetNewestDirectMessages(*lastMessageId, *users, *messageLimit)
 		if err != nil {
 			glog.Error(err)
 			return messages
@@ -172,7 +173,7 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 		return messages
 
 	} else {
-		messages, err := rc.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
+		messages, err := serverState.dbConn.GetNewestMessagesFrom(*lastMessageId, *chatroom, *messageLimit)
 		if err != nil {
 			glog.Error(err)
 			return messages
@@ -183,9 +184,9 @@ func (rc RouteController) getNewMessagesForClient(lastMessageId *int64, chatroom
 }
 
 // Gets all the messages for the client
-func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users []string, messageLimit *int64) db.Messages {
+func (serverState ServerStateController) getAllMessagesForClient(lastMessageId *int64, chatroom *string, users []string, messageLimit *int64) db.Messages {
 	if *chatroom == "direct_messages" {
-		messages, err := rc.dbConn.GetAllDirectMessages(users[0], users[1], *messageLimit)
+		messages, err := serverState.dbConn.GetAllDirectMessages(users[0], users[1], *messageLimit)
 		if err != nil {
 			glog.Error(err)
 			return messages
@@ -193,7 +194,7 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 		updateLastMessageId(messages.Messages, lastMessageId)
 		return messages
 	} else {
-		messages, err := rc.dbConn.GetAllMessages(*chatroom, *messageLimit)
+		messages, err := serverState.dbConn.GetAllMessages(*chatroom, *messageLimit)
 		if err != nil {
 			glog.Error(err)
 			return messages
@@ -205,26 +206,26 @@ func (rc RouteController) getAllMessagesForClient(lastMessageId *int64, chatroom
 }
 
 // Adds an avatar image to the image folder and updates the location in the database
-func (rc RouteController) AddAvatarToUser(c *gin.Context) {
+func (serverState ServerStateController) AddAvatarToUser(c *gin.Context) {
 	var user Auth
 
 	// converts base64 to an auth
 	basicAuth := c.GetHeader("Authorization")
-	user, err := rc.GetUsernameAndPasswordFromBase64(basicAuth)
+	user, err := serverState.GetUsernameAndPasswordFromBase64(basicAuth)
 	if err != nil {
 		glog.Error("couldn't decode base64 auth")
 		return
 	}
 
 	// Authenticates the user
-	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
-		rc.createAvatarImgAndDataEntry(user.Username, c)
+	if serverState.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+		serverState.createAvatarImgAndDataEntry(user.Username, c)
 	} else {
 		c.Status(500)
 	}
 }
 
-func (rc RouteController) createAvatarImgAndDataEntry(username string, c *gin.Context) {
+func (serverState ServerStateController) createAvatarImgAndDataEntry(username string, c *gin.Context) {
 	// Gets a file from the http request
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -240,7 +241,7 @@ func (rc RouteController) createAvatarImgAndDataEntry(username string, c *gin.Co
 	}
 
 	// Updates the database with the image location
-	err = rc.dbConn.AddAvatar(username, IMAGE_FOLDER_PATH+file.Filename)
+	err = serverState.dbConn.AddAvatar(username, IMAGE_FOLDER_PATH+file.Filename)
 	if err != nil {
 		glog.Error(err)
 	}
@@ -252,24 +253,24 @@ type user struct {
 	Username string `form:"username"`
 }
 
-func (rc RouteController) GetAvatar(c *gin.Context) {
+func (serverState ServerStateController) GetAvatar(c *gin.Context) {
 	defaultImg := "./src/res/images/default.jpg"
 	var username user
 	basicAuth := c.GetHeader("Authorization")
-	user, err := rc.GetUsernameAndPasswordFromBase64(basicAuth)
+	user, err := serverState.GetUsernameAndPasswordFromBase64(basicAuth)
 	if err != nil {
 		glog.Error("couldn't decode base64 auth")
 		return
 	}
 
 	// Authenticates the user
-	if rc.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
+	if serverState.dbConn.VerifyPasswordByUsername(user.Username, user.Password) {
 		err = c.BindQuery(&username)
 		if err != nil {
 			glog.Error(err)
 			c.String(404, "error %v", err)
 		}
-		location, err := rc.dbConn.GetAvatarByUsername(username.Username)
+		location, err := serverState.dbConn.GetAvatarByUsername(username.Username)
 		if err != nil {
 			c.String(201, "error %v", err)
 			location = defaultImg

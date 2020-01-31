@@ -16,7 +16,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	// Routes has collides with an imported package name, maybe rename this?
-	routes := routes.CreateRouteController()
+	routes := routes.CreateServerStateController()
 
 	// Routes
 	router.GET("/", routes.WebSocket)
