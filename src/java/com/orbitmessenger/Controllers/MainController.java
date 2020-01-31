@@ -104,6 +104,7 @@ public class MainController extends ControllerUtil {
     private ArrayList<VBox> groupedMessageBoxes = new ArrayList<>();
     private HashMap<String,Image> imageMap = new HashMap<>();
     private ClientInfo clientInfo;
+    private boolean removeSplash = false;
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -171,6 +172,7 @@ public class MainController extends ControllerUtil {
         loadVersion();
         setDarkMode();
 
+        createSplashScreen(); // Creates the splash screen!
         updateHandler.start(); // Starts the update handler thread
         connectionInformationThread.start(); // Starts the connection information thread
         roomLabel.setText("general");
@@ -230,11 +232,16 @@ public class MainController extends ControllerUtil {
                             if (serverMessage.has("updateAvatar")) {
                                 getAllImages();
                             }
-                            if (serverMessage.has("messages")) {
-                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
-                            }
                             if (serverMessage.has("chatrooms")) {
                                 updateRooms(wsClient.getRoomsFromJsonObject(serverMessage));
+                            }
+                            if (serverMessage.has("messages")) {
+                                Thread.sleep(5000);
+                                if (!removeSplash) {
+                                    removeSplashScreen();
+                                    removeSplash = true;
+                                }
+                                updateMessages(wsClient.getMessagesFromJsonObject(serverMessage));
                             }
                             if (serverMessage.has("action")) {
                                 deleteMessages(serverMessage.get("messageId").getAsInt());
@@ -314,6 +321,49 @@ public class MainController extends ControllerUtil {
         this.properties = properties;
     }
     // +++++++++++++++++++++++ UI ACTIONS ++++++++++++++++++++++++++
+
+    /**
+     * Creates splash screen!
+     */
+    private void createSplashScreen() {
+        System.out.println("Creating splash screen!");
+        //Loading image from images folder. This is our splash screen GIF!
+        ImageView imv = new ImageView();
+        int imageWidth = 250;
+        int imageHeight = 250;
+        imv.setFitWidth(imageWidth);
+        imv.setFitHeight(imageHeight);
+        try {
+            Image image = new Image(MainController.class.getResourceAsStream(
+                    "../images/rick.gif"),
+                    imageWidth, imageHeight, false, false);
+            imv.setImage(image);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        VBox vBox = new VBox();
+        Label label = new Label("Lading messages! Please wait...");
+        label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
+        vBox.getChildren().add(imv);
+        vBox.getChildren().add(label);
+        vBox.setAlignment(Pos.CENTER);
+
+        messagesListView.getItems().add(vBox);
+    }
+
+    /**
+     * Removes the splash screen!
+     */
+    private void removeSplashScreen() {
+        // Splash screen should be the first item
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                messagesListView.getItems().remove(0);
+            }
+        });
+    }
 
     /**
      * Switches to a DIRECT MESSAGE room via the context menu

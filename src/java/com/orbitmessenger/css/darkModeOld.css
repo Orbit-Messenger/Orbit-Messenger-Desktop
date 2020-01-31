@@ -46,7 +46,6 @@
 
 #usernameLabelID, #messageLabelID, #userLabelID, #roomLabelID  {
     -fx-text-fill: LIGHTBLUE;
-    -fx-font-size: 1.1em;
 }
 
 #timeStampID {
