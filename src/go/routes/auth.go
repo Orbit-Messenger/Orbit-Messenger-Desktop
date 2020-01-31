@@ -14,8 +14,8 @@ type Auth struct {
 }
 
 // Creates an Auth from the given context by it's header
-func (rc RouteController) getAuth(c *gin.Context) (Auth, error) {
-	auth, err := rc.GetUsernameAndPasswordFromBase64(c.GetHeader("Authorization"))
+func (serverState ServerStateController) getAuth(c *gin.Context) (Auth, error) {
+	auth, err := serverState.GetUsernameAndPasswordFromBase64(c.GetHeader("Authorization"))
 	if err != nil {
 		return *new(Auth), nil
 	}
@@ -23,16 +23,16 @@ func (rc RouteController) getAuth(c *gin.Context) (Auth, error) {
 }
 
 // validates the context headers basic auth against the usernames and passwords in the database
-func (rc RouteController) ValidateUser(c *gin.Context) bool {
-	auth, err := rc.getAuth(c)
+func (serverState ServerStateController) ValidateUser(c *gin.Context) bool {
+	auth, err := serverState.getAuth(c)
 	if err != nil {
 		return false
 	}
-	return rc.dbConn.VerifyPasswordByUsername(auth.Username, auth.Password)
+	return serverState.dbConn.VerifyPasswordByUsername(auth.Username, auth.Password)
 }
 
 // Used to get the username and password from basic auth
-func (rc RouteController) GetUsernameAndPasswordFromBase64(input string) (Auth, error) {
+func (serverState ServerStateController) GetUsernameAndPasswordFromBase64(input string) (Auth, error) {
 	var output Auth
 	if input == "" {
 		return output, fmt.Errorf("No username or password in basic auth")

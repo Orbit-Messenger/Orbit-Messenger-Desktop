@@ -31,15 +31,15 @@ func UserInterfaceEquals(a []db.User, b []db.User) bool {
 	return true
 }
 
-func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
+func (serverState *ServerStateController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
-	serverActionLen := rc.serverActions.ActionCount
+	serverActionLen := serverState.serverActions.ActionCount
 
 	// used to keep the client updated with all the users and their status.
-	allUsers := rc.getAllUsers()
+	allUsers := serverState.getAllUsers()
 
 	// waits for the user to login
 	for !state.LoggedIn {
@@ -49,17 +49,17 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 	for state.LoggedIn {
 		start := time.Now()
 		// updates the client with the current users in that chatroom
-		allUsers = rc.getAllUsers()
+		allUsers = serverState.getAllUsers()
 		if !UserInterfaceEquals(allUsers.AllUsers, state.AllUsers) {
-			state.AllUsers = rc.getAllUsers().AllUsers
+			state.AllUsers = serverState.getAllUsers().AllUsers
 			writeErr := wsConn.WriteJSON(allUsers)
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
 		}
 
-		if serverActionLen != rc.serverActions.ActionCount {
-			newestAction, err := rc.serverActions.GetNewestAction()
+		if serverActionLen != serverState.serverActions.ActionCount {
+			newestAction, err := serverState.serverActions.GetNewestAction()
 			if err != nil {
 				glog.Error(err.Error())
 			}
@@ -67,10 +67,10 @@ func (rc *RouteController) UpdateHandler(wsConn *websocket.Conn, state *State) {
 			if writeErr != nil {
 				glog.Error(writeErr.Error())
 			}
-			serverActionLen = rc.serverActions.ActionCount
+			serverActionLen = serverState.serverActions.ActionCount
 		}
 
-		messages := rc.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
+		messages := serverState.getNewMessagesForClient(&state.LastMessageId, &state.Chatroom, &state.Users, &state.MessageLimit)
 		if len(messages.Messages) > 0 {
 			writeErr := wsConn.WriteJSON(messages)
 			//glog.Infof("sending: %v", messages)
