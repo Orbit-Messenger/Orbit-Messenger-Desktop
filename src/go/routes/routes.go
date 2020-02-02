@@ -270,12 +270,12 @@ func (serverState ServerStateController) GetAvatar(c *gin.Context) {
 			glog.Error(err)
 			c.String(404, "error %v", err)
 		}
-		location, err := serverState.dbConn.GetAvatarByUsername(username.Username)
+		avatarInfo, err := serverState.dbConn.GetAvatarByUsername(username.Username)
 		if err != nil {
 			c.String(201, "error %v", err)
-			location = defaultImg
+			avatarInfo.Location = defaultImg
 		}
-		c.File(location)
+		c.File(avatarInfo.Location)
 	} else {
 		c.Status(500)
 	}

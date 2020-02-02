@@ -1,3 +1,11 @@
+CREATE TABLE IF NOT EXISTS avatars(
+  id SERIAL PRIMARY KEY,
+  version VARCHAR(50) NOT NULL DEFAULT floor(random() * 100 +1),
+  location VARCHAR(100) DEFAULT './src/res/images/default.jpg'
+);
+
+INSERT INTO avatars VALUES(DEFAULT, DEFAULT, DEFAULT);
+
 CREATE TABLE IF NOT EXISTS users(
   id SERIAL PRIMARY KEY,
   username varchar(50) DEFAULT '',
@@ -5,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users(
   salt TEXT DEFAULT '',
   status boolean DEFAULT false,
   room VARCHAR(50) DEFAULT 'general',
-  avatar VARCHAR(100) DEFAULT './src/res/images/default.jpg'
+  avatar_id INT REFERENCES avatars(id) DEFAULT 1
   );
 
 INSERT INTO users VALUES(DEFAULT, 'maxwell', 'test', 'test');
@@ -51,6 +59,11 @@ INSERT INTO messages VALUES(DEFAULT, 1, 2, 4, 'direct message 1');
 INSERT INTO messages VALUES(DEFAULT, 2, 1, 4, 'direct message 2');
 INSERT INTO messages VALUES(DEFAULT, 3, 4, 4, 'direct message 3');
 INSERT INTO messages VALUES(DEFAULT, 4, 3, 4, 'direct message 4');
+
+CREATE VIEW full_avatar_info AS
+SELECT users.username, avatars.version, avatars.location
+FROM avatars
+INNER JOIN users ON users.avatar_id = avatars.id;
 
 CREATE VIEW full_messages AS 
 SELECT messages.id, users.username, chatrooms.name, messages.message, messages.time_stamp 
