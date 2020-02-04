@@ -13,18 +13,18 @@ const (
 	tick_speed = 50 * time.Millisecond
 )
 
-func UserInterfaceEquals(a []db.User, b []db.User) bool {
-	if len(a) != len(b) {
+func UserInterfaceEquals(group1 []db.User, group2 []db.User) bool {
+	if len(group1) != len(group2) {
 		return false
 	}
-	sort.Slice(a, func(i, j int) bool {
-		return a[i].Username < a[j].Username
+	sort.Slice(group1, func(i, j int) bool {
+		return group1[i].Username < group1[j].Username
 	})
-	sort.Slice(b, func(i, j int) bool {
-		return b[i].Username < b[j].Username
+	sort.Slice(group2, func(i, j int) bool {
+		return group2[i].Username < group2[j].Username
 	})
-	for i := 0; i < len(a); i++ {
-		if a[i].Username != b[i].Username {
+	for i := 0; i < len(group1); i++ {
+		if group1[i].Username != group2[i].Username {
 			return false
 		}
 	}
@@ -37,6 +37,10 @@ func (serverState *ServerStateController) UpdateHandler(wsConn *websocket.Conn, 
 	defer ticker.Stop()
 
 	serverActionLen := serverState.serverActions.ActionCount
+	currentAvatars, err := serverState.dbConn.GetAllAvatars()
+	if err != nil {
+		glog.Error(err)
+	}
 
 	// used to keep the client updated with all the users and their status.
 	//allUsers := serverState.getAllUsers()
@@ -57,6 +61,9 @@ func (serverState *ServerStateController) UpdateHandler(wsConn *websocket.Conn, 
 
 		// Updates the client with the newest messages on the server
 		serverState.updateClientWithNewMessages(state, wsConn)
+
+		// Updates the profile images on a client if someone else changes theirs
+		serverState.updateClientAvatars(&currentAvatars, state, wsConn)
 
 		select {
 		case <-ticker.C:
@@ -109,5 +116,22 @@ func (serverState ServerStateController) updateClientWithNewMessages(state *Stat
 			//TODO FIX ANNOYING TLS MESSAGE
 			//glog.Error(writeErr.Error())
 		}
+	}
+}
+
+type UpdateAvatars struct {
+	UpdateAvatars string `json:"updateAvatars"`
+}
+
+func (serverState ServerStateController) updateClientAvatars(currentAvatars *[]db.Avatar, state *State, wsConn *websocket.Conn) {
+	newAvatars, err := serverState.dbConn.GetAllAvatars()
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	if !serverState.dbConn.CompareAvatarSlice(*currentAvatars, newAvatars) {
+		*currentAvatars = newAvatars
+		glog.Info("sending message")
+		wsConn.WriteJSON(UpdateAvatars{UpdateAvatars: "stuff"})
 	}
 }

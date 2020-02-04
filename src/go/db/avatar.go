@@ -11,12 +11,12 @@ const (
 	ADD_AVATAR         = "INSERT INTO avatars VALUES(DEFAULT, DEFAULT, $1);"
 	GET_NEWEST_AVATAR  = "SELECT MAX(id) FROM avatars;"
 	GET_AVATAR         = "SELECT * FROM full_avatar_info WHERE username = $1"
-	ALL_AVATARS        = "SELECT * FROM avatars;"
+	ALL_AVATARS        = "SELECT * FROM full_avatar_info;"
 )
 
 type Avatar struct {
 	Username string
-	Version  float64
+	Version  int64
 	Location string
 }
 
@@ -74,4 +74,16 @@ func (dbConn DatabaseConnection) GetAllAvatars() ([]Avatar, error) {
 		avatars = append(avatars, avatar)
 	}
 	return avatars, nil
+}
+
+// Gets all the usernames and their avatar locations
+func (dbConn DatabaseConnection) CompareAvatarSlice(slice1, slice2 []Avatar) bool {
+	for key, _ := range slice1 {
+		//glog.Infof("slice1: %v ||| slice2: %v", slice1[key], slice2[key])
+		if slice1[key].Version != slice2[key].Version {
+			glog.Info("profiles changed!")
+			return false
+		}
+	}
+	return true
 }

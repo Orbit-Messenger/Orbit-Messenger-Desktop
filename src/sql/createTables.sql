@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS avatars(
   id SERIAL PRIMARY KEY,
-  version VARCHAR(50) NOT NULL DEFAULT floor(random() * 100 +1),
+  version INT NOT NULL DEFAULT floor(random() * 100 +1),
   location VARCHAR(100) DEFAULT './src/res/images/default.jpg'
 );
 
