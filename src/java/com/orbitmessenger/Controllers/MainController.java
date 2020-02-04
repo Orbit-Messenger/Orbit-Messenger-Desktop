@@ -105,6 +105,7 @@ public class MainController extends ControllerUtil {
     private HashMap<String,Image> imageMap = new HashMap<>();
     private ClientInfo clientInfo;
     private boolean removeSplash = false;
+    public ArrayList<Message> messages = new ArrayList<>();
 
     @FXML
     private VBox mainVBox = new VBox();
@@ -225,18 +226,19 @@ public class MainController extends ControllerUtil {
                         JsonObject serverMessage = wsClient.getServerResponse();
                         if (serverMessage != null) {
                             //logger.info("Response: " + serverMessage);
-                            System.out.println("Response: " + serverMessage);
+                            System.out.println(serverMessage);
                             if (serverMessage.has("allUsers")) {
                                 updateUsers(wsClient.getUsersFromJsonObject(serverMessage));
-                            }
-                            if (serverMessage.has("updateAvatar")) {
-                                getAllImages();
                             }
                             if (serverMessage.has("chatrooms")) {
                                 updateRooms(wsClient.getRoomsFromJsonObject(serverMessage));
                             }
+                            if (serverMessage.has("updateAvatars")) {
+                                getAllImages();
+                                resetMessages();
+                            }
                             if (serverMessage.has("messages")) {
-                                Thread.sleep(5000);
+//                                Thread.sleep(5000);
                                 if (!removeSplash) {
                                     removeSplashScreen();
                                     removeSplash = true;
@@ -607,23 +609,56 @@ public class MainController extends ControllerUtil {
         }
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (int i = newMessages.size() -1; i >= 0; i--) {
-            JsonObject m = (JsonObject) newMessages.get(i);
+            Message message = new Message((JsonObject) newMessages.get(i));
+            messages.add(message);
 
             messageBoxes.add(
                     createMessageBox(
-                            m.get("username").toString().replace("\"", ""),
-                            m.get("timestamp").toString(),
-                            m.get("message").toString().replace("\"", ""),
-                            m.get("messageId").getAsInt(),
+                            message.getUsername(),
+                            message.getTimestamp(),
+                            message.getMessage(),
+                            message.getMessageId(),
                             false)
             );
 
             // Takes the messageId from the server and assigns it to the global messageIds
             // we'll use for the delete function.
-            messageIds.add(m.get("messageId").getAsInt());
+            messageIds.add(message.getMessageId());
         }
 
         Platform.runLater(() -> {
+            messagesListView.getItems().addAll(messageBoxes);
+            // If we want to group our messages, we'll do it now.
+            if (PreferencesObject.get("groupMessages").getAsBoolean()) {
+                groupMessages();
+            }
+            //trimMessagesToMessageLimit();
+            scrollToBottom();
+        });
+
+    }
+
+    /**
+     * To send a message to the console or the GUI
+     */
+    public void resetMessages() {
+        ArrayList<VBox> messageBoxes = new ArrayList<>();
+        for (Message message: messages){
+            messageBoxes.add(
+                    createMessageBox(
+                            message.getUsername(),
+                            message.getTimestamp(),
+                            message.getMessage(),
+                            message.getMessageId(),
+                            false)
+            );
+
+            // Takes the messageId from the server and assigns it to the global messageIds
+            // we'll use for the delete function.
+        }
+
+        Platform.runLater(() -> {
+            messagesListView.getItems().clear();
             messagesListView.getItems().addAll(messageBoxes);
             // If we want to group our messages, we'll do it now.
             if (PreferencesObject.get("groupMessages").getAsBoolean()) {
@@ -1164,7 +1199,7 @@ public class MainController extends ControllerUtil {
                         e.printStackTrace();
                     }
                 }
-                getAllImages();
+                //getAllImages();
                 clearMessages();
                 loadPreferences();
                 sendProperties();
