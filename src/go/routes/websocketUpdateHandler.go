@@ -4,7 +4,6 @@ import (
 	"Orbit-Messenger/src/go/db"
 	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
-	"log"
 	"sort"
 	"time"
 )
