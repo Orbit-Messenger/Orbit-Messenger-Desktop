@@ -126,7 +126,8 @@ func (serverState ServerStateController) loginAction(clientData ClientData, stat
 		glog.Error(err.Error())
 	}
 
-	writeErr := wsConn.WriteJSON(FullData{messages.Messages, allUsers.AllUsers, chatrooms.Chatrooms})
+	writeErr := wsConn.WriteJSON(FullData{messages.Messages, allUsers.AllUsers, chatrooms.Chatrooms, ";)"})
+
 	if writeErr != nil {
 		glog.Error("Error writing to JSON: ", writeErr.Error())
 	}
