@@ -362,7 +362,9 @@ public class MainController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                messagesListView.getItems().remove(0);
+                if (messagesListView.getItems().size() > 0) {
+                    messagesListView.getItems().remove(0);
+                }
             }
         });
     }
