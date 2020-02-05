@@ -36,9 +36,10 @@ type ClientData struct {
 }
 
 type FullData struct {
-	Messages  []db.Message  `json:"messages"`
-	AllUsers  []db.User     `json:"allUsers"`
-	Chatrooms []db.Chatroom `json:"chatrooms"`
+	Messages      []db.Message  `json:"messages"`
+	AllUsers      []db.User     `json:"allUsers"`
+	Chatrooms     []db.Chatroom `json:"chatrooms"`
+	UpdateAvatars string        `json:"updateAvatars"`
 }
 
 type State struct {
