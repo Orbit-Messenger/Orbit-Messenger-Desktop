@@ -68,7 +68,8 @@ func (serverState *ServerStateController) UpdateHandler(wsConn *websocket.Conn, 
 		select {
 		case <-ticker.C:
 			if err := wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second)); err != nil {
-				log.Println("ping:", err)
+				//glog.Infof("ping: %v", err) // For Debugging
+				ticker.Stop()
 			}
 		default:
 			//fmt.Println("Not ready!", ticker.C)
