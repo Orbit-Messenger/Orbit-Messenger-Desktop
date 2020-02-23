@@ -327,7 +327,7 @@ public class MainController extends ControllerUtil {
     /**
      * Creates splash screen!
      */
-    private void createSplashScreen() {
+    private synchronized void createSplashScreen() {
         System.out.println("Creating splash screen!");
         //Loading image from images folder. This is our splash screen GIF!
         ImageView imv = new ImageView();
@@ -362,7 +362,9 @@ public class MainController extends ControllerUtil {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                messagesListView.getItems().remove(0);
+                if (messagesListView.getItems().size() > 0) {
+                    messagesListView.getItems().remove(0);
+                }
             }
         });
     }
@@ -512,6 +514,7 @@ public class MainController extends ControllerUtil {
         }
         HBox hBox = (HBox) userListView.getItems().get(selectedId);
         Label label = (Label) hBox.getChildren().get(1);
+        switchToDirectMessage(label.getText());
     }
 
     /**
@@ -523,14 +526,16 @@ public class MainController extends ControllerUtil {
         if (selectedId == -1) {
             return;
         }
-        VBox vBox = (VBox) messagesListView.getSelectionModel().getSelectedItem();
-        Label children = (Label) vBox.getChildren().get(1);
+        VBox currentMessageVBox = (VBox) messagesListView.getSelectionModel().getSelectedItem();
+        HBox currentMessageHBox = (HBox) currentMessageVBox.getChildren().get(2);
+        VBox currentMessageVBox2 = (VBox) currentMessageHBox.getChildren().get(1);
+        Label currentMessageLabel = (Label) currentMessageVBox2.getChildren().get(1);
 
         // Our clipboard!
         final Clipboard clipboard = Clipboard.getSystemClipboard();
         final ClipboardContent content = new ClipboardContent();
 
-        content.putString(children.getText());
+        content.putString(currentMessageLabel.getText());
 
         clipboard.setContent(content);
     }
