@@ -7,6 +7,8 @@ Orbit Messenger is a multi-threaded, TLS encrypted, websocketed JavaFX applicati
 You'll need to pull the project onto each system that will be utilizing the project. That would include each client and the particular server to act as the host. The server doesn't need to be separate from the client.  
 
 Make sure you have Go v1.13.8 and Postgres v12.1 or newer installed.
+
+keystore.jks will need to have the domain of the server added to it.
 ##### Create DB
 * Create a database called orbitmessengerdb
 run:
