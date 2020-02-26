@@ -79,7 +79,7 @@ public class CreateRoomController extends ControllerUtil {
             @Override
             public void run() {
                 mainVBox.getStylesheets().clear();
-                mainVBox.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
+                mainVBox.getStylesheets().add(getClass().getResource("../css/" + preferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
     }

@@ -29,7 +29,7 @@ class FxUtil{
     public Integer fontSize;
     public String theme;
     public Boolean groupMessages;
-    public JsonObject PreferencesObject;
+    public JsonObject preferencesObject;
     public String version;
 
     //+++++++++ Stage functions ++++++++++
@@ -81,7 +81,7 @@ class FxUtil{
 
     public void loadPreferences() {
         Object returnedPreferences = readPreferencesFile();
-        PreferencesObject = (JsonObject) new JsonParser().parse(returnedPreferences.toString());
+        preferencesObject = (JsonObject) new JsonParser().parse(returnedPreferences.toString());
     }
 
     public void loadVersion() {
@@ -118,7 +118,7 @@ class FxUtil{
         try (Writer writer = new FileWriter(this.PREF_LOC)) {
             Gson gson = new GsonBuilder().create();
 
-            String json = gson.toJson(PreferencesObject);
+            String json = gson.toJson(preferencesObject);
             gson.toJson(json, writer);
         } catch (IOException e) {
             System.out.println("Error writing JSON Preferences file.");
@@ -127,14 +127,14 @@ class FxUtil{
     }
 
     public JsonObject getPreferences() {
-        return PreferencesObject;
+        return preferencesObject;
     }
 
     public void setPreferences() {
-        PreferencesObject.addProperty("messageNumber", messageNumber);
-        PreferencesObject.addProperty("theme", theme);
-        PreferencesObject.addProperty("groupMessages", groupMessages);
-        PreferencesObject.addProperty("fontSize", fontSize);
+        preferencesObject.addProperty("messageNumber", messageNumber);
+        preferencesObject.addProperty("theme", theme);
+        preferencesObject.addProperty("groupMessages", groupMessages);
+        preferencesObject.addProperty("fontSize", fontSize);
     }
 }
 

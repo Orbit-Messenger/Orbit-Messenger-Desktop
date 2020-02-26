@@ -1,4 +1,4 @@
-package com.orbitmessenger.Controllers;
+package com.orbitmessenger.utils;
 
 import com.google.gson.JsonObject;
 
