@@ -3,20 +3,20 @@ package com.orbitmessenger.Controllers;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.orbitmessenger.utils.Message;
+import com.orbitmessenger.utils.MessageBox;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -31,9 +31,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -309,7 +306,7 @@ public class MainController extends ControllerUtil {
         @Override
         public void run() {
             loadPreferences();
-            while (PreferencesObject.get("groupMessages") == null) {
+            while (preferencesObject.get("groupMessages") == null) {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
@@ -346,7 +343,7 @@ public class MainController extends ControllerUtil {
 
         VBox vBox = new VBox();
         Label label = new Label("Lading messages! Please wait...");
-        label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
+        label.setFont(new Font("Arial", preferencesObject.get("fontSize").getAsInt()));
         vBox.getChildren().add(imv);
         vBox.getChildren().add(label);
         vBox.setAlignment(Pos.CENTER);
@@ -480,7 +477,7 @@ public class MainController extends ControllerUtil {
             @Override
             public void run() {
                 mainVBox.getStylesheets().clear();
-                mainVBox.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
+                mainVBox.getStylesheets().add(getClass().getResource("../css/" + preferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
     }
@@ -616,14 +613,17 @@ public class MainController extends ControllerUtil {
         for (int i = newMessages.size() -1; i >= 0; i--) {
             Message message = new Message((JsonObject) newMessages.get(i));
             messages.add(message);
-
+            MessageBox messageBox = new MessageBox();
             messageBoxes.add(
-                    createMessageBox(
+                    messageBox.createMessageBox(
                             message.getUsername(),
                             message.getTimestamp(),
                             message.getMessage(),
                             message.getMessageId(),
-                            false)
+                            false,
+                            imageMap,
+                            preferencesObject,
+                            clientInfo.getUsername())
             );
 
             // Takes the messageId from the server and assigns it to the global messageIds
@@ -634,13 +634,12 @@ public class MainController extends ControllerUtil {
         Platform.runLater(() -> {
             messagesListView.getItems().addAll(messageBoxes);
             // If we want to group our messages, we'll do it now.
-            if (PreferencesObject.get("groupMessages").getAsBoolean()) {
+            if (preferencesObject.get("groupMessages").getAsBoolean()) {
                 groupMessages();
             }
             //trimMessagesToMessageLimit();
             scrollToBottom();
         });
-
     }
 
     /**
@@ -649,13 +648,17 @@ public class MainController extends ControllerUtil {
     public void resetMessages() {
         ArrayList<VBox> messageBoxes = new ArrayList<>();
         for (Message message: messages){
+            MessageBox messageBox = new MessageBox();
             messageBoxes.add(
-                    createMessageBox(
+                    messageBox.createMessageBox(
                             message.getUsername(),
                             message.getTimestamp(),
                             message.getMessage(),
                             message.getMessageId(),
-                            false)
+                            false,
+                            imageMap,
+                            preferencesObject,
+                            clientInfo.getUsername())
             );
 
             // Takes the messageId from the server and assigns it to the global messageIds
@@ -666,7 +669,7 @@ public class MainController extends ControllerUtil {
             messagesListView.getItems().clear();
             messagesListView.getItems().addAll(messageBoxes);
             // If we want to group our messages, we'll do it now.
-            if (PreferencesObject.get("groupMessages").getAsBoolean()) {
+            if (preferencesObject.get("groupMessages").getAsBoolean()) {
                 groupMessages();
             }
             //trimMessagesToMessageLimit();
@@ -747,13 +750,18 @@ public class MainController extends ControllerUtil {
             }
 
             // Now, lets create a new message box and insert it back in!
+            MessageBox messageBox = new MessageBox();
             groupedMessageBoxes.add(
-                    createMessageBox(
+                    messageBox.createMessageBox(
                             user,
                             timeStamp,
                             finalMessage.toString(),
                             currentMessageId,
-                            true)
+                            true,
+                            imageMap,
+                            preferencesObject,
+                            clientInfo.getUsername()
+                    )
             );
         }
 
@@ -815,7 +823,7 @@ public class MainController extends ControllerUtil {
             label.setText(trimUsers(obj.get("name").toString()));
 
             // Set room label font size
-            label.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
+            label.setFont(new Font("Arial", preferencesObject.get("fontSize").getAsInt() - 4));
 
             roomLabels.add(label);
         }
@@ -867,7 +875,7 @@ public class MainController extends ControllerUtil {
             }
 
             // Set user label font size
-            label.setFont(new Font(PreferencesObject.get("fontSize").getAsInt() - 4));
+            label.setFont(new Font(preferencesObject.get("fontSize").getAsInt() - 4));
 
             hBox.getChildren().addAll(circle, label);
             userHBox.add(hBox);
@@ -965,23 +973,23 @@ public class MainController extends ControllerUtil {
     }
 
     // +++++++++++++++++++++++ HELPER FUNCTIONS ++++++++++++++++++++++++++
-    private String convertTime(String time) {
-        // Time comes in like this: "2019-12-27T15:08:06.016632Z"
-        // Since milliseconds come in with trailing 0's trimmed, let just remove them..
-        int lastIndex = time.lastIndexOf('.');
-        String trimmedTime = time.substring(0, lastIndex);
-        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        Date date = null;
-        try {
-            date = sdf.parse(trimmedTime);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return DateFormat.getDateTimeInstance(
-                DateFormat.SHORT,
-                DateFormat.SHORT,
-                Locale.getDefault()).format(date);
-    }
+//    private String convertTime(String time) {
+//        // Time comes in like this: "2019-12-27T15:08:06.016632Z"
+//        // Since milliseconds come in with trailing 0's trimmed, let just remove them..
+//        int lastIndex = time.lastIndexOf('.');
+//        String trimmedTime = time.substring(0, lastIndex);
+//        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+//        Date date = null;
+//        try {
+//            date = sdf.parse(trimmedTime);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+//        return DateFormat.getDateTimeInstance(
+//                DateFormat.SHORT,
+//                DateFormat.SHORT,
+//                Locale.getDefault()).format(date);
+//    }
 
     // Message Limit set in Preferences will determine how many messages we'll see on the screen
     public void trimMessagesToMessageLimit() {
@@ -998,116 +1006,116 @@ public class MainController extends ControllerUtil {
     }
 
 
-    /**
-     * Creates a message box with proper formatting
-     */
-    private VBox createMessageBox(String username, String timestamp, String message, Integer messageId, Boolean sameUser) {
-        // We're doing this because if you toggle between grouping messages and not, you'll be passing in a timestamp
-        // that is formatted differently.
-        String shortTime = "";
-        try {
-            shortTime = convertTime(timestamp.replace("\"", ""));
-        } catch (Exception e) {
-            shortTime = timestamp;
-        }
-
-        //Loading image from imageMap
-        ImageView imv = new ImageView();
-        int imageWidth = 40;
-        int imageHeight = 40;
-        imv.setFitWidth(imageWidth);
-        imv.setFitHeight(imageHeight);
-        try {
-            Image image = imageMap.get(username);
-            imv.setImage(image);
-        } catch (Exception e) {
-            Image image = new Image(MainController.class.getResourceAsStream(
-                    "../images/profilePics/default.jpg"),
-                    imageWidth, imageHeight, false, false);
-            imv.setImage(image);
-        }
-
-        imv.setId("profilePic");
-
-
-        Label hiddenUsername = new Label();
-        Label hiddenMessageId = new Label();
-        VBox individualMessageVBox = new VBox();
-        VBox individualMessageContainer = new VBox();
-        HBox hBox = new HBox();
-        HBox hBox1 = new HBox();
-
-        // Not sure what this does. Commenting out for now.
-        // individualMessageVBox.setStyle(".messageBox");
-        individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
-        Label usernameLabel = new Label();
-        Label timeStampLabel = new Label();
-        Label messageLabel = new Label();
-
-        usernameLabel.getStyleClass().add("font-color");
-        timeStampLabel.getStyleClass().add("font-color");
-        messageLabel.getStyleClass().add("font-color");
-
-        usernameLabel.setText(username);
-        timeStampLabel.setText(shortTime);
-        messageLabel.setText(message);
-
-        // Here we hide the user if the previous message if from the same user.
-        // Furthermore, we will always set the user to a hidden label so we can grab it.
-        // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
-        if (sameUser && PreferencesObject.get("groupMessages").getAsBoolean()) {
-            hBox.getChildren().addAll(timeStampLabel);
-        } else {
-            hBox.getChildren().addAll(usernameLabel, timeStampLabel);
-        }
-
-        hiddenUsername.setText(username);
-        hiddenUsername.setVisible(false);
-        hiddenUsername.setManaged(false);
-        hiddenMessageId.setText(messageId.toString());
-        hiddenMessageId.setVisible(false);
-        hiddenMessageId.setManaged(false);
-
-        individualMessageContainer.getChildren().addAll(hBox, messageLabel);
-
-        // check if username == the current user or moves messages to the right
-        if ((!username.equals(clientInfo.getUsername())) && (!username.equals("admin"))) {
-            hBox1.setAlignment(Pos.CENTER_RIGHT);
-            hBox.setAlignment(Pos.CENTER_RIGHT);
-            individualMessageVBox.getStyleClass().add("otherMessageBox");
-            individualMessageContainer.setId("otherMessageBox");
-            hBox1.getChildren().add(individualMessageContainer);
-            hBox1.getChildren().add(imv);
-        } else if (username.equals("admin")){
-            // must be admin, we want to center these messages
-            hBox1.setAlignment(Pos.CENTER);
-            hBox.setAlignment(Pos.CENTER);
-            individualMessageVBox.getStyleClass().add("adminMessageBox");
-            individualMessageContainer.setId("adminMessageBox");
-        } else {
-            // Must be the user!
-            hBox1.setAlignment(Pos.CENTER_LEFT);
-            hBox.setAlignment(Pos.CENTER_LEFT);
-            individualMessageVBox.getStyleClass().add("userMessageBox");
-            individualMessageContainer.setId("userMessageBox");
-            hBox1.getChildren().add(imv);
-            hBox1.getChildren().add(individualMessageContainer);
-        }
-
-        individualMessageVBox.getChildren().add(hiddenUsername);
-        individualMessageVBox.getChildren().add(hiddenMessageId);
-        //individualMessageVBox.getChildren().add(imv);
-        individualMessageVBox.getChildren().add(hBox1);
-
-        // Set timestamp font size
-        timeStampLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt() - 4));
-        timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
-
-        // Set Message font size
-        messageLabel.setFont(new Font("Arial", PreferencesObject.get("fontSize").getAsInt()));
-
-        return individualMessageVBox;
-    }
+//    /**
+//     * Creates a message box with proper formatting
+//     */
+//    private VBox createMessageBox(String username, String timestamp, String message, Integer messageId, Boolean sameUser) {
+////        // We're doing this because if you toggle between grouping messages and not, you'll be passing in a timestamp
+////        // that is formatted differently.
+////        String shortTime = "";
+////        try {
+////            shortTime = convertTime(timestamp.replace("\"", ""));
+////        } catch (Exception e) {
+////            shortTime = timestamp;
+////        }
+////
+////        //Loading image from imageMap
+////        ImageView imv = new ImageView();
+////        int imageWidth = 40;
+////        int imageHeight = 40;
+////        imv.setFitWidth(imageWidth);
+////        imv.setFitHeight(imageHeight);
+////        try {
+////            Image image = imageMap.get(username);
+////            imv.setImage(image);
+////        } catch (Exception e) {
+////            Image image = new Image(MainController.class.getResourceAsStream(
+////                    "../images/profilePics/default.jpg"),
+////                    imageWidth, imageHeight, false, false);
+////            imv.setImage(image);
+////        }
+////
+////        imv.setId("profilePic");
+////
+////
+////        Label hiddenUsername = new Label();
+////        Label hiddenMessageId = new Label();
+////        VBox individualMessageVBox = new VBox();
+////        VBox individualMessageContainer = new VBox();
+////        HBox hBox = new HBox();
+////        HBox hBox1 = new HBox();
+////
+////        // Not sure what this does. Commenting out for now.
+////        // individualMessageVBox.setStyle(".messageBox");
+////        individualMessageContainer.setMaxWidth(Region.USE_PREF_SIZE);
+////        Label usernameLabel = new Label();
+////        Label timeStampLabel = new Label();
+////        Label messageLabel = new Label();
+////
+////        usernameLabel.getStyleClass().add("font-color");
+////        timeStampLabel.getStyleClass().add("font-color");
+////        messageLabel.getStyleClass().add("font-color");
+////
+////        usernameLabel.setText(username);
+////        timeStampLabel.setText(shortTime);
+////        messageLabel.setText(message);
+//
+//        // Here we hide the user if the previous message if from the same user.
+//        // Furthermore, we will always set the user to a hidden label so we can grab it.
+//        // Otherwise, when we try and grab a message that doesn't have a user label it won't work.
+//        if (sameUser && preferencesObject.get("groupMessages").getAsBoolean()) {
+//            hBox.getChildren().addAll(timeStampLabel);
+//        } else {
+//            hBox.getChildren().addAll(usernameLabel, timeStampLabel);
+//        }
+//
+//        hiddenUsername.setText(username);
+//        hiddenUsername.setVisible(false);
+//        hiddenUsername.setManaged(false);
+//        hiddenMessageId.setText(messageId.toString());
+//        hiddenMessageId.setVisible(false);
+//        hiddenMessageId.setManaged(false);
+//
+//        individualMessageContainer.getChildren().addAll(hBox, messageLabel);
+//
+//        // check if username == the current user or moves messages to the right
+//        if ((!username.equals(clientInfo.getUsername())) && (!username.equals("admin"))) {
+//            hBox1.setAlignment(Pos.CENTER_RIGHT);
+//            hBox.setAlignment(Pos.CENTER_RIGHT);
+//            individualMessageVBox.getStyleClass().add("otherMessageBox");
+//            individualMessageContainer.setId("otherMessageBox");
+//            hBox1.getChildren().add(individualMessageContainer);
+//            hBox1.getChildren().add(imv);
+//        } else if (username.equals("admin")){
+//            // must be admin, we want to center these messages
+//            hBox1.setAlignment(Pos.CENTER);
+//            hBox.setAlignment(Pos.CENTER);
+//            individualMessageVBox.getStyleClass().add("adminMessageBox");
+//            individualMessageContainer.setId("adminMessageBox");
+//        } else {
+//            // Must be the user!
+//            hBox1.setAlignment(Pos.CENTER_LEFT);
+//            hBox.setAlignment(Pos.CENTER_LEFT);
+//            individualMessageVBox.getStyleClass().add("userMessageBox");
+//            individualMessageContainer.setId("userMessageBox");
+//            hBox1.getChildren().add(imv);
+//            hBox1.getChildren().add(individualMessageContainer);
+//        }
+//
+//        individualMessageVBox.getChildren().add(hiddenUsername);
+//        individualMessageVBox.getChildren().add(hiddenMessageId);
+//        //individualMessageVBox.getChildren().add(imv);
+//        individualMessageVBox.getChildren().add(hBox1);
+//
+//        // Set timestamp font size
+//        timeStampLabel.setFont(new Font("Arial", preferencesObject.get("fontSize").getAsInt() - 4));
+//        timeStampLabel.setPadding(new Insets(0, 0, 0, 10));
+//
+//        // Set Message font size
+//        messageLabel.setFont(new Font("Arial", preferencesObject.get("fontSize").getAsInt()));
+//
+//        return individualMessageVBox;
+//    }
 
     /**
      * Popup dialog box displaying About information!
@@ -1119,7 +1127,7 @@ public class MainController extends ControllerUtil {
             @Override
             public void run() {
                 dialogPane.getStylesheets().clear();
-                dialogPane.getStylesheets().add(getClass().getResource("../css/" + PreferencesObject.get("theme").toString().replace("\"", "")).toString());
+                dialogPane.getStylesheets().add(getClass().getResource("../css/" + preferencesObject.get("theme").toString().replace("\"", "")).toString());
             }
         });
         alert.setTitle("Orbit Messenger");

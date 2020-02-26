@@ -62,10 +62,10 @@ public class PreferencesController extends ControllerUtil {
         loadPreferences();
         readCSSFiles();
         setDarkMode();
-        messageNumberTxtField.setText(PreferencesObject.get("messageNumber").toString());
-        themeChoicesDropdown.getSelectionModel().select(cssChoices.indexOf(PreferencesObject.get("theme").toString().replace("\"", "")));
-        groupMessagesCheckBox.setSelected(PreferencesObject.get("groupMessages").getAsBoolean());
-        fontSizeTxtField.setText(PreferencesObject.get("fontSize").toString());
+        messageNumberTxtField.setText(preferencesObject.get("messageNumber").toString());
+        themeChoicesDropdown.getSelectionModel().select(cssChoices.indexOf(preferencesObject.get("theme").toString().replace("\"", "")));
+        groupMessagesCheckBox.setSelected(preferencesObject.get("groupMessages").getAsBoolean());
+        fontSizeTxtField.setText(preferencesObject.get("fontSize").toString());
     }
     /**
      * Updates the clients from the preferences screen
